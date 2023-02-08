@@ -107,6 +107,10 @@ All data structures share a common interface and are sortable/unique, and have u
 
 True generic interface for iteration, algorithms, and simple while/for loops using `Iterand`, `Iterator`, and the `Iterable` interface.  No type traits or viral templates here.
 
+All map/set types use arrays for key/values with items available in insertion order, leveraging the index types.
+
+Iteration speed is 0..N in a contiguous `Array` for every type but `List`
+
 - `Slice`
 - `Iterand, Iterator, Iterable`
 - `Array, ArrayIndex, ArraySet, ArrayMap`
