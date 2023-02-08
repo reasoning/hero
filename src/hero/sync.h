@@ -1,0 +1,1380 @@
+/*
+Copyright (c) 2023 Emerson Clarke <ZeroToHero>
+
+MIT License
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+#pragma once
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+#include "hero/atomic.h"
+#include "hero/traits.h"
+#include "hero/thread.h"
+#include "hero/generic.h"
+
+
+
+
+#ifdef HERO_PLATFORM_POSIX
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsign-conversion"
+#pragma clang diagnostic ignored "-Wunused-variable"
+#pragma clang diagnostic ignored "-Wunused-parameter"
+#pragma clang diagnostic ignored "-Wsign-conversion"
+#pragma clang diagnostic ignored "-Wreturn-stack-address"
+#endif
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+#ifdef HERO_PLATFORM_WINDOWS
+	
+	
+	
+	
+
+	#include <process.h>
+#endif
+
+#ifdef HERO_PLATFORM_POSIX
+
+	#ifdef HERO_PLATFORM_MINGW
+	
+	
+	
+	#define HAVE_STRUCT_TIMESPEC
+	
+	
+	
+	
+	#include <fcntl.h>
+	
+	#endif
+
+
+	#include <semaphore.h>
+	#include <pthread.h>
+	#include <errno.h>
+	
+	
+#endif
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+namespace Hero {
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+class Hazard
+{
+public:
+
+	void * Bytes;
+	
+	
+	Hazard():Bytes(0) {}
+	
+	bool Set(bool set)
+	{
+		if (set)
+		{
+			if (Atomic::Inc((volatile void **)&Bytes) == (void*)1)
+			
+				return true;
+			
+			Atomic::Dec((volatile void **)&Bytes);
+			
+			return false;		
+		}
+		else
+		{
+			Atomic::Dec((volatile void **)&Bytes);
+			
+			return true;
+		}
+	}
+
+
+	class Setter
+	{
+	public:
+		bool Set;
+		Hazard & Haz;
+		Setter(Hazard & hazard):Haz(hazard)
+		{
+			Set = Haz.Set(true);
+		}
+		
+		~Setter()
+		{
+			if (Set) Haz.Set(false);
+		}
+	};		
+
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+class Timeouts
+{
+public:
+
+	static const unsigned int TimeoutDefault = 30000;
+	static const unsigned int TimeoutImmediate = 0;
+	static const unsigned int TimeoutIndefinate = 0xFFFFFFFF;
+
+};
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+unsigned long ThreadId();
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+class Critical : public Timeouts
+{
+public:
+
+	#ifdef HERO_PLATFORM_WINDOWS
+
+		CRITICAL_SECTION Handle;	
+
+	#endif
+
+	#ifdef HERO_PLATFORM_POSIX
+		
+		
+		
+		
+		
+		pthread_mutex_t Handle;		
+
+	#endif
+	
+	
+
+	Critical();
+	~Critical();
+	
+	bool Enter();
+	bool Leave();
+	bool Try();
+
+	bool Wait();
+	bool Owned();
+
+	void Create();
+	void Delete();
+
+	
+	
+	class Auto;
+};
+
+
+
+
+class Critical::Auto
+{
+public:
+
+	class Critical * Critical;
+	short Mode;
+	
+	
+	
+	enum AutoMode
+	{
+		MODE_NONE,
+		MODE_ENTER,
+		MODE_LEAVE,
+	};
+	
+
+	
+	Auto():Critical(0),Mode(0)
+	{
+
+	}
+
+	Auto(Auto & automatic)
+	{
+		Critical = automatic.Critical;
+		Mode = automatic.Mode;
+		automatic.Critical = 0;
+		automatic.Mode = 0;
+	}
+
+	Auto(class Critical & critical, int mode=MODE_ENTER):Critical(&critical),Mode(mode)
+	{
+		Mode = mode;
+		Enter();
+	}
+
+	Auto(class Critical * critical, int mode=MODE_ENTER):Critical(critical),Mode(mode)
+	{
+		Mode = (Critical)?mode:MODE_NONE;
+		Enter();
+	}
+
+	~Auto()
+	{
+		Leave();
+	}
+
+	Auto & operator = (class Critical * critical)
+	{
+		
+		Leave();
+		Critical = critical;
+		Enter();
+		return *this;
+	}
+
+	Auto & operator = (class Critical & critical)
+	{
+		return operator = (&critical);
+	}
+	
+private:
+
+	void Enter()
+	{
+		if (Mode == MODE_ENTER)
+			Critical->Enter();
+		else
+		if (Mode == MODE_LEAVE)
+			Critical->Leave();
+	}
+	
+	void Leave()
+	{
+		if (Mode == MODE_ENTER)
+			Critical->Leave();
+		else
+		if (Mode == MODE_LEAVE)
+			Critical->Enter();	
+	}
+	
+};
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+class Mutex : public Timeouts
+{
+public:
+
+	volatile unsigned long Id;
+	
+	#ifdef HERO_PLATFORM_WINDOWS
+
+		void * Handle;	
+
+	#endif
+
+	#ifdef HERO_PLATFORM_POSIX
+		pthread_mutex_t Handle;		
+		
+		
+		
+	#endif
+
+	Mutex()
+	{
+		Create();
+	}
+
+	~Mutex()
+	{
+		Delete();
+	}
+
+	bool Lock(int timeout=TimeoutIndefinate);
+	bool Unlock();
+
+	bool Try();
+	
+	bool Wait(int timeout=TimeoutIndefinate);
+
+
+	void Create();
+	void Delete();
+
+
+	class Auto;
+
+};
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+class Mutex::Auto
+{
+public:
+
+	class Mutex * Mutex;
+
+	Auto():Mutex(0)
+	{
+
+	}
+
+	Auto(Auto & automatic)
+	{
+		Mutex = automatic.Mutex;
+		automatic.Mutex = 0;
+	}
+
+	Auto(class Mutex & mutex):Mutex(&mutex)
+	{
+		if (Mutex) Mutex->Lock();
+	}
+
+	Auto(class Mutex * mutex):Mutex(mutex)
+	{
+		if (Mutex) Mutex->Lock();
+	}
+
+	~Auto()
+	{
+		if (Mutex) Mutex->Unlock();
+	}
+
+	Auto & operator = (class Mutex * mutex)
+	{
+		if (Mutex) Mutex->Unlock();
+		Mutex = mutex;
+		if (Mutex) Mutex->Lock();
+		return *this;
+	}
+
+	Auto & operator = (class Mutex & mutex)
+	{
+		return operator = (&mutex);
+	}
+};
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+class Event : public Timeouts
+{
+public:
+
+	void * Handle;
+	
+	
+	
+	
+	
+	struct EventWait;	
+	struct EventObject;
+
+	Mutex Mutex;	
+
+	Event(bool manual=false, bool set=false);
+	~Event();
+
+	bool Set();
+	bool Reset();
+	bool Pulse();
+
+	bool Wait(int timeout=Event::TimeoutIndefinate);
+
+	static int WaitForMultipleEvents(int count, Event * events, bool all=false, int timeout=Event::TimeoutIndefinate);
+	static int WaitForSingleEvent(Event * event, int timeout=Event::TimeoutIndefinate);
+
+protected:
+
+	static bool WaitForEvent(Event * event, int timeout=Event::TimeoutIndefinate);
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+class Condition : public Timeouts
+{
+public:
+
+	
+	
+	
+	
+	
+	
+	int Wakeup;
+
+	#ifdef HERO_PLATFORM_POSIX
+	pthread_cond_t Handle;
+	#endif
+	
+	#ifdef HERO_PLATFORM_WINDOWS
+	
+	
+	
+	
+	#if HERO_PLATFORM_WINVER >= 0x0600
+	
+	CONDITION_VARIABLE Handle;
+	#else
+	
+	struct ConditionObject
+	{
+		enum ConditionEvents
+		{
+			SIGNAL=0,
+			BROADCAST=1
+		};
+		
+		void * Events[2];
+		int Signal;
+		
+		ConditionObject()
+		{
+			
+			Events[SIGNAL] = CreateEvent(0,false,false,0);
+			
+			
+			Events[BROADCAST] = CreateEvent(0,true,false,0);
+			Signal = 0;
+		}
+		
+		~ConditionObject()
+		{
+			CloseHandle((HANDLE)Events[SIGNAL]);
+			CloseHandle((HANDLE)Events[BROADCAST]);
+		}
+	};
+	
+	ConditionObject Handle;
+	#endif
+
+	#endif
+
+
+	Condition();
+	~Condition();
+
+	
+	
+	
+
+	
+	
+	
+
+	
+	bool Wait(Critical & critical) {return Wait(critical,TimeoutIndefinate);}
+	
+	
+	
+	bool Wait(Critical & critical, unsigned int timeout);
+
+	
+	bool Signal();	
+	
+	
+	bool Broadcast();
+	
+	
+	
+	
+	
+	
+};
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+class Semaphore
+{
+public:
+
+#ifdef HERO_PLATFORM_WINDOWS
+	void * Handle;
+#endif
+#ifdef HERO_PLATFORM_POSIX
+	
+	
+	sem_t * Handle;
+#endif
+
+	Semaphore(int count=0);
+	~Semaphore();
+
+	bool Enter();
+	bool Leave();
+
+
+	class Auto;
+};
+
+
+
+
+class Semaphore::Auto
+{
+public:
+
+	class Semaphore * Semaphore;
+
+	Auto():Semaphore(0)
+	{
+
+	}
+
+	Auto(Auto & automatic)
+	{
+		Semaphore = automatic.Semaphore;
+		automatic.Semaphore = 0;
+	}
+
+	Auto(class Semaphore & semaphore):Semaphore(&semaphore)
+	{
+		if (Semaphore) Semaphore->Enter();
+	}
+
+	Auto(class Semaphore * semaphore):Semaphore(semaphore)
+	{
+		if (Semaphore) Semaphore->Enter();
+	}
+
+	~Auto()
+	{
+		if (Semaphore) Semaphore->Leave();
+	}
+
+	Auto & operator = (class Semaphore * semaphore)
+	{
+		if (Semaphore) Semaphore->Leave();
+		Semaphore = semaphore;
+		if (Semaphore) Semaphore->Enter();
+		return *this;
+	}
+
+	Auto & operator = (class Semaphore & semaphore)
+	{
+		return operator = (&semaphore);
+	}
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+class Monitor : public Timeouts 
+{
+public:
+
+	class Condition Condition;
+	class Critical Critical;
+	
+	struct MonitorEvents
+	{
+		bool Reset;
+		bool Set;
+		
+		
+		
+		int Signal;
+		
+		
+		
+		int Broadcast;
+		
+		MonitorEvents(bool reset, bool set):Reset(reset),Set(set),Signal(0),Broadcast(0) {}
+	};
+	
+	MonitorEvents Events;
+	
+	
+	
+	int Wakeups;
+	
+
+	int Waiters;
+			
+	Monitor(bool reset=true, bool set=false):
+		Events(reset,set),Wakeups(0), Waiters(0)
+	{
+		
+		
+	}
+	
+	~Monitor()
+	{
+	}
+	
+	
+	
+
+
+	bool Enter() {return Critical.Enter();}
+	bool Leave() {return Critical.Leave();}
+	bool Try() {return Critical.Try();}
+	
+	
+	
+	
+	
+	bool Wait(unsigned int timeout=TimeoutIndefinate);
+
+	
+	
+	bool Waiting();
+	
+	
+	
+	
+	
+	void Set();
+	
+	
+	
+	void Reset();
+
+	
+	
+	
+	void Signal();
+	
+	
+	
+	void Broadcast();
+
+};
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+template<typename _Kind_>
+class Volatile
+{
+public:
+
+	Critical * Mutex;
+	_Kind_ * Kind;
+
+	
+	
+
+	Volatile(volatile typename Template<_Kind_>::ConstReference kind, Critical & mutex):
+		Mutex(&mutex), Kind(kind)
+	{
+		this->Mutex->Handle();		
+	}
+
+	~Volatile()
+	{
+		this->Mutex->Leave();
+	}
+
+	_Kind_ * operator -> () const
+    {
+		Assert(Kind != 0);
+		return Kind;
+    }
+
+    _Kind_ & operator * () const
+    {
+		Assert(Kind != 0);
+		return *Kind;
+    }
+
+
+};
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+class ThreadLocalStorage
+{
+public:
+
+	#ifdef HERO_PLATFORM_WINDOWS
+	int Index;
+	#endif
+	
+	#ifdef HERO_PLATFORM_POSIX
+	struct ThreadLocalStorageInit
+	{
+		pthread_once_t Once;
+				
+		ThreadLocalStorageInit():Once(PTHREAD_ONCE_INIT) 
+		{
+			
+		}
+				
+		~ThreadLocalStorageInit() 
+		{
+		}
+	};
+	
+	static ThreadLocalStorageInit Init;
+	pthread_key_t Index;	
+	
+	#endif
+		
+	ThreadLocalStorage();
+	~ThreadLocalStorage();
+	
+	bool Set(void * data);
+	void * Get();
+	
+	static bool Set(int index, void * data);
+	static void * Get(int index);
+
+	static bool Del(int index);
+
+};
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+class ThreadLocalCleanupImpl;
+
+class ThreadLocalCleanup
+{
+public:
+
+	typedef void (*CleanupFunc)(unsigned long id, int type, int index);
+
+	
+	
+	
+	ThreadLocalCleanupImpl * Impl;
+
+	ThreadLocalCleanup();
+	~ThreadLocalCleanup();
+
+	
+	void Delete(unsigned long id);
+
+	
+	
+	void Remove(unsigned long id);
+	void Remove(unsigned long id, int index);
+
+	void Update(unsigned long id, int type, int index, CleanupFunc func);
+
+	
+	
+	
+	static ThreadLocalCleanup & Singleton();
+};
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+#pragma warning(disable:4172)
+
+
+
+
+
+
+
+
+
+
+
+
+template<typename _Kind_>
+class ThreadLocal
+{
+public:
+
+	
+	
+	struct PointerOrPrimitive
+	{
+		enum {Value = Traits::Or<Traits::IsPointer<_Kind_>::Value,Traits::IsPrimitive<_Kind_>::Value>::Value};		
+	};	
+
+	
+	
+	
+	
+	
+	
+	Optional<_Kind_> Default;
+	ThreadLocalStorage Tls;
+
+	
+	
+	
+	
+	
+	
+
+	enum StorageType
+	{		
+		TYPE_VOID	=(0),		
+		TYPE_PLACE	=(1)<<1,	
+		TYPE_KIND	=(1)<<2,	
+	};
+
+	static void Cleanup(unsigned long id, int type, int index)
+	{
+		switch (type)
+		{
+			
+			case TYPE_KIND:
+			default:
+			{
+				_Kind_ * tls = (_Kind_*)ThreadLocalStorage::Get(index);
+				if (tls) delete tls;
+				
+			}
+			break;
+		}	
+
+		
+		
+		
+
+		ThreadLocalStorage::Set(index,0);
+	}
+	
+	ThreadLocal(typename Template<_Kind_>::ConstReference kind):
+		Default(kind)
+	{
+		
+	}
+	
+	ThreadLocal()
+	{
+		
+	}
+	
+	~ThreadLocal()
+	{
+		
+		
+
+		
+		
+		
+
+		
+		
+		
+		
+		{
+			_Kind_ * tls = (_Kind_*)Tls.Get();
+			if (tls) 
+			{
+				
+				
+				
+
+				delete tls;
+
+				int index = Tls.Index;
+				unsigned long id = ThreadId();
+				ThreadLocalCleanup::Singleton().Remove(id,index);				
+			}
+		}
+	}	
+	
+
+	
+	ThreadLocal & operator = (typename Template<_Kind_>::ConstReference kind)
+	{
+		Set(kind);
+		return *this;
+	}
+	
+	bool operator == (typename Template<_Kind_>::ConstReference kind)
+	{
+		_Kind_ * tls = (_Kind_*)Tls.Get();
+		
+		{
+			return (tls)?*tls == kind:false;
+		}
+	}
+	
+	friend bool operator == (typename Template<_Kind_>::ConstReference lhs,ThreadLocal & rhs)
+	{
+		
+		
+		_Kind_ * tls = (_Kind_*)rhs.Get();
+		
+		{
+			return (tls)?*tls == lhs:false;
+		}
+	}
+	
+	
+	
+		
+	void Set(typename Template<_Kind_>::ConstReference kind)
+	{
+
+		
+		{
+			_Kind_ * tls = (_Kind_*)Tls.Get();
+			if (tls) delete tls;	
+				
+			Tls.Set(new _Kind_(kind));	
+
+			
+			
+			
+			
+			int type = TYPE_KIND;
+			int index = Tls.Index;	
+
+			
+			
+			
+			
+			unsigned long id = ThreadId();
+			ThreadLocalCleanup::Singleton().Update(id,type,index,&Cleanup);				
+		}
+	}
+	
+	
+
+
+	
+	
+	_Kind_ & Get()
+	
+	{	
+		int type = 0;
+		int index = 0;
+
+		_Kind_ * tls = (_Kind_*) Tls.Get();
+		
+		
+		
+		
+		
+		
+		
+		{
+			if (!tls)
+			{
+				if (Default)			
+					Tls.Set(tls = new _Kind_(Default()));
+				else
+					Tls.Set(tls = new _Kind_());
+
+				int type = TYPE_KIND;
+				int index = Tls.Index;
+				unsigned long id = ThreadId();
+				ThreadLocalCleanup::Singleton().Update(id,type,index,&Cleanup);									
+			}
+			return *tls;
+		}
+	}
+	
+	typename Template<_Kind_>::Reference operator () (void)
+	{
+		
+		return Get();
+	}
+
+	typename Hero::Type<_Kind_>::Value Value() {return Hero::Value<_Kind_>::Type(Get());}
+	typename Hero::Type<_Kind_>::Reference Reference() {return Hero::Reference<_Kind_>::Type(Get());}
+	typename Hero::Type<_Kind_>::Pointer Pointer() {return Hero::Pointer<_Kind_>::Type(Get());}
+
+private:
+
+	bool Void()
+	{
+		
+		return PointerOrPrimitive::Value && sizeof(_Kind_) <= sizeof(void*);
+	}
+	
+	bool Place()
+	{
+		
+		return sizeof(_Kind_) <= sizeof(void*);
+	}
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+class SpinLock
+{
+public:
+
+	#ifdef HERO_PLATFORM_I386	
+	unsigned int Bytes;
+
+	
+	static const unsigned int WriterBytes	= 0xFFF00000;
+	static const unsigned int WriterBit		= 0x00100000;
+	
+	static const unsigned int ReaderBytes	= 0x000FFFFF;
+	static const unsigned int ReaderBit		= 0x00000001;
+	#endif
+	
+	#ifdef HERO_PLATFORM_X86_64
+	unsigned long long Bytes;
+
+	
+	static const unsigned long long WriterBytes = 0xFFFFF00000000000LL;
+	static const unsigned long long WriterBit	= 0x0000100000000000LL;
+	
+	static const unsigned long long ReaderBytes = 0x00000FFFFFFFFFFFLL;
+	static const unsigned long long ReaderBit	= 0x0000000000000001LL;
+	#endif
+	
+	SpinLock():Bytes(0)
+	{
+	}
+	
+	~SpinLock()
+	{
+	}
+	
+	
+	
+	
+	
+	
+	bool LockRead(bool yield=true);
+	bool UnlockRead();
+
+	bool LockWrite(bool yield=true);	
+	bool UnlockWrite();
+	
+	bool IsReader() {return false;}
+	bool IsWriter() {return false;}
+	
+public:
+
+
+	struct ReadLock
+	{
+		bool Locked;
+		SpinLock & Spin;
+		ReadLock(SpinLock & spin):
+			Spin(spin),Locked(false) 
+		{
+			Locked = Spin.LockRead();
+		}
+		
+		~ReadLock()
+		{
+			if (Locked) Spin.UnlockRead();
+		}
+		
+		bool Lock(bool yield=true) {if (!Locked) Locked = Spin.LockRead(yield); return Locked;}
+		bool Unlock() {if (Locked) Locked = !Spin.UnlockRead(); return Locked;}
+		
+	};
+	
+
+	struct WriteLock
+	{
+		bool Locked;
+		SpinLock & Spin;
+		WriteLock(SpinLock & spin):
+			Spin(spin),Locked(false) 
+		{
+			Locked = Spin.LockWrite();
+		}
+		
+		~WriteLock()
+		{
+			if (Locked) Spin.UnlockWrite();
+		}
+		
+		bool Lock(bool yield=true) {if (!Locked) Locked = Spin.LockRead(yield); return Locked;}
+		bool Unlock() {if (Locked) Locked = !Spin.UnlockRead(); return Locked;}		
+	};	
+};
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+template<typename _Kind_> 
+class ThreadLocal;
+
+
+
+
+class ReadWriteLock : public SpinLock
+{
+public:
+
+	ThreadLocal<unsigned long> Reader;
+	unsigned long Writer;
+	
+	
+	ReadWriteLock():
+		Writer(0)
+	{
+	}
+	
+	~ReadWriteLock()
+	{
+	}
+	
+		
+	bool LockRead(bool yield=true);
+	bool UnlockRead();
+
+	bool LockWrite(bool yield=true);	
+	bool UnlockWrite();
+	
+	bool IsReader();
+	bool IsWriter();
+	
+public:
+
+
+	struct ReadLock
+	{
+		bool Locked;
+		ReadWriteLock & RW;
+		ReadLock(ReadWriteLock & rw):
+			RW(rw),Locked(false) 
+		{
+			Locked = RW.LockRead();
+		}
+		
+		~ReadLock()
+		{
+			if (Locked) RW.UnlockRead();
+		}
+		
+		bool Lock(bool yield=true) {if (!Locked) Locked = RW.LockRead(yield); return Locked;}
+		bool Unlock() {if (Locked) Locked = !RW.UnlockRead(); return Locked;}
+		
+	};
+	
+
+	struct WriteLock
+	{
+		bool Locked;
+		ReadWriteLock & RW;
+		WriteLock(ReadWriteLock & rw):
+			RW(rw),Locked(false) 
+		{
+			Locked = RW.LockWrite();
+		}
+		
+		~WriteLock()
+		{
+			if (Locked) RW.UnlockWrite();
+		}
+		
+		bool Lock(bool yield=true) {if (!Locked) Locked = RW.LockRead(yield); return Locked;}
+		bool Unlock() {if (Locked) Locked = !RW.UnlockRead(); return Locked;}		
+	};	
+		
+};
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#define HERO_INIT_EARLY
+
+
+
+#define HERO_INIT_DELAY
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+} 
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+#ifdef HERO_PLATFORM_POSIX
+#pragma clang diagnostic pop
+#endif
