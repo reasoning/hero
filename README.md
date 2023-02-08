@@ -3,7 +3,7 @@
 
 Hero is a superluminal object oriented framework written in a pragmatic subset of C++ called C-- 
 
-Based on a larger framwork called Reason that was written 2 decades ago, it has no dependencies, a flat namespace, and will build without libstdc++ if you like.
+Based on a larger framework called Reason that was written 2 decades ago, it has no dependencies, a flat namespace, and will build without libstdc++ if you like.
 
 - It runs on Linux and Windows.
 
@@ -15,7 +15,7 @@ Leave the C++ standard library in the dust.
 
 Above all it is readable, maintainable code that you study, understand, customise and remix in an infinite number of ways.
 
-This is an export from a private repository, so no comments for now.  Sorry.
+This is an export from a private repository, so source comments have been stripped for now.
 
 ## Building
 
