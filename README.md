@@ -50,6 +50,11 @@ Time operations using high frequency `Timer` class, convert between any date/tim
 - `Interval`
 - `Timer`
 
+### Callbacks
+
+Near zero cost callbacks, no heap allocation for non functor or lambda types, an actual generic interface `Callback<void,int,int>` can point to an object, a function, a lambda, a functor, or an object delayed this.
+
+- `Callback`
 
 ### Files and Folders
 Using an abstraction over storage, its possible to have a File or Folder refer to contents of an archive or FTP/SSH server through the same interface.
@@ -100,7 +105,10 @@ Limitless multi-index containers can be leveraged by using `ArrayIndex`, and `Ha
 
 All data structures share a common interface and are sortable/unique, and have upper and lower bound semantics.
 
+True generic interface for iteration, algorithms, and simple while/for loops using `Iterand`, `Iterator`, and the `Iterable` interface.  No type traits or viral templates here.
+
 - `Slice`
+- `Iterand, Iterator, Iterable`
 - `Array, ArrayIndex, ArraySet, ArrayMap`
 - `Vector`
 - `HashIndex, HashSet, HashMap`
