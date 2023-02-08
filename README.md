@@ -21,8 +21,10 @@ This is an export from a private repository, so source comments have been stripp
 
 Build with cmake.
 
+```
 cd build && cmake ../
 make
+```
 
 Customise CMakeLists.txt for build options and compiler settings.
 
