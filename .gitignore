@@ -30,3 +30,16 @@
 *.exe
 *.out
 *.app
+
+
+.svn
+.vs
+.vscode
+build/
+lib/
+bin/
+bak/
+exp/
+out
+x64
+x86

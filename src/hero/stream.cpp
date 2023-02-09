@@ -25,239 +25,194 @@ SOFTWARE.
 #include "hero/stream.h"
 #include "hero/binary.h"
 
-
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace Hero {
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-int Reader::Read(Substring &str, int amount)
+namespace Hero
 {
-	
-	
 
-	if (str.IsNull())
-		return 0;
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	if (amount > str.Size)
-		return 0;
+int Reader::Read(Substring& str, int amount)
+{
+    if (str.IsNull())
+        return 0;
 
-	if (amount == 0)
-		amount = str.Size;
+    if (amount > str.Size)
+        return 0;
 
-	return Read(str.Data,amount);	
+    if (amount == 0)
+        amount = str.Size;
+
+    return Read(str.Data, amount);
 }
 
-
-int Reader::Read(String &string, int amount)
+int Reader::Read(String& string, int amount)
 {
-	Assert(amount >= 0);
-	if (amount < 0) return 0;
+    Assert(amount >= 0);
+    if (amount < 0) return 0;
 
-	
-	
+    if (amount)
+    {
+        if (string.Allocated <= amount)
+            string.Reserve(amount);
 
-	if (amount)
-	{
+        string.Size = Read(string.Data, amount);
+    }
+    else
+    {
+        String reader;
+        if (string.Allocated == 0)
+            reader.Reserve(0x2000);
+        else
+            reader.Reserve(string.Allocated);
 
-		if (string.Allocated <= amount)
-			string.Reserve(amount);
-		
-		string.Size = Read(string.Data,amount);
-	}
-	else
-	{
-	
-		
-		
-		
-		String reader;
-		if (string.Allocated == 0)
-			reader.Reserve(0x2000);
-		else
-			reader.Reserve(string.Allocated);
+        amount = reader.Allocated - 1;
 
-		amount = reader.Allocated-1;
-		
-		Assert(amount > 0);
+        Assert(amount > 0);
 
-		int offset = 0;
-		reader.Size = 0;
-		
+        int offset = 0;
+        reader.Size = 0;
 
-		while(amount > 0 && (amount=Read(reader.Data+offset,amount)))
-		{
-			reader.Size += amount;
-			if (reader.Size == (reader.Allocated-1))
-			{
-				
-				
-				
-				
+        while (amount > 0 && (amount = Read(reader.Data + offset, amount)))
+        {
+            reader.Size += amount;
+            if (reader.Size == (reader.Allocated - 1))
+            {
+                if (IsReadable())
+                {
+                    reader.Reserve(0);
+                }
+            }
 
-				if (IsReadable())
-				{
-					
-					
-					reader.Reserve(0);
-				}
-			}
+            offset += amount;
+            amount = (reader.Allocated - 1) - reader.Size;
+        }
 
-			offset += amount;
-			amount = (reader.Allocated-1)-reader.Size;		
-		}
-		
-		string.Replace(reader);
-	}
+        string.Replace(reader);
+    }
 
-	
-	string.Term();
-	return string.Size;
+    string.Term();
+    return string.Size;
 }
 
-
-int Reader::Read(Writer & writer, int amount)
+int Reader::Read(Writer& writer, int amount)
 {
-	Assert(amount >= 0);
-	if (amount < 0) return 0;
-	
-	String reader;
-	reader.Resize((amount>0)?amount:0x2000);
-	int r=0;
-	int w=0;
+    Assert(amount >= 0);
+    if (amount < 0) return 0;
 
-	if (amount > 0)
-	{
-		r = amount = Read(reader,amount);
-		w = writer.Write(reader,amount);		
-	}
-	else
-	{
-		while ((r += amount = Read(reader)) && amount)
-			w += writer.Write(reader,amount);
-	}
+    String reader;
+    reader.Resize((amount > 0) ? amount : 0x2000);
+    int r = 0;
+    int w = 0;
 
-	if (r != w)
-	{
-		Assert(r == w);
-		return 0;
-	}
+    if (amount > 0)
+    {
+        r = amount = Read(reader, amount);
+        w = writer.Write(reader, amount);
+    }
+    else
+    {
+        while ((r += amount = Read(reader)) && amount)
+            w += writer.Write(reader, amount);
+    }
 
-	return r;
+    if (r != w)
+    {
+        Assert(r == w);
+        return 0;
+    }
+
+    return r;
 }
 
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-int Writer::Write(Substring &str,int amount)
+int Writer::Write(Substring& str, int amount)
 {
-	
-	
+    if (str.IsNull())
+        return 0;
 
-	if (str.IsNull())
-		return 0;
+    if (amount > str.Size)
+        return 0;
 
-	if (amount > str.Size)
-		return 0;
+    if (amount == 0)
+        amount = str.Size;
 
-	if (amount == 0)
-		amount = str.Size;
-	
-	return Write(str.Data,amount);	
+    return Write(str.Data, amount);
 }
 
-
-int Writer::Write(String & string, int amount)
+int Writer::Write(String& string, int amount)
 {
-	Assert(amount >= 0);
-	if (amount < 0) return 0;
+    Assert(amount >= 0);
+    if (amount < 0) return 0;
 
-	
-	
-	
-	
-	
-	
+    if (amount > string.Size)
+        amount = 0;
 
-	if (amount > string.Size)
-		amount = 0;
+    if (amount == 0)
+        amount = string.Size;
 
-	if (amount == 0)
-		amount = string.Size;
-
-	return Write(string.Data,amount);
+    return Write(string.Data, amount);
 }
 
-int Writer::Write(Reader & reader, int amount)
+int Writer::Write(Reader& reader, int amount)
 {
-	Assert(amount >= 0);
-	if (amount < 0) return 0;
+    Assert(amount >= 0);
+    if (amount < 0) return 0;
 
-	String writer;
-	writer.Resize((amount>0)?amount:0x2000);
-	int r=0;
-	int w=0;
+    String writer;
+    writer.Resize((amount > 0) ? amount : 0x2000);
+    int r = 0;
+    int w = 0;
 
-	if (amount > 0)
-	{
-		r = amount = reader.Read(writer,amount);
-		w = Write(writer,amount);		
-	}
-	else
-	{
-		while ((r += amount = reader.Read(writer)) && amount)
-			w += Write(writer,amount);
-	}
+    if (amount > 0)
+    {
+        r = amount = reader.Read(writer, amount);
+        w = Write(writer, amount);
+    }
+    else
+    {
+        while ((r += amount = reader.Read(writer)) && amount)
+            w += Write(writer, amount);
+    }
 
-	if (r != w)
-	{
-		Assert(r == w);
-		return 0;
-	}
+    if (r != w)
+    {
+        Assert(r == w);
+        return 0;
+    }
 
-	return w;
+    return w;
 }
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-int StreamWrite(Stream & stream, int & value)
+int StreamWrite(Stream& stream, int& value)
 {
-	BinaryStream binary(stream);
-	return binary.Write(value);
+    BinaryStream binary(stream);
+    return binary.Write(value);
 }
 
-int StreamRead(Stream & stream, int & value)
+int StreamRead(Stream& stream, int& value)
 {
-	BinaryStream binary(stream);
-	return binary.Write(value);
+    BinaryStream binary(stream);
+    return binary.Write(value);
 }
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-} 
+} // namespace Hero
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-

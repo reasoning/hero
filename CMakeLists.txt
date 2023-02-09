@@ -1,6 +1,12 @@
 cmake_minimum_required(VERSION 3.0.0)
 project(hero VERSION 0.1.0)
 
+
+
+
+
+
+
 # Disable warnings
 add_compile_options(-w)
 add_compile_options(-fpermissive -fno-omit-frame-pointer)
@@ -24,6 +30,7 @@ add_compile_options(-fPIC)
 #add_compile_options(-fno-threadsafe-statics -fno-exceptions -fno-rtti -fno-builtin)
 add_compile_options(-fno-exceptions -fno-rtti)
 
+
 #set(MODULE_NAME ${CMAKE_CURRENT_PROJECT})
 set(MODULE_NAME ${CMAKE_PROJECT_NAME})
 
@@ -35,6 +42,15 @@ add_library(
     ${SRC_FILES}
 )       
 target_include_directories(${MODULE_NAME}_objects PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src )
+
+# CLang format source files
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+include(ClangFormat)
+#clangformat_setup(${SRC_FILES})
+target_clangformat_setup(${MODULE_NAME}_objects)
+
+# Reformat from project root using
+# cmake --build build --target clangformat
 
 # Static library (libhero.a)
 add_library(libhero STATIC $<TARGET_OBJECTS:${MODULE_NAME}_objects>)

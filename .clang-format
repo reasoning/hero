@@ -1,0 +1,18 @@
+BasedOnStyle: LLVM
+IndentWidth: 4
+
+Language: Cpp
+# Force pointers to the type for C++.
+DerivePointerAlignment: false
+PointerAlignment: Left
+UseTab: Never
+IndentWidth: 4
+BreakBeforeBraces: Allman
+AllowShortIfStatementsOnASingleLine: true
+IndentCaseLabels: false
+ColumnLimit: 0
+AlignConsecutiveMacros: AcrossEmptyLines
+MaxEmptyLinesToKeep: 2
+SeparateDefinitionBlocks: Always
+IndentPPDirectives: BeforeHash
+KeepEmptyLinesAtTheStartOfBlocks: false

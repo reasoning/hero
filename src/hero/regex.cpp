@@ -22,22 +22,19 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
-
-#include "hero/hero.h"
 #include "hero/regex.h"
+#include "hero/hero.h"
 
 #ifdef HERO_USING_DEELX
 
-namespace Deelx {
-	
-#include "deelx.h"
+namespace Deelx
+{
+
+    #include "deelx.h"
 
 }
 
@@ -47,65 +44,59 @@ namespace Deelx {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace Hero {
+namespace Hero
+{
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 #ifdef HERO_USING_DEELX
 
-	
-Regex & Regex::Construct()
+Regex& Regex::Construct()
 {
-	Matches.Release();
-	
-	return *this;
+    Matches.Release();
+
+    return *this;
 }
 
-
-int Regex::Match(int limit, char * data, int size)
+int Regex::Match(int limit, char* data, int size)
 {
-	Matches.Release();
+    Matches.Release();
 
-	int matches = 0;
-	int index = 0;
+    int matches = 0;
+    int index = 0;
 
-	Deelx::CRegexpT <char> regexp(Data,Size);
-	Deelx::MatchResult result = regexp.Match(data,size,0);
-	while(result.IsMatched())
-	{	
-		Substring match(data+result.GetStart(),result.GetEnd()-result.GetStart());
-		
-		
-		
-		
-		
-		int i = result.GetEnd();
-		index = (index == i)?index+1:i;
-	
-		Matches.Append(Array<Substring>());
-		Matches[matches].Append(match);
+    Deelx::CRegexpT<char> regexp(Data, Size);
+    Deelx::MatchResult result = regexp.Match(data, size, 0);
+    while (result.IsMatched())
+    {
+        Substring match(data + result.GetStart(), result.GetEnd() - result.GetStart());
 
-		int max = result.MaxGroupNumber();
-		for (int m=1;m<=max;++m)
-		{
-			Substring group(data+result.GetGroupStart(m),result.GetGroupEnd(m)-result.GetGroupStart(m));
-			Matches[matches].Append(group);
-		}
+        int i = result.GetEnd();
+        index = (index == i) ? index + 1 : i;
 
-		if (index >= size)
-			break;
-			
-		result = regexp.Match(data,size,index);
-		
-		++matches;
-		if (matches-limit == 0)
-			break;
-	}
+        Matches.Append(Array<Substring>());
+        Matches[matches].Append(match);
 
-	return matches;
+        int max = result.MaxGroupNumber();
+        for (int m = 1; m <= max; ++m)
+        {
+            Substring group(data + result.GetGroupStart(m), result.GetGroupEnd(m) - result.GetGroupStart(m));
+            Matches[matches].Append(group);
+        }
+
+        if (index >= size)
+            break;
+
+        result = regexp.Match(data, size, index);
+
+        ++matches;
+        if (matches - limit == 0)
+            break;
+    }
+
+    return matches;
 }
 
 #endif
@@ -114,7 +105,7 @@ int Regex::Match(int limit, char * data, int size)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-} 
+} // namespace Hero
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

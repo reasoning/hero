@@ -25,546 +25,461 @@ SOFTWARE.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma warning(disable:4244)
+#pragma warning(disable : 4244)
 
 #include "hero/timer.h"
 #include "hero/error.h"
 
-
 #include <memory.h>
-
 
 #ifdef HERO_PLATFORM_MINGW
 
-
-#undef HERO_PLATFORM_POSIX
+    #undef HERO_PLATFORM_POSIX
 
 #endif
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace Hero {
+namespace Hero
+{
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 #ifdef HERO_PLATFORM_WINDOWS
 long long Timer::Frequency = 0;
 #endif
 
-
 Timer::Timer()
 {
-	
-	Reset();
-	Start();
+    Reset();
+    Start();
 }
 
 Timer::~Timer()
 {
-	
 }
 
 void Timer::Start()
 {
-	
-	
+#ifdef HERO_PLATFORM_WINDOWS
+    LARGE_INTEGER integer;
+    QueryPerformanceCounter(&integer);
+    Started = (long long)integer.QuadPart;
+    Stopped = 0;
+#endif
 
-	#ifdef HERO_PLATFORM_WINDOWS
-	LARGE_INTEGER integer;
-	QueryPerformanceCounter(&integer);
-	Started = (long long)integer.QuadPart;
-	Stopped = 0;
-	#endif
+#ifdef HERO_PLATFORM_POSIX
 
-	#ifdef HERO_PLATFORM_POSIX
-
-	#ifdef HERO_PLATFORM_APPLE
-	if (gettimeofday(&Started,0) != 0)
-	#else
-    if (clock_gettime(CLOCK_REALTIME,&Started) != 0)
-	#endif
+    #ifdef HERO_PLATFORM_APPLE
+    if (gettimeofday(&Started, 0) != 0)
+    #else
+    if (clock_gettime(CLOCK_REALTIME, &Started) != 0)
+    #endif
     {
-		Raise("Timer::Start - Failed to get time for high resolution timer\n");        
+        Raise("Timer::Start - Failed to get time for high resolution timer\n");
     }
 
-	memset(&Stopped,0,sizeof(struct timespec));
+    memset(&Stopped, 0, sizeof(struct timespec));
 
-	#endif
+#endif
 
-	#ifdef HERO_PLATFORM_APPLE
-	
-	
-	#endif
-	
+#ifdef HERO_PLATFORM_APPLE
 
+#endif
 }
 
 void Timer::Step()
 {
-	
-	
-	
-	
+#ifdef HERO_PLATFORM_WINDOWS
+    if (IsStarted())
+        Stopped = 0;
+    else
+        Start();
+#endif
 
-	#ifdef HERO_PLATFORM_WINDOWS
-	if (IsStarted())
-		Stopped = 0;
-	else 
-		Start();
-	#endif
-
-
-	#ifdef HERO_PLATFORM_POSIX
-	if (IsStarted())
-		#ifdef HERO_PLATFORM_APPLE
-		memset(&Stopped,0,sizeof(struct timeval));
-		#else
-		memset(&Stopped,0,sizeof(struct timespec));
-		#endif
-	else
-		Start();
-	#endif
-
+#ifdef HERO_PLATFORM_POSIX
+    if (IsStarted())
+    #ifdef HERO_PLATFORM_APPLE
+        memset(&Stopped, 0, sizeof(struct timeval));
+    #else
+        memset(&Stopped, 0, sizeof(struct timespec));
+    #endif
+    else
+        Start();
+#endif
 }
 
 void Timer::Stop()
 {
-	
-	
+#ifdef HERO_PLATFORM_WINDOWS
+    LARGE_INTEGER integer;
+    QueryPerformanceCounter(&integer);
+    Stopped = (long long)integer.QuadPart;
+#endif
 
-	#ifdef HERO_PLATFORM_WINDOWS
-	LARGE_INTEGER integer;
-	QueryPerformanceCounter(&integer);
-	Stopped = (long long)integer.QuadPart;
-	#endif
+#ifdef HERO_PLATFORM_POSIX
 
-	#ifdef HERO_PLATFORM_POSIX
-	
-    
-	
-	#ifdef HERO_PLATFORM_APPLE
-	if (gettimeofday(&Stopped,0) != 0)
-	#else
-    if (clock_gettime(CLOCK_REALTIME,&Stopped) != 0)
-	#endif
+    #ifdef HERO_PLATFORM_APPLE
+    if (gettimeofday(&Stopped, 0) != 0)
+    #else
+    if (clock_gettime(CLOCK_REALTIME, &Stopped) != 0)
+    #endif
     {
-		Raise("Timer::Stop - Failed to get time for high resolution timer\n");        
+        Raise("Timer::Stop - Failed to get time for high resolution timer\n");
     }
-	#endif
-
+#endif
 }
 
 void Timer::Reset()
 {
-	
-	
+#ifdef HERO_PLATFORM_WINDOWS
+    Started = 0;
+    Stopped = 0;
+    if (!Frequency)
+    {
+        LARGE_INTEGER integer;
+        QueryPerformanceFrequency(&integer);
+        Frequency = (long long)integer.QuadPart;
+    }
 
-	#ifdef HERO_PLATFORM_WINDOWS
-	Started = 0;
-	Stopped = 0;
-	if (!Frequency)
-	{
-		LARGE_INTEGER integer;
-		QueryPerformanceFrequency(&integer);
-		Frequency = (long long)integer.QuadPart;
-	}
-	
-	#endif
+#endif
 
+#ifdef HERO_PLATFORM_POSIX
+    #ifdef HERO_PLATFORM_APPLE
+    memset(&Started, 0, sizeof(struct timeval));
+    memset(&Stopped, 0, sizeof(struct timeval));
+    #else
+    memset(&Started, 0, sizeof(struct timespec));
+    memset(&Stopped, 0, sizeof(struct timespec));
 
-	#ifdef HERO_PLATFORM_POSIX
-	#ifdef HERO_PLATFORM_APPLE
-	memset(&Started,0,sizeof(struct timeval));
-	memset(&Stopped,0,sizeof(struct timeval));	
-	#else
-	memset(&Started,0,sizeof(struct timespec));
-	memset(&Stopped,0,sizeof(struct timespec));
-	
-	#endif
-	#endif
+    #endif
+#endif
 }
 
 bool Timer::IsStarted()
 {
-	
-	
-	#ifdef HERO_PLATFORM_WINDOWS
-	return Started != 0;
-	#endif
+#ifdef HERO_PLATFORM_WINDOWS
+    return Started != 0;
+#endif
 
-	#ifdef HERO_PLATFORM_POSIX
-	#ifdef HERO_PLATFORM_APPLE
-	return Started.tv_sec != 0 || Started.tv_usec != 0;
-	#else
-	return Started.tv_sec != 0 || Started.tv_nsec != 0;
-	#endif
-	#endif
-
+#ifdef HERO_PLATFORM_POSIX
+    #ifdef HERO_PLATFORM_APPLE
+    return Started.tv_sec != 0 || Started.tv_usec != 0;
+    #else
+    return Started.tv_sec != 0 || Started.tv_nsec != 0;
+    #endif
+#endif
 }
+
 bool Timer::IsStopped()
 {
-	
+#ifdef HERO_PLATFORM_WINDOWS
+    return Stopped != 0;
+#endif
 
-	#ifdef HERO_PLATFORM_WINDOWS
-	return Stopped != 0;
-	#endif
-
-	#ifdef HERO_PLATFORM_POSIX
-	#ifdef HERO_PLATFORM_APPLE
-	return Stopped.tv_sec != 0 || Stopped.tv_usec != 0;
-	#else
-	return Stopped.tv_sec != 0 || Stopped.tv_nsec != 0;
-	#endif
-	#endif
-
+#ifdef HERO_PLATFORM_POSIX
+    #ifdef HERO_PLATFORM_APPLE
+    return Stopped.tv_sec != 0 || Stopped.tv_usec != 0;
+    #else
+    return Stopped.tv_sec != 0 || Stopped.tv_nsec != 0;
+    #endif
+#endif
 }
-
 
 double Timer::Seconds()
 {
-	return (double)Timer::Nanoseconds() / Timers::NanosecondsPerSecond;
+    return (double)Timer::Nanoseconds() / Timers::NanosecondsPerSecond;
 }
 
 double Timer::Milliseconds()
 {
-	return (double)Timer::Nanoseconds() / Timers::NanosecondsPerMillisecond;
+    return (double)Timer::Nanoseconds() / Timers::NanosecondsPerMillisecond;
 }
 
 double Timer::Microseconds()
 {
-	return (double)Timer::Nanoseconds() / Timers::NanosecondsPerMicrosecond;
+    return (double)Timer::Nanoseconds() / Timers::NanosecondsPerMicrosecond;
 }
 
 double Timer::Nanoseconds()
 {
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	Timer timer;
+    Timer timer;
 
-	#ifdef HERO_PLATFORM_WINDOWS
-	
-	
-	
-	
-	
-	
-	
-	
-	double nanoseconds = (double)(timer.Started) / ((double)timer.Frequency / Timers::NanosecondsPerSecond);
-	
-	
-	return nanoseconds;
-	
-	
-	
-	
-	#endif
+#ifdef HERO_PLATFORM_WINDOWS
 
-	#ifdef HERO_PLATFORM_POSIX
+    double nanoseconds = (double)(timer.Started) / ((double)timer.Frequency / Timers::NanosecondsPerSecond);
 
-	
-	
-	
-	
-	long long secondsToNanoseconds = timer.Started.tv_sec * Timers::NanosecondsPerSecond;
-	
-	#ifdef HERO_PLATFORM_APPLE
-	return  secondsToNanoseconds + (timer.Started.tv_usec * Timers::NanosecondsPerMicrosecond);
-	#else
-	return  secondsToNanoseconds + timer.Started.tv_nsec;
-	#endif
+    return nanoseconds;
 
-	#endif
+#endif
+
+#ifdef HERO_PLATFORM_POSIX
+
+    long long secondsToNanoseconds = timer.Started.tv_sec * Timers::NanosecondsPerSecond;
+
+    #ifdef HERO_PLATFORM_APPLE
+    return secondsToNanoseconds + (timer.Started.tv_usec * Timers::NanosecondsPerMicrosecond);
+    #else
+    return secondsToNanoseconds + timer.Started.tv_nsec;
+    #endif
+
+#endif
 }
-
 
 double Timer::ElapsedSeconds()
 {
-	
-
-	return (double)ElapsedNanoseconds() / Timers::NanosecondsPerSecond;
+    return (double)ElapsedNanoseconds() / Timers::NanosecondsPerSecond;
 }
-
 
 double Timer::ElapsedMilliseconds()
 {
-	
-
-	return (double)ElapsedNanoseconds() / Timers::NanosecondsPerMillisecond;
+    return (double)ElapsedNanoseconds() / Timers::NanosecondsPerMillisecond;
 }
 
 double Timer::ElapsedMicroseconds()
 {
-	return (double)ElapsedNanoseconds() / Timers::NanosecondsPerMicrosecond;
+    return (double)ElapsedNanoseconds() / Timers::NanosecondsPerMicrosecond;
 }
 
 double Timer::ElapsedNanoseconds()
 {
+#ifdef HERO_PLATFORM_WINDOWS
+    if (IsStopped())
+    {
+        return (double)(Stopped - Started) / ((double)Frequency / Timers::NanosecondsPerSecond);
+    }
+    else if (IsStarted())
+    {
+        LARGE_INTEGER integer;
+        QueryPerformanceCounter(&integer);
+        long long now = (long long)integer.QuadPart;
 
-	#ifdef HERO_PLATFORM_WINDOWS
-	if (IsStopped())
-	{
-		return  (double)(Stopped-Started) / ((double)Frequency / Timers::NanosecondsPerSecond);
-	}
-	else
-	if (IsStarted())
-	{
-		LARGE_INTEGER integer;
-		QueryPerformanceCounter(&integer);
-		long long now = (long long)integer.QuadPart;		
+        return (double)(now - Started) / ((double)Frequency / Timers::NanosecondsPerSecond);
+    }
+    else
+    {
+        return 0;
+    }
+#endif
 
-		return  (double)(now-Started) / ((double)Frequency / Timers::NanosecondsPerSecond);
-	}
-	else
-	{
-		return 0;
-	}
-	#endif
+#ifdef HERO_PLATFORM_POSIX
 
-	#ifdef HERO_PLATFORM_POSIX
-	
-	
-	
-	
-	if (IsStopped())
-	{
-		long long secondsToNanoseconds = (Stopped.tv_sec - Started.tv_sec) * Timers::NanosecondsPerSecond;
-		#ifdef HERO_PLATFORM_APPLE
-		return secondsToNanoseconds + ((Stopped.tv_usec - Started.tv_usec) * Timers::NanosecondsPerMicrosecond);
-		#else	
-		return  secondsToNanoseconds + (Stopped.tv_nsec - Started.tv_nsec);
-		#endif
-	}
-	else
-	if (IsStarted())
-	{
-		#ifdef HERO_PLATFORM_APPLE
-		struct timeval now;
-		if (gettimeofday(&now,0) != 0)
-		#else
-		struct timespec now;
-		if (clock_gettime(CLOCK_REALTIME,&now) != 0) 
-		#endif
-		{
-			Raise("Timer::Start - Failed to get time for high resolution timer\n");        
-			return 0;
-		}
+    if (IsStopped())
+    {
+        long long secondsToNanoseconds = (Stopped.tv_sec - Started.tv_sec) * Timers::NanosecondsPerSecond;
+    #ifdef HERO_PLATFORM_APPLE
+        return secondsToNanoseconds + ((Stopped.tv_usec - Started.tv_usec) * Timers::NanosecondsPerMicrosecond);
+    #else
+        return secondsToNanoseconds + (Stopped.tv_nsec - Started.tv_nsec);
+    #endif
+    }
+    else if (IsStarted())
+    {
+    #ifdef HERO_PLATFORM_APPLE
+        struct timeval now;
+        if (gettimeofday(&now, 0) != 0)
+    #else
+        struct timespec now;
+        if (clock_gettime(CLOCK_REALTIME, &now) != 0)
+    #endif
+        {
+            Raise("Timer::Start - Failed to get time for high resolution timer\n");
+            return 0;
+        }
 
-		long long secondsToNanoseconds = (now.tv_sec - Started.tv_sec) * Timers::NanosecondsPerSecond;
-		#ifdef HERO_PLATFORM_APPLE
-		return  secondsToNanoseconds + ((now.tv_usec - Started.tv_usec) * Timers::NanosecondsPerMicrosecond);
-		#else
-		return  secondsToNanoseconds + (now.tv_nsec - Started.tv_nsec);
-		#endif
-	}
-	else
-	{
-		return 0;
-	}
-	#endif
-
+        long long secondsToNanoseconds = (now.tv_sec - Started.tv_sec) * Timers::NanosecondsPerSecond;
+    #ifdef HERO_PLATFORM_APPLE
+        return secondsToNanoseconds + ((now.tv_usec - Started.tv_usec) * Timers::NanosecondsPerMicrosecond);
+    #else
+        return secondsToNanoseconds + (now.tv_nsec - Started.tv_nsec);
+    #endif
+    }
+    else
+    {
+        return 0;
+    }
+#endif
 }
-
-
 
 double Timer::StartedSeconds()
 {
-	return (double)StartedNanoseconds() / Timers::NanosecondsPerSecond;
+    return (double)StartedNanoseconds() / Timers::NanosecondsPerSecond;
 }
 
 double Timer::StartedMilliseconds()
 {
-	return (double)StartedNanoseconds() / Timers::NanosecondsPerMillisecond;
+    return (double)StartedNanoseconds() / Timers::NanosecondsPerMillisecond;
 }
 
 double Timer::StartedMicroseconds()
 {
-	return (double)StartedNanoseconds() / Timers::NanosecondsPerMicrosecond;
+    return (double)StartedNanoseconds() / Timers::NanosecondsPerMicrosecond;
 }
 
 double Timer::StartedNanoseconds()
 {
-	if (IsStarted())
-	{
-		#ifdef HERO_PLATFORM_WINDOWS
-		double nanoseconds = (double)(Started) / ((double)Frequency / Timers::NanosecondsPerSecond);
-		return nanoseconds;
-		#endif
+    if (IsStarted())
+    {
+#ifdef HERO_PLATFORM_WINDOWS
+        double nanoseconds = (double)(Started) / ((double)Frequency / Timers::NanosecondsPerSecond);
+        return nanoseconds;
+#endif
 
-		#ifdef HERO_PLATFORM_POSIX
-		
-		long long secondsToNanoseconds = Started.tv_sec * Timers::NanosecondsPerSecond;	
-		#ifdef HERO_PLATFORM_APPLE
-		return  secondsToNanoseconds + (Started.tv_usec * Timers::NanosecondsPerMicrosecond);
-		#else
-		return  secondsToNanoseconds + Started.tv_nsec;
-		#endif
-		
-		#endif
-	}
-	
-	return 0.0;
+#ifdef HERO_PLATFORM_POSIX
+
+        long long secondsToNanoseconds = Started.tv_sec * Timers::NanosecondsPerSecond;
+    #ifdef HERO_PLATFORM_APPLE
+        return secondsToNanoseconds + (Started.tv_usec * Timers::NanosecondsPerMicrosecond);
+    #else
+        return secondsToNanoseconds + Started.tv_nsec;
+    #endif
+
+#endif
+    }
+
+    return 0.0;
 }
-
 
 double Timer::StoppedSeconds()
 {
-	return (double)StoppedNanoseconds() / Timers::NanosecondsPerSecond;
+    return (double)StoppedNanoseconds() / Timers::NanosecondsPerSecond;
 }
 
 double Timer::StoppedMilliseconds()
 {
-	return (double)StoppedNanoseconds() / Timers::NanosecondsPerMillisecond;
+    return (double)StoppedNanoseconds() / Timers::NanosecondsPerMillisecond;
 }
 
 double Timer::StoppedMicroseconds()
 {
-	return (double)StoppedNanoseconds() / Timers::NanosecondsPerMicrosecond;
+    return (double)StoppedNanoseconds() / Timers::NanosecondsPerMicrosecond;
 }
 
 double Timer::StoppedNanoseconds()
 {
-	if (IsStopped())
-	{
-		#ifdef HERO_PLATFORM_WINDOWS
-		double nanoseconds = (double)(Stopped) / ((double)Frequency / Timers::NanosecondsPerSecond);
-		return nanoseconds;
-		#endif
+    if (IsStopped())
+    {
+#ifdef HERO_PLATFORM_WINDOWS
+        double nanoseconds = (double)(Stopped) / ((double)Frequency / Timers::NanosecondsPerSecond);
+        return nanoseconds;
+#endif
 
-		#ifdef HERO_PLATFORM_POSIX
-		
-		long long secondsToNanoseconds = Stopped.tv_sec * Timers::NanosecondsPerSecond;	
-		#ifdef HERO_PLATFORM_APPLE
-		return  secondsToNanoseconds + (Stopped.tv_usec * Timers::NanosecondsPerMicrosecond);
-		#else
-		return  secondsToNanoseconds + Stopped.tv_nsec;
-		#endif
-		
-		#endif
-	}
-	
-	return 0.0;
+#ifdef HERO_PLATFORM_POSIX
+
+        long long secondsToNanoseconds = Stopped.tv_sec * Timers::NanosecondsPerSecond;
+    #ifdef HERO_PLATFORM_APPLE
+        return secondsToNanoseconds + (Stopped.tv_usec * Timers::NanosecondsPerMicrosecond);
+    #else
+        return secondsToNanoseconds + Stopped.tv_nsec;
+    #endif
+
+#endif
+    }
+
+    return 0.0;
 }
 
-
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 Ticker::Ticker()
 {
-	
-	Reset();
-	Start();
+    Reset();
+    Start();
 }
 
 Ticker::~Ticker()
 {
-	
 }
 
 void Ticker::Start()
 {
-	memset(&Stopped,0,sizeof(struct timeb));
-	ftime(&Started);
+    memset(&Stopped, 0, sizeof(struct timeb));
+    ftime(&Started);
 }
 
 void Ticker::Step()
 {
-	if (IsStarted())
-		memset(&Stopped,0,sizeof(struct timeb));
-	else
-		Start();
+    if (IsStarted())
+        memset(&Stopped, 0, sizeof(struct timeb));
+    else
+        Start();
 }
 
 void Ticker::Stop()
 {
-	if (IsStarted())
-		ftime(&Stopped);
+    if (IsStarted())
+        ftime(&Stopped);
 }
 
 void Ticker::Reset()
 {
-	memset(&Started,0,sizeof(struct timeb));
-	memset(&Stopped,0,sizeof(struct timeb));
+    memset(&Started, 0, sizeof(struct timeb));
+    memset(&Stopped, 0, sizeof(struct timeb));
 }
 
 bool Ticker::IsStarted()
 {
-	return Started.time != 0;
+    return Started.time != 0;
 }
+
 bool Ticker::IsStopped()
 {
-	return Stopped.time != 0;
+    return Stopped.time != 0;
 }
 
 long Ticker::ElapsedMilliseconds()
 {
-	if (IsStopped())
-	{
-		long secondsToMilliseconds = (Stopped.time - Started.time) * 1000;
-		return  secondsToMilliseconds + (Stopped.millitm - Started.millitm);
-	}
-	else
-	if (IsStarted())
-	{
-		struct timeb now;
-		ftime(&now);
-		
-		long secondsToMilliseconds = (now.time - Started.time) * 1000;
-		return  secondsToMilliseconds  + (now.millitm - Started.millitm);
-	}
-	else
-	{
-		return 0;
-	}
+    if (IsStopped())
+    {
+        long secondsToMilliseconds = (Stopped.time - Started.time) * 1000;
+        return secondsToMilliseconds + (Stopped.millitm - Started.millitm);
+    }
+    else if (IsStarted())
+    {
+        struct timeb now;
+        ftime(&now);
+
+        long secondsToMilliseconds = (now.time - Started.time) * 1000;
+        return secondsToMilliseconds + (now.millitm - Started.millitm);
+    }
+    else
+    {
+        return 0;
+    }
 }
 
 double Ticker::ElapsedSeconds()
 {
-	if (IsStopped())
-	{
-		return (Stopped.time - Started.time) + ((double)(Stopped.millitm - Started.millitm) / 1000);
-	}
-	else
-	if (IsStarted())
-	{
-		
-		struct timeb now;
-		ftime(&now);
-		return (now.time - Started.time) + ((double)(now.millitm - Started.millitm) / 1000);
-	}
-	else
-	{
-		return 0;
-	}
+    if (IsStopped())
+    {
+        return (Stopped.time - Started.time) + ((double)(Stopped.millitm - Started.millitm) / 1000);
+    }
+    else if (IsStarted())
+    {
+        struct timeb now;
+        ftime(&now);
+        return (now.time - Started.time) + ((double)(now.millitm - Started.millitm) / 1000);
+    }
+    else
+    {
+        return 0;
+    }
 }
 
-
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-} 
+} // namespace Hero
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

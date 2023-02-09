@@ -22,81 +22,62 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 #include "hero/folder.h"
 #include "hero/storage.h"
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 FolderPath::FolderPath()
 {
-	Construct();
+    Construct();
 }
 
-FolderPath::FolderPath(const Substring & str)
+FolderPath::FolderPath(const Substring& str)
 {
-	Construct(str);
+    Construct(str);
 }
 
-FolderPath::FolderPath(const char * name)
+FolderPath::FolderPath(const char* name)
 {
-	Construct(name);
+    Construct(name);
 }
 
-FolderPath::FolderPath(char * name, int size)
+FolderPath::FolderPath(char* name, int size)
 {
-	Construct(name,size);
+    Construct(name, size);
 }
 
 FolderPath::~FolderPath()
 {
-
 }
 
-
-void FolderPath::Construct(char * path, int size)
+void FolderPath::Construct(char* path, int size)
 {
-	String::Construct(path,size);
-	Construct();
+    String::Construct(path, size);
+    Construct();
 }
 
 void FolderPath::Construct()
 {
-	
-	
+#ifdef HERO_PLATFORM_WINDOWS
 
-	
-	
+    if (!IsEmpty() && CharAt(1) == ':')
+    {
+        if (!isalpha(CharAt(0)))
+        {
+            Raise("Folder::Construct - Invalid drive letter specified \"%c\"\n", Path[0].CharAt(0));
+        }
+    }
 
-	#ifdef HERO_PLATFORM_WINDOWS
+#endif
 
-	
-	
-	
-
-	if (! IsEmpty() && CharAt(1) == ':' )
-	{
-		if ( ! isalpha(CharAt(0)) )
-		{
-			
-			Raise("Folder::Construct - Invalid drive letter specified \"%c\"\n", Path[0].CharAt(0));
-		}
-	}
-
-	#endif
-	
-	FilePath::Construct();
-
+    FilePath::Construct();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -104,182 +85,162 @@ void FolderPath::Construct()
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Identity Folder::Instance;
 
-Folder::Folder(const Folder & folder):
-		Storage(0)
+Folder::Folder(const Folder& folder) : Storage(0)
 {
-	if (&folder == this)
-		return;
+    if (&folder == this)
+        return;
 
-	
-	operator = (folder);
+    operator=(folder);
 }
 
-Folder::Folder(FolderStorage * driver):
-		Storage(0)
+Folder::Folder(FolderStorage* driver) : Storage(0)
 {
-	Storage = new DriveFolder();
-	Storage = driver;
+    Storage = new DriveFolder();
+    Storage = driver;
 }
 
-Folder::Folder(Strong<FolderStorage*> & driver):
-		Storage(0)
+Folder::Folder(Strong<FolderStorage*>& driver) : Storage(0)
 {
-	Storage = new DriveFolder();
-	Storage = driver;
+    Storage = new DriveFolder();
+    Storage = driver;
 }
 
-
-Folder::Folder(const Substring & str):
-	Storage(0)
+Folder::Folder(const Substring& str) : Storage(0)
 {
-	Storage = new DriveFolder();
-	Construct(str);
+    Storage = new DriveFolder();
+    Construct(str);
 }
 
-Folder::Folder(const char * path):
-	Storage(0)
+Folder::Folder(const char* path) : Storage(0)
 {
-	Storage = new DriveFolder();
-	Construct(path);
+    Storage = new DriveFolder();
+    Construct(path);
 }
 
-
-Folder::Folder(char * path, int size):
-	Storage(0)
+Folder::Folder(char* path, int size) : Storage(0)
 {
-	Storage = new DriveFolder();
-	Construct(path,size);
+    Storage = new DriveFolder();
+    Construct(path, size);
 }
 
-Folder::Folder():
-		Storage(0)
+Folder::Folder() : Storage(0)
 {
-	Storage = new DriveFolder();
+    Storage = new DriveFolder();
 }
 
 Folder::~Folder()
 {
-	Files.Destroy();
-	Folders.Destroy();
+    Files.Destroy();
+    Folders.Destroy();
 }
 
 void Folder::Construct()
 {
-	Folders.Destroy();
-	Files.Destroy();
+    Folders.Destroy();
+    Files.Destroy();
 
-	FolderPath::Construct();
+    FolderPath::Construct();
 }
 
-void Folder::Construct(char * path, int size)
+void Folder::Construct(char* path, int size)
 {
-	Folders.Destroy();
-	Files.Destroy();
+    Folders.Destroy();
+    Files.Destroy();
 
-	FolderPath::Construct(path,size);
+    FolderPath::Construct(path, size);
 }
 
-Folder & Folder::operator = (const Folder & folder)
+Folder& Folder::operator=(const Folder& folder)
 {
-	if (&folder == this)
-		return *this;
-			
-	Path::Construct(folder);
-	Storage = folder.Storage;
-	
-	
-	int offset = 0;
-	if (!((Folder&)folder).Path.IsEmpty())
-	{
-		offset = (int)(folder.Path.Data-folder.Data);
-		Path.Data = Data+offset;
-		Path.Size = folder.Path.Size;
-	}
-	
-	if (!((Folder&)folder).Name.IsEmpty())
-	{
-		offset = (int)(folder.Name.Data-folder.Data);
-		Name.Data = Data+offset;
-		Name.Size = folder.Name.Size;
-	}
-	
-	return *this;
+    if (&folder == this)
+        return *this;
+
+    Path::Construct(folder);
+    Storage = folder.Storage;
+
+    int offset = 0;
+    if (!((Folder&)folder).Path.IsEmpty())
+    {
+        offset = (int)(folder.Path.Data - folder.Data);
+        Path.Data = Data + offset;
+        Path.Size = folder.Path.Size;
+    }
+
+    if (!((Folder&)folder).Name.IsEmpty())
+    {
+        offset = (int)(folder.Name.Data - folder.Data);
+        Name.Data = Data + offset;
+        Name.Size = folder.Name.Size;
+    }
+
+    return *this;
 }
 
-
-bool Folder::CreateFolder(char * name)
+bool Folder::CreateFolder(char* name)
 {
-	return (Storage)?Storage->CreateFolder(*this,name):false;
+    return (Storage) ? Storage->CreateFolder(*this, name) : false;
 }
 
-
-bool Folder::DeleteFolder(char * name)
+bool Folder::DeleteFolder(char* name)
 {
-	return (Storage)?Storage->DeleteFolder(*this,name):false;
+    return (Storage) ? Storage->DeleteFolder(*this, name) : false;
 }
 
-
-bool Folder::CreateFile(char * name)
+bool Folder::CreateFile(char* name)
 {
-	return (Storage)?Storage->CreateFile(*this,name):false;
+    return (Storage) ? Storage->CreateFile(*this, name) : false;
 }
 
-
-bool Folder::DeleteFile(char * name)
+bool Folder::DeleteFile(char* name)
 {
-	return (Storage)?Storage->DeleteFile(*this,name):false;
+    return (Storage) ? Storage->DeleteFile(*this, name) : false;
 }
 
-bool Folder::Rename(char * name, int size)
+bool Folder::Rename(char* name, int size)
 {
-	return (Storage)?Storage->Rename(*this,name,size):false;
+    return (Storage) ? Storage->Rename(*this, name, size) : false;
 }
-
 
 bool Folder::Exists()
 {
-	return (Storage)?Storage->Exists(*this):false;
+    return (Storage) ? Storage->Exists(*this) : false;
 }
-
 
 bool Folder::Create()
 {
-	return (Storage)?Storage->Create(*this):false;
+    return (Storage) ? Storage->Create(*this) : false;
 }
-
 
 bool Folder::Delete(bool recursive)
 {
-	return (Storage)?Storage->Delete(*this,Files,Folders,recursive):false;
+    return (Storage) ? Storage->Delete(*this, Files, Folders, recursive) : false;
 }
 
 bool Folder::List(bool recursive)
 {
-	return (Storage)?Storage->List(*this,Files,Folders,recursive):false;
+    return (Storage) ? Storage->List(*this, Files, Folders, recursive) : false;
 }
 
-bool Folder::Status(Stat & stat)
+bool Folder::Status(Stat& stat)
 {
-	if (Storage)
-	{
-		stat = Storage->Status(*this);
-		return true;
-	}
-	
-	return false;
+    if (Storage)
+    {
+        stat = Storage->Status(*this);
+        return true;
+    }
+
+    return false;
 }
 
 Stat Folder::Status()
 {
-	if (Storage)
-	{
-		return Storage->Status(*this);
-	}
-	
-	return Stat();
+    if (Storage)
+    {
+        return Storage->Status(*this);
+    }
+
+    return Stat();
 }
-
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -295,16 +256,11 @@ FolderStorage::~FolderStorage()
 
 void FolderStorage::Construct()
 {
-
 }
 
-
-void FolderStorage::Construct(char * path, int size)
+void FolderStorage::Construct(char* path, int size)
 {
-
 }
-
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
