@@ -9,11 +9,11 @@ Based on a larger framework called Reason that was written 2 decades ago, it has
 
 - By default no RTTI, and no exceptions.
 
-- Suitable for embedded code, games development, and anything where you value clean simple code and an API like no other.
+- Suitable for embedded code, games development, quant analytics, web assembly, and anywhere you value clean simple code and an API like no other.
 
 Leave the C++ standard library in the dust.
 
-Above all it is readable, maintainable code that you study, understand, customise and remix in an infinite number of ways.
+Above all it is readable, maintainable code that you can study, understand, customise and remix in an infinite number of ways.
 
 This is an export from a private repository, so source comments have been stripped for now.
 
@@ -43,6 +43,16 @@ Out of the box you will have access to powerful features for systems programming
 - Argument and option parsing with `Args, Options, Section`, and `Configuration` for config files.
 - Regular expression support integrated into `String` with `Regex`
 
+### Parsing
+
+Parsing is a first class citizen in Hero, and the `Parser` framework lets you write, and parse text and data formats with consistent easy without sacrificing semantics.  It reads like a book.
+
+With `StreamParser` you can parser directly from any stream type without altering your code. 
+
+- `Parser, Scanner, Token`
+- `StringParser, TextParser`
+- `StreamParser`
+
 ### Time and Date
 Time operations using high frequency `Timer` class, convert between any date/time format using `Epoch` and `Calendar`.  Calculate elapsed time using simple stopwatch behavior.
 
@@ -71,10 +81,11 @@ A full set of streaming objects, with integration into other types in the type s
 - `Reader, Writer, Stream, StreamBuffer, StreamFilter, FileStream, StringStream, FormattingStream`
 - `StreamParser` so that the `Parser` framework reads directly from any stream
 
-### Reference Counting
+### Reference Counting & Generics
 - `Weak, Strong`, and `Auto` pointers that can point to handles or pointers with full lifecycle management and owned vs shared semantics.
 
 - `Optional` and `Variable` for delayed creation of type.
+- A simple policy based `Any` type with casts.
 
 ### Multithreading
 
@@ -86,14 +97,15 @@ A full set of streaming objects, with integration into other types in the type s
 
 ### Numerics
 - Big integer classes, `Signed`, `Unsigned`, and `Integer` using the latest Ryu algorithm for fast double/string conversion.
+- A `Fixed` point infinite precision floating point object
 - A generic `Number` object
 
 ### Error Handling
 
 Handle errors like `C` (at the source) but with a structured take on `errno/GetLastError()`
 
-- Raise deep errors without exceptions using scoped `Try/Catch/Raise`
-- Common inbuild types for error categories via `RaiseError<ConversionError>("Message")`
+- Raise deep errors without exceptions using scoped `Try/Catch/Raise` via `Raise("Message")`
+- Common inbuild types for error categories such as `RaiseError<ConversionError>("Message")`, and `RaiseError<TimeoutError>("Message")`
 - Verify and test function results using `Verify()/Verified()`
 
 
@@ -109,7 +121,7 @@ True generic interface for iteration, algorithms, and simple while/for loops usi
 
 All map/set types use arrays for key/values with items available in insertion order, leveraging the index types.
 
-Iteration speed is 0..N in a contiguous `Array` for every type but `List`
+Iteration speed is 0..N in a contiguous `Array` for every type but `List` and `Hashtable`
 
 - `Slice`
 - `Iterand, Iterator, Iterable`
