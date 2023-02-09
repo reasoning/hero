@@ -45,7 +45,7 @@ Out of the box you will have access to powerful features for systems programming
 
 ### Parsing
 
-Parsing is a first class citizen in Hero, and the `Parser` framework lets you write, and parse text and data formats with consistent easy without sacrificing semantics.  It reads like a book.
+Parsing is a first class citizen in Hero, and the `Parser` framework lets you write, and parse text and data formats with consistent ease, without sacrificing semantics.  It reads like a book.
 
 With `StreamParser` you can parser directly from any stream type without altering your code. 
 
