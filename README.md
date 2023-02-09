@@ -34,6 +34,10 @@ By default Hero will build libhero.so libhero.a, and a hero binary.
 
 Out of the box you will have access to powerful features for systems programming.
 
+Nothing is a template unless it really has to be.
+
+Builds like butter.
+
 ### Binary and Strings
 
 - `Binary`, and `Bits` for handling binary data.
@@ -42,6 +46,7 @@ Out of the box you will have access to powerful features for systems programming
 - Unlock incredibly powerful in-place data processing using nested blocks with `Path`, and `Segment`.
 - Argument and option parsing with `Args, Options, Section`, and `Configuration` for config files.
 - Regular expression support integrated into `String` with `Regex`
+- Don't sweat the simple stuff using bitmasks and `Flags<>`, which comes in 8, 16, and 32 bit flavors.
 
 ### Parsing
 
@@ -64,7 +69,7 @@ Time operations using high frequency `Timer` class, convert between any date/tim
 
 Near zero cost callbacks, no heap allocation for non functor or lambda types, an actual generic interface `Callback<void,int,int>` can point to an object, a function, a lambda, a functor, or an object delayed this.
 
-- `Callback`
+- `Callback<>`
 
 ### Files and Folders
 Using an abstraction over storage, its possible to have a File or Folder refer to contents of an archive or FTP/SSH server through the same interface.
@@ -82,16 +87,16 @@ A full set of streaming objects, with integration into other types in the type s
 - `StreamParser` so that the `Parser` framework reads directly from any stream
 
 ### Reference Counting & Generics
-- `Weak, Strong`, and `Auto` pointers that can point to handles or pointers with full lifecycle management and owned vs shared semantics.
+- `Weak<>, Strong<>`, and `Auto<>` pointers that can point to handles or pointers with full lifecycle management and owned vs shared semantics.
 
-- `Optional` and `Variable` for delayed creation of type.
+- `Optional<>` and `Variable<>` for delayed creation of type.
 - A simple policy based `Any` type with casts.
 
 ### Multithreading
 
-- `Thread/Fibre` for light weight multithreading
+- `Thread/Fibre` for light weight multithreading with lambdas and `Callback<>`
 - `SpinLock, ReadWriteLock` (a recursive `SpinLock`)
-- `ThreadLocalStorage`
+- `ThreadLocal<>` for thread local storage, including global cleanup
 - `Event` notification, `Condition` variables, `Critical` sections and `Hazard` pointers.
 - `Atomic` operations and `Barrier`'s.
 
@@ -105,7 +110,7 @@ A full set of streaming objects, with integration into other types in the type s
 Handle errors like `C` (at the source) but with a structured take on `errno/GetLastError()`
 
 - Raise deep errors without exceptions using scoped `Try/Catch/Raise` via `Raise("Message")`
-- Common inbuild types for error categories such as `RaiseError<ConversionError>("Message")`, and `RaiseError<TimeoutError>("Message")`
+- Common inbuild types for error categories using `RaiseError<>` such as `RaiseError<ConversionError>("Message")`, and `RaiseError<TimeoutError>("Message")`
 - Verify and test function results using `Verify()/Verified()`
 
 
@@ -117,18 +122,18 @@ Limitless multi-index containers can be leveraged by using `ArrayIndex`, and `Ha
 
 All data structures share a common interface and are sortable/unique, and have upper and lower bound semantics.
 
-True generic interface for iteration, algorithms, and simple while/for loops using `Iterand`, `Iterator`, and the `Iterable` interface.  No type traits or viral templates here.
+True generic interface for iteration, algorithms, and simple while/for loops using `Iterand<>`, `Iterator<>`, and the `Iterable<>` interface.  No type traits or viral templates here.
 
 All map/set types use arrays for key/values with items available in insertion order, leveraging the index types.
 
-Iteration speed is 0..N in a contiguous `Array` for every type but `List` and `Hashtable`
+Iteration speed is 0..N in a contiguous `Array<>` for every type but `List<>` and `Hashtable<>`
 
 - `Slice`
-- `Iterand, Iterator, Iterable`
-- `Array, ArrayIndex, ArraySet, ArrayMap`
-- `Vector`
-- `HashIndex, HashSet, HashMap`
-- `Stack, List, Hashtable`
-- `Map, Set` (by default backed with `ArrayMap/ArraySet`)
+- `Iterand<>, Iterator<>, Iterable<>`
+- `Array<>, ArrayIndex, ArraySet<>, ArrayMap<>`
+- `Vector<>`
+- `HashIndex, HashSet<>, HashMap<>`
+- `Stack<>, List<>, Hashtable<>`
+- `Map<>, Set<>` (by default backed with `ArrayMap<>/ArraySet<>`)
  
 
