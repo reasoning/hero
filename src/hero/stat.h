@@ -46,19 +46,9 @@ namespace Hero {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
-
-
-
-
 class Stat
 {
 public: 
-
-	
-	
-	
 
 	unsigned int Device;		
 	unsigned short Inode;		
@@ -73,9 +63,6 @@ public:
 	time_t Changed;				
 
 	bool Exists;
-	
-	
-	
 
 	enum StatModes
 	{
@@ -85,8 +72,7 @@ public:
 		MODE_WRITE		= S_IWRITE,
 		MODE_EXEC		= S_IEXEC,
 	};
-	
-	
+
 	bool IsFolder()		{return (Mode & MODE_FOLDER) != 0;}
 	bool IsFile()		{return (Mode & MODE_FILE) != 0;}
 	bool IsReadable()	{return (Mode & MODE_READ) != 0;}
@@ -97,7 +83,6 @@ public:
 		Exists(false),Device(0),Inode(0),Mode(0),Links(0),User(0),Group(0),Extended(0),Size(0),Accessed(0),Modified(0),Changed(0)
 	{
 	}
-
 
 	Stat(Path & path): 
 		Exists(false),Device(0),Inode(0),Mode(0),Links(0),User(0),Group(0),Extended(0),Size(0),Accessed(0),Modified(0),Changed(0)
@@ -122,13 +107,13 @@ public:
 	{
 		Construct(data);
 	}
-	
+
 	Stat(const struct stat & st, bool exists=false):
 		Exists(exists),Device(0),Inode(0),Mode(0),Links(0),User(0),Group(0),Extended(0),Size(0),Accessed(0),Modified(0),Changed(0)
 	{
 		operator = (st);
 	}
-	
+
 	Stat & operator = (const struct stat &st);
 
 	void Construct(Stat & stat) {*this = stat;}
@@ -137,7 +122,6 @@ public:
 	void Construct(char * data, int size);
 
 };
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -148,6 +132,4 @@ public:
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 

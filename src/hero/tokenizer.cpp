@@ -29,8 +29,7 @@ SOFTWARE.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace Hero
-{
+namespace Hero {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -40,46 +39,51 @@ Tokenizer::Tokenizer()
 {
 }
 
-Tokenizer::Tokenizer(Substring& str) : Substring(str)
+Tokenizer::Tokenizer(Substring & str): 
+	Substring(str)
 {
+
 }
 
 void Tokenizer::Tokenise()
 {
-    Numbers.Destroy();
-    Words.Destroy();
-    Punctuation.Destroy();
 
-    StringParser parser;
-    parser.Assign(*this);
+	Numbers.Destroy();
+	Words.Destroy();
+	Punctuation.Destroy();
 
-    while (!parser.Eof())
-    {
-        if (parser.ParseWord())
-        {
-            Words.Append(parser.Token);
-        }
-        else if (parser.ParseNumber())
-        {
-            Numbers.Append(parser.Token);
-        }
-        else if (parser.ParsePunctuation())
-        {
-            Punctuation.Append(parser.Token);
-        }
-        else
-        {
-            if (!parser.ParseWhitespace() && !parser.Eof())
-                parser.Next();
-        }
-    }
+	StringParser parser;
+	parser.Assign(*this);
+
+	while (! parser.Eof())
+	{
+		if (parser.ParseWord())
+		{
+			Words.Append(parser.Token);
+		}
+		else
+		if (parser.ParseNumber())
+		{
+			Numbers.Append(parser.Token);
+		}
+		else
+		if (parser.ParsePunctuation())
+		{
+			Punctuation.Append(parser.Token);
+		}
+		else
+		{
+			if (!parser.ParseWhitespace() && !parser.Eof())
+				parser.Next();	
+		}
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TokenizerStream::TokenizerStream(class Stream& stream) : Stream(stream)
+TokenizerStream::TokenizerStream(class Stream & stream):Stream(stream)
 {
 }
 
@@ -89,137 +93,145 @@ TokenizerStream::~TokenizerStream()
 
 bool TokenizerStream::Move()
 {
-    return Move(1);
+	return Move(1);
 }
 
 bool TokenizerStream::Move(int amount)
 {
-    amount *= Enumeration.Direction;
+	amount *= Enumeration.Direction;
 
-    if (amount > 0)
-    {
-        ++Enumeration.Index;
-        Enumeration.Prev = Token;
+	if (amount > 0)
+	{
+		++ Enumeration.Index;
+		Enumeration.Prev = Token;
 
-        if (Enumeration.Next.IsNull())
-        {
-            Token = Next();
-        }
-        else
-        {
-            Token = Enumeration.Next;
-            Enumeration.Next.Release();
-        }
-    }
-    else if (amount < 0)
-    {
-        --Enumeration.Index;
-        Enumeration.Next = Token;
+		if (Enumeration.Next.IsNull())
+		{
+			Token =	Next();
+		}
+		else
+		{
+			Token = Enumeration.Next;
+			Enumeration.Next.Release();
+		}
+	}
+	else
+	if (amount < 0)
+	{		
+		-- Enumeration.Index;
+		Enumeration.Next = Token;
 
-        if (Enumeration.Prev.IsNull())
-        {
-            Token = Prev();
-        }
-        else
-        {
-            Token = Enumeration.Prev;
-            Enumeration.Prev.Release();
-        }
-    }
+		if (Enumeration.Prev.IsNull())
+		{
+			Token = Prev();
+		}
+		else
+		{
+			Token = Enumeration.Prev;
+			Enumeration.Prev.Release();
+		}
+	}
 
-    return !Token.IsNull();
+	return !Token.IsNull();
 }
 
 bool TokenizerStream::Forward()
 {
-    Enumeration.Index = 0;
-    Enumeration.Direction = 1;
+	Enumeration.Index = 0;
+	Enumeration.Direction = 1;
 
-    Buffer.Release();
-    return Move();
+	Buffer.Release();
+	return Move();
+
 }
 
 bool TokenizerStream::Reverse()
 {
-    Raise("StreamEnumerator::Last - Method not implemented.\n");
-    return true;
+	Raise("StreamEnumerator::Last - Method not implemented.\n");
+	return true;
 }
 
 bool TokenizerStream::Has()
 {
-    return !Token.IsNull();
+	return !Token.IsNull();
 }
 
 Substring TokenizerStream::Next()
 {
-    if (Buffer.Allocated == 0)
-    {
-        if (Buffer.Remaining() < 256)
-            Buffer.Reserve(256);
-        Buffer.Size = Stream.Read(Buffer.Data + Buffer.Size, 256);
-        Buffer.Data[Buffer.Size] = 0;
-    }
+	if (Buffer.Allocated == 0)
+	{
+		if (Buffer.Remaining() < 256)
+			Buffer.Reserve(256);
+		Buffer.Size = Stream.Read(Buffer.Data+Buffer.Size,256);
+		Buffer.Data[Buffer.Size]=0;
+	}
 
-    Path::Enumerator separator(Separators);
-    Substring match;
+	Path::Enumerator separator(Separators);
+	Substring match;
 
-    if (Separators.IsEmpty()) return match;
+	if (Separators.IsEmpty()) return match;
 
-    int found = -1;
-    int index = 0;
+	int found = -1;
+	int index = 0;
 
-    Buffer.Left(-(Token.Size + Separator.Size));
+    Buffer.Left(-(Token.Size+Separator.Size));
 
-    Token.Release();
-    Separator.Release();
+	Token.Release();
+	Separator.Release();
 
-    while (match.IsNull() && (Stream.IsReadable() || Buffer.Size > 0))
-    {
-        for (separator.Forward(); separator.Has(); separator.Move())
-        {
-            index = Buffer.IndexOf(separator.Reference());
-            if ((index >= 0) && (index < found || found < 0))
-            {
-                match = Buffer.Slice(0, index);
-                found = index;
-                Separator.Assign(separator.Reference());
+	while(match.IsNull() && (Stream.IsReadable() || Buffer.Size > 0))
+	{
 
-                if (index == 0) break;
-            }
-        }
+		for(separator.Forward();separator.Has();separator.Move())
+		{
+			index = Buffer.IndexOf(separator.Reference());
+			if ( (index >= 0) && (index < found || found < 0)  )
+			{
 
-        if (match.IsNull())
-        {
-            if (Stream.IsReadable())
-            {
-                if (Buffer.Remaining() < 256)
-                    Buffer.Reserve(256);
-                Buffer.Size += Stream.Read(Buffer.Data + Buffer.Size, 256);
-                Buffer.Data[Buffer.Size] = 0;
-            }
-            else
-            {
-                match = Buffer;
-            }
-        }
-    }
+				match = Buffer.Slice(0,index);					
+				found = index;
+				Separator.Assign(separator.Reference());
 
-    return match;
+				if (index==0) break;
+			}
+		}
+
+		if (match.IsNull())
+		{
+			if (Stream.IsReadable())
+			{
+
+				if (Buffer.Remaining() < 256)
+					Buffer.Reserve(256);
+				Buffer.Size += Stream.Read(Buffer.Data+Buffer.Size,256);
+				Buffer.Data[Buffer.Size]=0;
+			}
+			else
+			{
+
+				match = Buffer;
+			}
+		}
+	}
+
+	return match;
 }
 
 Substring TokenizerStream::Prev()
 {
-    Raise("StreamEnumerator::Last - Method not supported.\n");
-    Substring found;
-    return found;
+
+	Raise("StreamEnumerator::Last - Method not supported.\n");
+	Substring found;
+	return found;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace Hero
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+

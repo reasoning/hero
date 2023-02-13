@@ -22,6 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -32,46 +33,47 @@ SOFTWARE.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Stat& Stat::operator=(const struct stat& st)
+Stat & Stat::operator = (const struct stat &st)
 {
-    Device = st.st_dev;
-    Inode = st.st_dev;
-    Mode = st.st_mode;
-    Links = st.st_nlink;
-    User = st.st_uid;
-    Group = st.st_gid;
-    Extended = st.st_rdev;
-    Size = st.st_size;
-    Accessed = st.st_atime;
-    Modified = st.st_mtime;
-    Changed = st.st_ctime;
+	Device = st.st_dev;
+	Inode = st.st_dev;
+	Mode = st.st_mode;
+	Links = st.st_nlink;
+	User = st.st_uid;
+	Group = st.st_gid;
+	Extended = st.st_rdev;
+	Size = st.st_size;
+	Accessed = st.st_atime;
+	Modified = st.st_mtime;
+	Changed = st.st_ctime;
 
-    Exists |= (Size > 0 || (Modified != 0 && Mode != 0));
+	Exists |= (Size > 0 || (Modified != 0 && Mode != 0));
 
-    return *this;
+	return *this;
 }
 
-void Stat::Construct(char* data, int size)
+void Stat::Construct(char * data, int size)
 {
-    if (data != 0 && size > 0)
-    {
-        Superstring super(data, size);
 
-        while (super.Size > 1 && (super.EndsWith('\\') || super.EndsWith('/')))
-            super.Right(-1);
+	if (data != 0 && size > 0)
+	{
+		Superstring super(data,size);
 
-#ifdef HERO_PLATFORM_WINDOWS
+		while(super.Size > 1  && (super.EndsWith('\\') || super.EndsWith('/')))
+			super.Right(-1);
 
-        if (super[1] == ':' && super.Size == 2)
-            super.Append('\\');
+		#ifdef HERO_PLATFORM_WINDOWS
 
-#endif
+		if (super[1] == ':' && super.Size == 2)
+			super.Append('\\');
 
-        struct stat st;
-        memset(&st, 0, sizeof(struct stat));
-        Exists = (::stat(super.Data, &st) == 0);
-        *this = st;
-    }
+		#endif
+
+		struct stat st;
+		memset(&st,0,sizeof(struct stat));
+		Exists = ( ::stat(super.Data, &st) == 0 );
+		*this = st;
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -27,7 +27,6 @@ SOFTWARE.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
 #include "hero/string.h"
 #include "hero/thread.h"
 #include "hero/callback.h"
@@ -37,28 +36,22 @@ SOFTWARE.
 #include "hero/regex.h"
 #include "hero/structure.h"
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 
 class CodeHandler
 {
 public:
-	
+
 	virtual void HandleDefinition(const Token & token, const String & path, const String & name) {};
 	virtual void HandleReference(const Token & token, const String & path, const String & name) {};
 	virtual void HandleComment(const Token & token, const String & path) {};
 	virtual void HandleWhitespace(const Token & token, const String & path) {};
-	
+
 };
 
-
-
 typedef Token CodeToken;
-
 
 class CodeTokenCompare
 {
@@ -69,7 +62,7 @@ public:
 	CodeTokenCompare():Token(0) {}
 	CodeTokenCompare(const CodeToken & token):Token(&(CodeToken&)token) {}
 	CodeTokenCompare(CodeToken * token):Token(token) {}
-	
+
 	int operator() (const CodeToken & right)	
 	{
 		return operator()(*Token,right);
@@ -77,78 +70,53 @@ public:
 
 	int operator () (const CodeToken & left, const CodeToken & right)
 	{
-		
-		
-		
+
 		return left.Offset-right.Offset;
 	}
 };
-	
-
 
 class CodeParser : public StringParser
 {
 public:
 
-	
 	CodeHandler * Handler;
-	
+
 	CodeParser(CodeHandler * handler):Handler(handler)
 	{
-	
+
 	}
-	
+
 	bool ParseCode(const String & string, const String & path);
-	
 
 };
-
-
 
 class CodeReader : public CodeParser, public CodeHandler
 {
 public:
-	
+
 	Map<String, int> References;
 	Map<CodeToken, String> Definitions;
-	
 
-	
-	
-	
 	typedef Array<CodeToken> Tokens;
 
-	
-	
 	Map<String, Tokens > Files;
-	
-	
-	
-	
-	
+
 	CodeReader():CodeParser(this)
 	{
-	
+
 	}
-	
+
 	void HandleToken(const CodeToken & token, const String & path)
 	{
-		
-		
+
 		Tokens & tok = Files.At(Files.Update(path).Index);
 
-		
-		
-		
-		
 		int offset=0;
-				
+
 		Iterand<CodeToken> tokens = tok.Forward();
 		while (tokens != 0)
 		{
-			
-			
-			
+
 			CodeToken token = tokens();
 			if (token.Offset-offset < 0)
 			{
@@ -158,50 +126,44 @@ public:
 			++tokens;
 		}
 
-		
-		
 		tok.Insert(token,tok.Index(CodeTokenCompare(token)));	
 	}
-	
+
 	void HandleDefinition(const CodeToken & token, const String & path, const String & name)
 	{
 		HandleToken(token,path);
-		
+
 		if (!Definitions.Insert(token,name))
 		{
-			
-			
-			
+
 		}
 	}
-	
+
 	void HandleComment(const CodeToken & token, const String & path)
 	{	
 		HandleToken(token,path);
 	}	
-	
+
 	void HandleReference(const CodeToken & token, const String & path, const String & name)
 	{
 		HandleToken(token,path);
 	}
-	
-	
+
 	void HandleWhitespace(const CodeToken & token, const String & path)
 	{
 		HandleToken(token,path);
 	}
-		
-	
+
 	void Read()
 	{		
 		ReadFolder("src/");
 	}
-	
+
 	void ReadFolder(const String & path)
 	{
 		Folder folder(path);
 		folder.List();
-		
+
 		Iterand<Folder> folders = folder.Folders.Forward();
 		while (folders != 0)
 		{
@@ -209,10 +171,10 @@ public:
 			{
 				ReadFolder(folders());
 			}
-			
+
 			++folders;
 		}
-		
+
 		Iterand<File> files = folder.Files.Forward();
 		while(files != 0)
 		{
@@ -221,38 +183,29 @@ public:
 			{
 				ReadFile(files());
 			}
-					
+
 			++files;
 		}
 	}
-	
+
 	void ReadFile(const String & path)
 	{
-		
-		
-		
 
 		Files.Update(path);
 
 		String code;
-		
+
 		File file(path);
 		file.Read(code);
 		file.Close();
-		
+
 		CodeParser::ParseCode(code,path);
 	}
 
-
 	void Write();
 	void Copyright();
-			
 
 };
-
-
-
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

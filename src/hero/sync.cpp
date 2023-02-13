@@ -25,28 +25,28 @@ SOFTWARE.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "hero/sync.h"
-#include "hero/atomic.h"
 #include "hero/hero.h"
-#include "hero/platform.h"
-#include "hero/thread.h"
+#include "hero/sync.h"
 #include "hero/time.h"
+#include "hero/platform.h"
+#include "hero/atomic.h"
+#include "hero/thread.h"
 
 #include "hero/structure.h"
 
-#include <assert.h>
 #include <stdio.h>
+#include <assert.h>
 
 #ifdef HERO_PLATFORM_POSIX
-    #include <unistd.h>
+#include <unistd.h>
 #endif
 
 #ifdef HERO_PLATFORM_MINGW
-    #undef HERO_PLATFORM_WINDOWS
+#undef HERO_PLATFORM_WINDOWS
 #endif
 
 #ifdef HERO_PLATFORM_WINDOWS
-    #include <process.h>
+#include <process.h>
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -57,8 +57,7 @@ SOFTWARE.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace Hero
-{
+namespace Hero {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -66,7 +65,7 @@ namespace Hero
 
 unsigned long ThreadId()
 {
-    return Thread::Identify();
+	return Thread::Identify();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -75,166 +74,182 @@ unsigned long ThreadId()
 
 Critical::Critical()
 {
-    memset(&Handle, 0, sizeof(Handle));
-    Create();
+	memset(&Handle,0,sizeof(Handle));
+	Create();
 }
-
 Critical::~Critical()
 {
-    Delete();
+	Delete();
 }
 
 bool Critical::Enter()
 {
-#ifdef HERO_PLATFORM_WINDOWS
 
-    __try
-    {
-        EnterCriticalSection((LPCRITICAL_SECTION)&Handle);
+	#ifdef HERO_PLATFORM_WINDOWS
 
-        return true;
-    }
-    __except (EXCEPTION_CONTINUE_EXECUTION)
-    {
-        return false;
-    }
+	__try
+	{
+		EnterCriticalSection((LPCRITICAL_SECTION)&Handle);
 
-#endif
+		return true;
+	}
+	__except (EXCEPTION_CONTINUE_EXECUTION) 
+	{
 
-#ifdef HERO_PLATFORM_POSIX
+		return false;
+	}
 
-    if (pthread_mutex_lock((pthread_mutex_t*)&Handle) == 0)
-    {
-        return true;
-    }
-#endif
+	#endif 
 
-    return false;
+	#ifdef HERO_PLATFORM_POSIX
+
+	if (pthread_mutex_lock((pthread_mutex_t*)&Handle) == 0)
+	{
+		return true;
+	}
+	#endif
+
+	return false;
+
 }
 
 bool Critical::Leave()
 {
-#ifdef HERO_PLATFORM_WINDOWS
-    __try
-    {
-        LeaveCriticalSection((LPCRITICAL_SECTION)&Handle);
 
-        return true;
-    }
-    __except (EXCEPTION_CONTINUE_EXECUTION)
-    {
-        return false;
-    }
+	#ifdef HERO_PLATFORM_WINDOWS
+	__try
+	{		
+		LeaveCriticalSection((LPCRITICAL_SECTION)&Handle);
 
-#endif
+		return true;
+	}
+	__except (EXCEPTION_CONTINUE_EXECUTION) 
+	{
 
-#ifdef HERO_PLATFORM_POSIX
-    if (pthread_mutex_unlock((pthread_mutex_t*)&Handle) == 0)
-    {
-        return true;
-    }
+		return false;
+	}
 
-#endif
+	#endif
 
-    return false;
+	#ifdef HERO_PLATFORM_POSIX
+	if (pthread_mutex_unlock((pthread_mutex_t*)&Handle) == 0)
+	{
+
+		return true;
+	}
+
+	#endif
+
+	return false;
 }
 
 bool Critical::Try()
 {
-#ifdef HERO_PLATFORM_WINDOWS
 
-    if (TryEnterCriticalSection(&Handle) != 0)
-    {
-        return true;
-    }
+	#ifdef HERO_PLATFORM_WINDOWS
 
-#endif
+	if (TryEnterCriticalSection(&Handle) != 0)
+	{
 
-#ifdef HERO_PLATFORM_POSIX
+		return true;
+	}
 
-    if (pthread_mutex_trylock((pthread_mutex_t*)&Handle) == 0)
-    {
-        return true;
-    }
+	#endif
 
-#endif
+	#ifdef HERO_PLATFORM_POSIX
 
-    return false;
+	if (pthread_mutex_trylock((pthread_mutex_t*)&Handle) == 0)
+	{
+
+		return true;
+	}	
+
+	#endif
+
+	return false;
 }
 
 bool Critical::Wait()
 {
-    if (Try())
-    {
-        Leave();
-        return false;
-    }
 
-    return true;
+	if (Try())
+	{
+		Leave();
+		return false;
+	}
+
+	return true;
 }
 
 bool Critical::Owned()
 {
-#ifdef HERO_PLATFORM_WINDOWS
 
-    return (unsigned int)((LPCRITICAL_SECTION)&Handle)->OwningThread == GetCurrentThreadId();
-#endif
+	#ifdef HERO_PLATFORM_WINDOWS
 
-#ifdef HERO_PLATFORM_POSIX
+	return (unsigned int)((LPCRITICAL_SECTION)&Handle)->OwningThread == GetCurrentThreadId();
+	#endif
 
-    struct timespec ts = Timer::Timespec(1 * Timer::NanosecondsPerMillisecond);
-    int result = pthread_mutex_timedlock((pthread_mutex_t*)&Handle, &ts);
+	#ifdef HERO_PLATFORM_POSIX
 
-    if (result == EDEADLK)
-    {
-        return true;
-    }
-    else if (result == 0)
-    {
-        Leave();
-        return false;
-    }
-    else
-    {
-        return false;
-    }
-#endif
+	struct timespec ts = Timer::Timespec(1*Timer::NanosecondsPerMillisecond);
+	int result = pthread_mutex_timedlock((pthread_mutex_t*)&Handle,&ts);
+
+	if (result == EDEADLK)
+	{
+
+		return true;
+	}
+	else
+	if (result == 0)
+	{
+
+		Leave();
+		return false;
+	}
+	else
+	{
+
+		return false;
+	}
+	#endif
+
 }
 
 void Critical::Create()
 {
-    if (*(int*)(&Handle) == 0)
-    {
-#ifdef HERO_PLATFORM_WINDOWS
-        InitializeCriticalSection(&Handle);
-#endif
 
-#ifdef HERO_PLATFORM_POSIX
+	if (*(int*)(&Handle) == 0)
+	{
+	#ifdef HERO_PLATFORM_WINDOWS
+	InitializeCriticalSection(&Handle);
+	#endif
 
-        pthread_mutexattr_t attr;
-        pthread_mutexattr_init(&attr);
-        pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
-        pthread_mutex_init((pthread_mutex_t*)&Handle, &attr);
-        pthread_mutexattr_destroy(&attr);
+	#ifdef HERO_PLATFORM_POSIX
 
-#endif
-    }
+	pthread_mutexattr_t attr;
+	pthread_mutexattr_init(&attr);
+	pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+	pthread_mutex_init((pthread_mutex_t*)&Handle,&attr);
+	pthread_mutexattr_destroy(&attr);
+
+	#endif
+	}
 }
 
 void Critical::Delete()
 {
-    if (*(int*)(&Handle) != 0)
-    {
-#ifdef HERO_PLATFORM_WINDOWS
-        DeleteCriticalSection(&Handle);
-#endif
+	if (*(int*)(&Handle) != 0)
+	{
+	#ifdef HERO_PLATFORM_WINDOWS
+	DeleteCriticalSection(&Handle);
+	#endif
 
-#ifdef HERO_PLATFORM_POSIX
-        pthread_mutex_destroy((pthread_mutex_t*)&Handle);
-#endif
-    }
+	#ifdef HERO_PLATFORM_POSIX
+	pthread_mutex_destroy((pthread_mutex_t*)&Handle);
+	#endif
+	}
 
-    memset(&Handle, 0, sizeof(Handle));
+	memset(&Handle,0,sizeof(Handle));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -243,273 +258,285 @@ void Critical::Delete()
 
 bool Mutex::Lock(int timeout)
 {
-#ifdef HERO_PLATFORM_WINDOWS
-    return WaitForSingleObject(Handle, timeout) == 0;
-#endif
+	#ifdef HERO_PLATFORM_WINDOWS
+	return WaitForSingleObject(Handle,timeout) == 0;
+	#endif 
 
-#ifdef HERO_PLATFORM_POSIX
+	#ifdef HERO_PLATFORM_POSIX
 
-    if (timeout != TimeoutIndefinate)
-    {
-        struct timespec ts = Timer::Timespec(timeout * Timer::NanosecondsPerMillisecond);
-        return pthread_mutex_timedlock((pthread_mutex_t*)&Handle, &ts);
-    }
+	if (timeout != TimeoutIndefinate)
+	{
+		struct timespec ts = Timer::Timespec(timeout*Timer::NanosecondsPerMillisecond);
+		return pthread_mutex_timedlock((pthread_mutex_t*)&Handle,&ts);
+	}
 
-    return pthread_mutex_lock((pthread_mutex_t*)&Handle) == 0;
-#endif
+	return pthread_mutex_lock((pthread_mutex_t*)&Handle) == 0;
+	#endif
+
 }
 
 bool Mutex::Unlock()
 {
-#ifdef HERO_PLATFORM_WINDOWS
-    return ReleaseMutex(Handle);
-#endif
 
-#ifdef HERO_PLATFORM_POSIX
-    return pthread_mutex_unlock((pthread_mutex_t*)&Handle) == 0;
-#endif
+	#ifdef HERO_PLATFORM_WINDOWS
+	return ReleaseMutex(Handle);
+	#endif
+
+	#ifdef HERO_PLATFORM_POSIX
+	return pthread_mutex_unlock((pthread_mutex_t*)&Handle) == 0;
+	#endif
 }
 
 bool Mutex::Try()
 {
-#ifdef HERO_PLATFORM_WINDOWS
+	#ifdef HERO_PLATFORM_WINDOWS
 
-    return WaitForSingleObject(Handle, TimeoutImmediate) == 0;
-#endif
+	return WaitForSingleObject(Handle,TimeoutImmediate) == 0;
+	#endif
 
-#ifdef HERO_PLATFORM_POSIX
+	#ifdef HERO_PLATFORM_POSIX
 
-    return pthread_mutex_trylock((pthread_mutex_t*)&Handle) == 0;
-#endif
+	return pthread_mutex_trylock((pthread_mutex_t*)&Handle) == 0;
+	#endif
 }
 
 bool Mutex::Wait(int timeout)
 {
-    if (Lock(timeout))
-    {
-        Unlock();
-        return false;
-    }
 
-    return true;
+	if (Lock(timeout))
+	{
+		Unlock();
+		return false;
+	}
+
+	return true;
 }
 
 void Mutex::Create()
 {
-#ifdef HERO_PLATFORM_WINDOWS
-    Handle = CreateMutex(0, false, 0);
-    Assert(Handle != INVALID_HANDLE_VALUE);
-#endif
 
-#ifdef HERO_PLATFORM_POSIX
-    memset(&Handle, 0, sizeof(Handle));
+	#ifdef HERO_PLATFORM_WINDOWS
+	Handle = CreateMutex(0,false,0);
+	Assert(Handle != INVALID_HANDLE_VALUE);
+	#endif
 
-    pthread_mutexattr_t attr;
-    pthread_mutexattr_init(&attr);
-    pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
-    pthread_mutex_init((pthread_mutex_t*)&Handle, &attr);
-    pthread_mutexattr_destroy(&attr);
+	#ifdef HERO_PLATFORM_POSIX
+	memset(&Handle,0,sizeof(Handle));
 
-#endif
+	pthread_mutexattr_t attr;
+	pthread_mutexattr_init(&attr);
+	pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+	pthread_mutex_init((pthread_mutex_t*)&Handle,&attr);
+	pthread_mutexattr_destroy(&attr);
+
+	#endif
 }
 
 void Mutex::Delete()
 {
-#ifdef HERO_PLATFORM_WINDOWS
-    CloseHandle(Handle);
-    Handle = INVALID_HANDLE_VALUE;
-#endif
+	#ifdef HERO_PLATFORM_WINDOWS
+	CloseHandle(Handle);
+	Handle = INVALID_HANDLE_VALUE;
+	#endif
 
-#ifdef HERO_PLATFORM_POSIX
-    pthread_mutex_destroy((pthread_mutex_t*)&Handle);
-    memset(&Handle, 0, sizeof(Handle));
-#endif
+	#ifdef HERO_PLATFORM_POSIX
+	pthread_mutex_destroy((pthread_mutex_t*)&Handle);
+	memset(&Handle,0,sizeof(Handle));
+	#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Condition::Condition() : Wakeup(0)
+Condition::Condition():Wakeup(0)
 {
-#ifdef HERO_PLATFORM_POSIX
+	#ifdef HERO_PLATFORM_POSIX
 
-    pthread_cond_init(&Handle, 0);
-#endif
+		pthread_cond_init(&Handle,0);
+	#endif
 
-#ifdef HERO_PLATFORM_WINDOWS
-    #if HERO_PLATFORM_WINVER >= 0x0600
-    InitializeConditionVariable(&Handle);
-    #endif
+	#ifdef HERO_PLATFORM_WINDOWS
+		#if HERO_PLATFORM_WINVER >= 0x0600
+		InitializeConditionVariable(&Handle);
+		#endif
 
-#endif
+	#endif
+
 }
 
 Condition::~Condition()
 {
-#ifdef HERO_PLATFORM_POSIX
-    pthread_cond_destroy(&Handle);
-#endif
+	#ifdef HERO_PLATFORM_POSIX
+		pthread_cond_destroy(&Handle);
+	#endif
 
-#ifdef HERO_PLATFORM_WINDOWS
-#endif
+	#ifdef HERO_PLATFORM_WINDOWS
+	#endif
 }
 
-bool Condition::Wait(Critical& critical, unsigned int timeout)
+bool Condition::Wait(Critical & critical, unsigned int timeout)
 {
-#ifdef HERO_PLATFORM_POSIX
 
-    Timer timer;
-    int time = timeout;
+	#ifdef HERO_PLATFORM_POSIX
 
-    do
-    {
-        int wakeup = Wakeup;
+	Timer timer;
+	int time = timeout;
 
-        struct timespec ts = Timer::Timespec(time * Timer::NanosecondsPerMillisecond);
-        int result = (timeout == TimeoutIndefinate) ? pthread_cond_wait(&Handle, &critical.Handle) : pthread_cond_timedwait(&Handle, &critical.Handle, &ts);
+	do
+	{
+		int wakeup = Wakeup;
 
-        if (result == 0)
-        {
-            return false;
-        }
-        else if (result == ETIMEDOUT)
-        {
-            return true;
-        }
+		struct timespec ts = Timer::Timespec(time*Timer::NanosecondsPerMillisecond);	
+		int result = (timeout==TimeoutIndefinate)?pthread_cond_wait(&Handle,&critical.Handle):pthread_cond_timedwait(&Handle,&critical.Handle,&ts);
 
-        if (Barrier::LoadAcquire((volatile int*)&Wakeup) != wakeup)
-            return false;
+		if (result == 0)
+		{
 
-        time -= timer.ElapsedMilliseconds();
-    } while (time > 0 && timer.ElapsedMilliseconds() < timeout);
+			return false;
+		}
+		else
+		if (result == ETIMEDOUT)
+		{
 
-    return true;
+			return true;
+		}
 
-#endif
+		if (Barrier::LoadAcquire((volatile int*)&Wakeup) != wakeup)
+			return false;
 
-#ifdef HERO_PLATFORM_WINDOWS
+		time -= timer.ElapsedMilliseconds();
+	}
+	while(time > 0 && timer.ElapsedMilliseconds() < timeout);
 
-    #if HERO_PLATFORM_WINVER >= 0x0600
+	return true;
 
-    Timer timer;
-    int time = timeout;
+	#endif
 
-    do
-    {
-        int wakeup = Wakeup;
+	#ifdef HERO_PLATFORM_WINDOWS
 
-        int result = SleepConditionVariableCS(&Handle, &critical.Handle, time);
-        if (result == 0)
-        {
-            int error = GetLastError();
-            Assert(error == ERROR_TIMEOUT);
-            return true;
-        }
+	#if HERO_PLATFORM_WINVER >= 0x0600
 
-        if (Barrier::LoadAcquire((volatile int*)&Wakeup) != wakeup)
-            return false;
+	Timer timer;
+	int time = timeout;
 
-        time -= timer.ElapsedMilliseconds();
-    } while (time > 0 && timer.ElapsedMilliseconds() < timeout);
+	do
+	{
+		int wakeup = Wakeup;
 
-    return true;
+		int result = SleepConditionVariableCS(&Handle,&critical.Handle,time);
+		if (result == 0)
+		{
+			int error = GetLastError();
+			Assert(error == ERROR_TIMEOUT);
+			return true;
+		}
 
-    #else
+		if (Barrier::LoadAcquire((volatile int*)&Wakeup) != wakeup)
+			return false;
 
-    Timer timer;
+		time -= timer.ElapsedMilliseconds();
+	}
+	while(time > 0 && timer.ElapsedMilliseconds() < timeout);
 
-    int tick = 0;
-    int time = timeout;
-    int result = 0;
+	return true;
 
-    Critical::Auto leave(critical, Critical::Auto::MODE_LEAVE);
+	#else
 
-    do
-    {
-        int wakeup = Wakeup;
+	Timer timer;
 
-        if (Atomic::Cas((volatile int*)&Handle.Signal, 1, 0) == 1)
-            return false;
+	int tick = 0;
+	int time = timeout;
+	int result = 0;
 
-        tick = (time > 100) ? 100 : time;
-        result = WaitForMultipleObjects(2, Handle.Events, false, tick);
-        if (result < 2)
-            return false;
+	Critical::Auto leave(critical,Critical::Auto::MODE_LEAVE);
 
-        if (Atomic::Cas((volatile int*)&Handle.Signal, 1, 0) == 1)
-            return false;
+	do 
+	{
+		int wakeup = Wakeup;
 
-        time -= tick;
+		if (Atomic::Cas((volatile int*)&Handle.Signal,1,0) == 1)	
+			return false;
 
-        if (Barrier::LoadAcquire((volatile int*)&Wakeup) != wakeup)
-            return false;
+		tick = (time>100)?100:time;			
+		result = WaitForMultipleObjects(2,Handle.Events,false,tick);
+		if (result < 2)
+			return false;
 
-        int error = GetLastError();
+		if (Atomic::Cas((volatile int*)&Handle.Signal,1,0) == 1)	
+			return false;
 
-        Assert(result == WAIT_TIMEOUT && error == ERROR_SUCCESS);
+		time -= tick;
 
-    } while (time > 0 && timer.ElapsedMilliseconds() < timeout);
+		if (Barrier::LoadAcquire((volatile int*)&Wakeup) != wakeup)
+			return false;
 
-    if (result >= 2)
-        return true;
+		int error = GetLastError();
 
-    #endif
-#endif
+		Assert(result == WAIT_TIMEOUT && error == ERROR_SUCCESS);
 
-    return false;
+	}
+	while(time > 0 && timer.ElapsedMilliseconds() < timeout);
+
+	if (result >= 2)
+		return true;
+
+	#endif	
+	#endif	
+
+	return false;
 }
 
 bool Condition::Signal()
 {
-    Atomic::Inc((volatile int*)&Wakeup);
+	Atomic::Inc((volatile int*)&Wakeup);
 
-#ifdef HERO_PLATFORM_POSIX
+	#ifdef HERO_PLATFORM_POSIX
 
-    pthread_cond_signal(&Handle);
+	pthread_cond_signal(&Handle);
 
-#endif
+	#endif
 
-#ifdef HERO_PLATFORM_WINDOWS
-    #if HERO_PLATFORM_WINVER >= 0x0600
-    WakeConditionVariable(&Handle);
-    #else
+	#ifdef HERO_PLATFORM_WINDOWS
+	#if HERO_PLATFORM_WINVER >= 0x0600
+	WakeConditionVariable(&Handle);
+	#else	
 
-    Sleep(0);
+	Sleep(0);
 
-    while (Atomic::Cas((volatile int*)&Handle.Signal, 0, 1) != 0)
-        Sleep(0);
+	while (Atomic::Cas((volatile int*)&Handle.Signal,0,1) != 0)
+		Sleep(0);
 
-    SetEvent((HANDLE)Handle.Events[ConditionObject::SIGNAL]);
+	SetEvent((HANDLE)Handle.Events[ConditionObject::SIGNAL]);
 
-    #endif
-#endif
+	#endif
+	#endif	
 
-    return true;
+	return true;
 }
 
 bool Condition::Broadcast()
 {
-    Atomic::Inc((volatile int*)&Wakeup);
+	Atomic::Inc((volatile int*)&Wakeup);
 
-#ifdef HERO_PLATFORM_POSIX
+	#ifdef HERO_PLATFORM_POSIX
 
-    pthread_cond_broadcast(&Handle);
+	pthread_cond_broadcast(&Handle);
 
-#endif
+	#endif
 
-#ifdef HERO_PLATFORM_WINDOWS
-    #if HERO_PLATFORM_WINVER >= 0x0600
-    WakeAllConditionVariable(&Handle);
+	#ifdef HERO_PLATFORM_WINDOWS
+	#if HERO_PLATFORM_WINVER >= 0x0600
+	WakeAllConditionVariable(&Handle);
 
-    #else
+	#else
 
-    Sleep(0);
-    PulseEvent((HANDLE)Handle.Events[ConditionObject::BROADCAST]);
-    #endif
-#endif
+	Sleep(0);
+	PulseEvent((HANDLE)Handle.Events[ConditionObject::BROADCAST]);
+	#endif	
+	#endif	
 
-    return true;
+	return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -518,373 +545,403 @@ bool Condition::Broadcast()
 
 struct Event::EventWait
 {
-    Critical Critical;
-    Condition Condition;
+	Critical Critical;
+	Condition Condition;
 
-    int Index;
-    int Status;
+	int Index;
+	int Status;
 
-    int References;
-    bool All;
-    bool Waiting;
+	int References;
+	bool All;
+	bool Waiting;
 
-    EventWait(bool all, bool waiting = false) : Index(-1), Status(0), References(0), All(all), Waiting(waiting) {}
+	EventWait(bool all, bool waiting=false):Index(-1),Status(0),References(0),All(all),Waiting(waiting) {}	
 
-    void Decrement()
-    {
-        --References;
-        Assert(References >= 0);
-    }
+	void Decrement()
+	{
+		--References;
+		Assert(References >= 0);	
+	}
 
-    void Increment()
-    {
-        Assert(References >= 0);
-        ++References;
-    }
+	void Increment()
+	{
+		Assert(References >= 0);	
+		++References;
+	}
 };
 
 struct Event::EventObject
 {
-    Critical Critical;
-    Condition Condition;
-    bool Manual;
-    bool Set;
+	Critical Critical;
+	Condition Condition;
+	bool Manual;
+	bool Set;
 
-    Vector<EventWait*> Waiters;
+	Vector<EventWait*> Waiters;
 
-    EventObject(bool manual = false, bool set = false) : Manual(manual), Set(set)
-    {
-    }
+	EventObject(bool manual=false, bool set=false):Manual(manual),Set(set) 
+	{
 
-    ~EventObject()
-    {
-        for (int w = 0; w < Waiters.Length(); ++w)
-        {
-            EventWait* wait = Waiters[w];
+	}
 
-            wait->Critical.Enter();
+	~EventObject()
+	{
 
-            wait->Decrement();
-            if (wait->References == 0)
-                delete wait;
-        }
+		for (int w=0;w<Waiters.Length();++w)
+		{			
 
-        Waiters.Release();
-    }
+			EventWait * wait = Waiters[w];
+
+			wait->Critical.Enter();
+
+			wait->Decrement();
+			if (wait->References == 0)
+				delete wait;		
+
+		}
+
+		Waiters.Release();
+	}
 };
 
 Event::Event(bool manual, bool set)
 {
-    Handle = (void*)new EventObject(manual, set);
+
+	Handle = (void*) new EventObject(manual,set);
+
 }
 
 Event::~Event()
 {
-    EventObject* object = (EventObject*)Handle;
-    if (object)
-        delete object;
+
+	EventObject * object = (EventObject*)Handle;
+	if (object)
+		delete object;
+
 }
 
-bool Event::Reset()
+bool Event::Reset() 
 {
-    Mutex::Auto mutex(Mutex);
+	Mutex::Auto mutex(Mutex);
 
-    EventObject* object = (EventObject*)Handle;
-    object->Set = false;
+	EventObject * object = (EventObject*)Handle;
+	object->Set = false;
 
-    return true;
+	return true;
 }
 
 bool Event::Set()
 {
-    Mutex::Auto mutex(Mutex);
 
-    EventObject* object = (EventObject*)Handle;
-    object->Set = true;
+	Mutex::Auto mutex(Mutex);
 
-    for (int w = 0; w < object->Waiters.Length();)
-    {
-        EventWait* wait = object->Waiters[w];
+	EventObject * object = (EventObject*)Handle;
+	object->Set = true;
 
-        wait->Critical.Enter();
+	for (int w=0;w<object->Waiters.Length();)
+	{
 
-        wait->Decrement();
+		EventWait * wait = object->Waiters[w];
 
-        if (!wait->Waiting)
-        {
-            wait->Critical.Leave();
+		wait->Critical.Enter();
 
-            if (wait->References == 0)
-                delete wait;
+		wait->Decrement();
 
-            if (!object->Manual)
-            {
-                object->Waiters.Remove(wait, w);
-            }
-            else
-            {
-                ++w;
-            }
+		if (!wait->Waiting)
+		{	
+			wait->Critical.Leave();	
 
-            continue;
-        }
+			if (wait->References == 0)
+				delete wait;
 
-        if (!object->Manual)
-            object->Set = false;
+			if (!object->Manual)
+			{
 
-        if (wait->All)
-        {
-            --wait->Status;
-            Assert(wait->Status >= 0);
-        }
-        else
-        {
-            wait->Status = wait->Index;
-            wait->Waiting = false;
-        }
+				object->Waiters.Remove(wait,w);
+			}
+			else
+			{
 
-        wait->Critical.Leave();
-        wait->Condition.Signal();
+				++w;
+			}
 
-        if (!object->Manual)
-        {
-            object->Waiters.Remove(wait, w);
+			continue;
+		}		
 
-            return true;
-        }
-        else
-        {
-            ++w;
-        }
-    }
+		if (!object->Manual)
+			object->Set = false;
 
-    if (!object->Manual)
-    {
-        if (object->Set)
-        {
-            object->Condition.Signal();
-        }
-    }
-    else
-    {
-        object->Waiters.Release();
+		if (wait->All)
+		{
+			--wait->Status;
+			Assert(wait->Status >= 0);
+		}
+		else
+		{
+			wait->Status = wait->Index;
+			wait->Waiting = false;
+		}
 
-        object->Condition.Broadcast();
-    }
+		wait->Critical.Leave();
+		wait->Condition.Signal();
 
-    return true;
+		if (!object->Manual)
+		{
+
+			object->Waiters.Remove(wait,w);
+
+			return true;
+		}
+		else
+		{
+
+			++w;
+		}
+	}
+
+	if (!object->Manual)
+	{
+		if (object->Set)
+		{	
+
+			object->Condition.Signal();
+		}
+	}
+	else
+	{
+
+		object->Waiters.Release();			
+
+		object->Condition.Broadcast();		
+	}
+
+	return true;
+
 }
 
 bool Event::Pulse()
 {
-    Mutex::Auto mutex(Mutex);
+	Mutex::Auto mutex(Mutex);
 
-    if (Set())
-        return Reset();
+	if (Set())
+		return Reset();
 
-    return false;
+	return false;
 }
 
 bool Event::Wait(int timeout)
 {
-    if (timeout == Event::TimeoutImmediate)
-    {
-        if (!Mutex.Try())
-            return true;
-    }
-    else
-    {
-        if (!Mutex.Lock(timeout))
-            return true;
-    }
 
-    bool wait = Event::WaitForEvent(this, timeout);
+	if (timeout == Event::TimeoutImmediate)
+	{
+		if (!Mutex.Try())
+			return true;
+	}
+	else
+	{
 
-    Mutex.Unlock();
+		if (!Mutex.Lock(timeout))
+			return true;
+	}
 
-    return wait;
+	bool wait = Event::WaitForEvent(this,timeout);
+
+	Mutex.Unlock();
+
+	return wait;
 }
 
-int Event::WaitForSingleEvent(Event* event, int timeout)
+int Event::WaitForSingleEvent(Event * event, int timeout)
 {
-    if (!event || event->Wait(timeout))
-        return -1;
 
-    return 0;
+	if (!event || event->Wait(timeout)) 
+		return -1;
+
+	return 0;	
 }
 
-int Event::WaitForMultipleEvents(int count, Event* events, bool all, int timeout)
+int Event::WaitForMultipleEvents(int count, Event * events, bool all, int timeout)
 {
-    EventWait* wfme = new EventWait(all, true);
+	EventWait * wfme = new EventWait(all,true);
 
-    wfme->References = 1;
-    wfme->Status = (all) ? count : -1;
+	wfme->References = 1;
+	wfme->Status = (all)?count:-1;
 
-    wfme->Critical.Enter();
+	wfme->Critical.Enter();
 
-    bool found = false;
-    int index = -1;
+	bool found = false;
+	int index = -1;
 
-    for (int i = 0; i < count; ++i)
-    {
-        wfme->Index = i;
+	for (int i=0;i<count;++i)
+	{
+		wfme->Index = i;
 
-        events[i].Mutex.Lock();
+		events[i].Mutex.Lock();
 
-        EventObject* object = (EventObject*)events[i].Handle;
+		EventObject * object = (EventObject*)events[i].Handle;
 
-        for (int w = 0; w < object->Waiters.Length();)
-        {
-            EventWait* wait = object->Waiters[w];
+		for (int w=0;w<object->Waiters.Length();)
+		{
 
-            if (wait->Critical.Try())
-            {
-                if (!wait->Waiting)
-                {
-                    wait->Decrement();
-                    wait->Critical.Leave();
+			EventWait * wait = object->Waiters[w];
 
-                    if (wait->References == 0)
-                        delete wait;
+			if (wait->Critical.Try())
+			{
+				if (!wait->Waiting)
+				{
+					wait->Decrement();
+					wait->Critical.Leave();
 
-                    object->Waiters.Remove(wait, w);
+					if (wait->References == 0)
+						delete wait;						
 
-                    continue;
-                }
+					object->Waiters.Remove(wait,w);
 
-                wait->Critical.Leave();
-            }
+					continue;
+				}
 
-            ++w;
-        }
+				wait->Critical.Leave();
+			}
 
-        if (!Event::WaitForEvent(&events[i], timeout))
-        {
-            events[i].Mutex.Unlock();
-            if (all)
-            {
-                --wfme->Status;
-                Assert(wfme->Status >= 0);
-            }
-            else
-            {
-                wfme->Status = i;
-                found = true;
-                break;
-            }
-        }
-        else
-        {
-            ++wfme->References;
-            object->Waiters.Append(wfme);
+			++w;
+		}
 
-            events[i].Mutex.Unlock();
-        }
-    }
+		if (!Event::WaitForEvent(&events[i],timeout))
+		{
 
-    while (!found)
-    {
-        found = (all && wfme->Status == 0) || (!all && wfme->Status != -1);
+			events[i].Mutex.Unlock();
+			if (all)
+			{
+				--wfme->Status;
+				Assert(wfme->Status >= 0);
+			}
+			else
+			{
+				wfme->Status = i;
+				found = true;
+				break;
+			}		
+		}
+		else
+		{
+			++wfme->References;
+			object->Waiters.Append(wfme);				
 
-        if (!found)
-        {
-            if (timeout == Event::TimeoutIndefinate)
-            {
-                wfme->Condition.Wait(wfme->Critical, timeout);
-            }
-            else
-            {
-                Timer timer;
+			events[i].Mutex.Unlock();
+		}
+	}
 
-                if (wfme->Condition.Wait(wfme->Critical, timeout))
-                    timeout -= timer.ElapsedMilliseconds();
+	while (!found)
+	{
 
-                if (timeout <= 0)
-                    break;
-            }
-        }
-    }
+		found = (all && wfme->Status == 0) || (!all && wfme->Status != -1);
 
-    if (found)
-        index = wfme->Status;
+		if (!found)
+		{
 
-    wfme->Waiting = false;
+			if (timeout == Event::TimeoutIndefinate)
+			{
+				wfme->Condition.Wait(wfme->Critical,timeout);
+			}
+			else
+			{
+				Timer timer;
 
-    bool referenced = wfme->References > 1;
+				if (wfme->Condition.Wait(wfme->Critical,timeout))
+					timeout -= timer.ElapsedMilliseconds();				
 
-    wfme->Decrement();
-    if (wfme->References == 0)
-    {
-        delete wfme;
-    }
-    else
-    {
-        wfme->Critical.Leave();
+				if (timeout <= 0)
+					break;
+			}			
+		}	
+	}
 
-        if (false)
+	if (found)
+		index = wfme->Status;
 
-        {
-            for (int i = 0; i < count; ++i)
-            {
-                events[i].Mutex.Lock();
+	wfme->Waiting = false;
 
-                EventObject* object = (EventObject*)events[i].Handle;
+	bool referenced = wfme->References > 1;
 
-                for (int w = 0; w < object->Waiters.Length();)
-                {
-                    EventWait* wait = object->Waiters[w];
+	wfme->Decrement();
+	if (wfme->References == 0)
+	{
 
-                    if (wait->Critical.Try())
-                    {
-                        if (!wait->Waiting)
-                        {
-                            wait->Decrement();
-                            wait->Critical.Leave();
+		delete wfme;
+	}
+	else
+	{
+		wfme->Critical.Leave();
 
-                            if (wait->References == 0)
-                                delete wait;
+		if (false)		
 
-                            object->Waiters.Remove(wait, w);
+		{
+			for (int i=0;i<count;++i)
+			{
 
-                            continue;
-                        }
+				events[i].Mutex.Lock();			
 
-                        wait->Critical.Leave();
-                    }
+				EventObject * object = (EventObject*)events[i].Handle;
 
-                    ++w;
-                }
+				for (int w=0;w<object->Waiters.Length();)
+				{
 
-                events[i].Mutex.Unlock();
-            }
-        }
-    }
+					EventWait * wait = object->Waiters[w];	
 
-    return index;
+					if (wait->Critical.Try())
+					{						
+						if (!wait->Waiting)
+						{
+							wait->Decrement();
+							wait->Critical.Leave();
+
+							if (wait->References == 0)
+								delete wait;
+
+							object->Waiters.Remove(wait,w);
+
+							continue;
+						}
+
+						wait->Critical.Leave();
+					}
+
+					++w;
+				}	
+
+				events[i].Mutex.Unlock();
+			}		
+
+		}	
+	}
+
+	return index;
 }
 
-bool Event::WaitForEvent(Event* event, int timeout)
+bool Event::WaitForEvent(Event * event, int timeout)
 {
-    EventObject* object = (EventObject*)event->Handle;
-    if (!object->Set)
-    {
-        if (timeout == Event::TimeoutImmediate)
-            return true;
 
-        object->Critical.Enter();
-        object->Condition.Wait(object->Critical, timeout);
-        object->Critical.Leave();
-    }
+	EventObject * object = (EventObject*)event->Handle;
+	if (!object->Set)
+	{
+		if (timeout == Event::TimeoutImmediate)
+			return true;
 
-    if (object->Set)
-    {
-        if (!object->Manual)
-            object->Set = false;
+		object->Critical.Enter();
+		object->Condition.Wait(object->Critical,timeout);
+		object->Critical.Leave();
 
-        return false;
-    }
+	}
 
-    return true;
+	if (object->Set)
+	{	
+		if (!object->Manual)
+			object->Set = false;
+
+		return false;
+	}
+
+	return true;	
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -895,19 +952,19 @@ Semaphore::Semaphore(int count)
 {
 #ifdef HERO_PLATFORM_WINDOWS
 
-    Handle = CreateSemaphore(0, 0, count, 0);
-    if (Handle == 0)
-    {
-        Raise("Semaphore::Semaphore - Error %d, Could not create semaphore\n", GetLastError());
-    }
+	Handle = CreateSemaphore(0,0,count,0);
+	if (Handle == 0)
+	{
+		Raise("Semaphore::Semaphore - Error %d, Could not create semaphore\n",GetLastError());
+	}
 
 #endif
 #ifdef HERO_PLATFORM_POSIX
 
-    if (sem_init(Handle, 0, count) == -1)
-    {
-        Raise("Semaphore::Semaphore - Error %d, Could not create semaphore\n", errno);
-    }
+	if (sem_init(Handle,0,count) == -1)
+	{
+		Raise("Semaphore::Semaphore - Error %d, Could not create semaphore\n",errno);
+	}
 
 #endif
 }
@@ -915,36 +972,37 @@ Semaphore::Semaphore(int count)
 Semaphore::~Semaphore()
 {
 #ifdef HERO_PLATFORM_WINDOWS
-    CloseHandle(Handle);
+	CloseHandle(Handle);
 #endif
 #ifdef HERO_PLATFORM_POSIX
 
 #endif
+
 }
 
 bool Semaphore::Enter()
 {
 #ifdef HERO_PLATFORM_WINDOWS
 
-    WaitForSingleObject(Handle, INFINITE);
+	WaitForSingleObject(Handle, INFINITE);
 #endif
 #ifdef HERO_PLATFORM_POSIX
-    sem_post(Handle);
+	sem_post(Handle);
 #endif
 
-    return false;
+	return false;
 }
 
 bool Semaphore::Leave()
 {
-#ifdef HERO_PLATFORM_WINDOWS
-    ReleaseSemaphore(Handle, 1, 0);
+#ifdef HERO_PLATFORM_WINDOWS	
+	ReleaseSemaphore(Handle,1,0);
 #endif
 #ifdef HERO_PLATFORM_POSIX
-    sem_wait(Handle);
+	sem_wait(Handle);
 #endif
 
-    return false;
+	return false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -953,92 +1011,100 @@ bool Semaphore::Leave()
 
 bool Monitor::Wait(unsigned int timeout)
 {
-    Atomic::Inc((volatile int*)&Waiters);
 
-    Critical::Auto critical(Critical);
+	Atomic::Inc((volatile int *)&Waiters);
 
-    int wakeups = Wakeups;
+	Critical::Auto critical(Critical);
 
-    bool awake = false;
+	int wakeups = Wakeups;
 
-    while (Waiting() && !awake)
-    {
-        bool wait = false;
-        if (timeout != TimeoutIndefinate)
-            wait = Condition.Wait(Critical, timeout);
-        else
-            wait = Condition.Wait(Critical);
+	bool awake = false;		
 
-        if (wait && Waiting())
-        {
-            Atomic::Dec((volatile int*)&Waiters);
-            return true;
-        }
+	while (Waiting() && !awake)
+	{
 
-        awake = wakeups != Wakeups && !Waiting();
-    }
+		bool wait = false;
+		if (timeout != TimeoutIndefinate)
+			wait = Condition.Wait(Critical,timeout);				
+		else
+			wait = Condition.Wait(Critical);
 
-    int waiters = Atomic::Dec((volatile int*)&Waiters);
+		if (wait && Waiting())
+		{
 
-    if (Events.Signal > 0)
-    {
-        if (Events.Reset)
-            Reset();
+			Atomic::Dec((volatile int*)&Waiters);
+			return true;
+		}
 
-        --Events.Signal;
-    }
-    else if (Events.Broadcast > 0)
-    {
-        if (waiters == 0)
-        {
-            if (Events.Reset)
-                Reset();
+		awake = wakeups != Wakeups && !Waiting();
+	}
 
-            --Events.Broadcast;
-        }
-    }
+	int waiters = Atomic::Dec((volatile int*)&Waiters);
 
-    return false;
+	if (Events.Signal > 0)
+	{
+		if (Events.Reset)
+			Reset();
+
+		--Events.Signal;		
+	}
+	else
+	if (Events.Broadcast > 0)
+	{
+
+		if (waiters == 0)
+		{
+			if (Events.Reset)
+				Reset();
+
+			--Events.Broadcast;								
+		}
+	}
+
+	return false;
 }
 
 bool Monitor::Waiting()
 {
-    if (Events.Reset)
-        return !Events.Signal && !Events.Broadcast;
-    else
-        return !Events.Set;
+
+	if (Events.Reset)
+		return !Events.Signal && !Events.Broadcast;
+	else
+		return !Events.Set;
+
 }
 
 void Monitor::Set()
 {
-    Critical::Auto critical(Critical);
-    Events.Set = true;
-    Events.Reset = false;
-    Broadcast();
+	Critical::Auto critical(Critical);
+	Events.Set = true;
+	Events.Reset = false;
+	Broadcast();
 }
 
 void Monitor::Reset()
 {
-    Critical::Auto critical(Critical);
-    Events.Set = false;
-    Events.Reset = true;
+	Critical::Auto critical(Critical);
+	Events.Set = false;
+	Events.Reset = true;	
 }
 
 void Monitor::Signal()
 {
-    Critical::Auto critical(Critical);
-    ++Wakeups;
-    ++Events.Signal;
-    Condition.Signal();
+	Critical::Auto critical(Critical);
+	++Wakeups;
+	++Events.Signal;		
+	Condition.Signal();
 }
 
 void Monitor::Broadcast()
 {
-    Critical::Auto critical(Critical);
-    ++Wakeups;
 
-    Atomic::Cas((volatile int*)&Events.Broadcast, 0, 1);
-    Condition.Broadcast();
+	Critical::Auto critical(Critical);
+	++Wakeups;
+
+	Atomic::Cas((volatile int *)&Events.Broadcast,0,1);
+	Condition.Broadcast();	
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1055,147 +1121,153 @@ void Monitor::Broadcast()
 
 struct ThreadLocalCleanupTuple : public Object
 {
-    unsigned long Id;
-    int Type;
-    int Index;
-    ThreadLocalCleanup::CleanupFunc Func;
+	unsigned long Id;
+	int Type;
+	int Index;
+	ThreadLocalCleanup::CleanupFunc Func;
 
-    ThreadLocalCleanupTuple() : Id(0), Type(0), Index(0), Func(0)
-    {
-    }
+	ThreadLocalCleanupTuple(): 
+		Id(0),Type(0),Index(0),Func(0)
+	{		
+	}
 
-    ThreadLocalCleanupTuple(unsigned long id, int type, int index, ThreadLocalCleanup::CleanupFunc func) : Id(id), Type(type), Index(index), Func(func)
-    {
-    }
+	ThreadLocalCleanupTuple(unsigned long id, int type, int index, ThreadLocalCleanup::CleanupFunc func):
+		Id(id),Type(type),Index(index),Func(func)
+	{		
+	}
 
-    int Compare(Object* object, int comparitor = COMPARE_GENERAL)
-    {
-        ThreadLocalCleanupTuple* tuple = (ThreadLocalCleanupTuple*)object;
-        return Index - tuple->Index;
-    }
+	int Compare(Object * object, int comparitor=COMPARE_GENERAL)
+	{
+		ThreadLocalCleanupTuple * tuple = (ThreadLocalCleanupTuple*)object;	
+		return Index-tuple->Index;
+	}
 };
 
 typedef Set<ThreadLocalCleanupTuple> ThreadLocalCleanupTuples;
 
 class ThreadLocalCleanupImpl
 {
-  public:
-    SpinLock Lock;
-    Map<unsigned long, ThreadLocalCleanupTuples> Cleaner;
+public:	
 
-    ThreadLocalCleanupImpl()
-    {
-    }
+	SpinLock Lock;
+	Map<unsigned long,ThreadLocalCleanupTuples> Cleaner;
 
-    ~ThreadLocalCleanupImpl()
-    {
-        Vector<ThreadLocalCleanupTuple> tuples;
+	ThreadLocalCleanupImpl()
+	{
+	}
 
-        {
-            SpinLock::WriteLock write(Lock);
-            Iterand<unsigned long> cleaner = Cleaner.Keys.Forward();
-            while (cleaner)
-            {
-                unsigned long id = cleaner();
+	~ThreadLocalCleanupImpl()
+	{
+		Vector<ThreadLocalCleanupTuple> tuples;
 
-                Iterand<ThreadLocalCleanupTuple> tuple = Cleaner.Values[cleaner.Index].Forward();
-                while (tuple)
-                {
-                    tuples.Append(tuple());
+		{
+			SpinLock::WriteLock write(Lock);
+			Iterand<unsigned long> cleaner = Cleaner.Keys.Forward();
+			while(cleaner)
+			{
+				unsigned long id = cleaner();
 
-                    ++tuple;
-                }
-                ++cleaner;
-            }
+				Iterand<ThreadLocalCleanupTuple> tuple = Cleaner.Values[cleaner.Index].Forward();
+				while(tuple)
+				{				
+					tuples.Append(tuple());
 
-            Cleaner.Release();
-        }
+					++tuple;
+				}			
+				++cleaner;
+			}
 
-        for (int t = 0; t < tuples.Size; ++t)
-        {
-            ThreadLocalCleanupTuple& tuple = tuples[t];
-            ThreadLocalCleanup::CleanupFunc func = tuple.Func;
-            if (func) func(tuple.Id, tuple.Type, tuple.Index);
-        }
-    }
+			Cleaner.Release();
+		}
+
+		for (int t=0;t<tuples.Size;++t)
+		{
+			ThreadLocalCleanupTuple & tuple = tuples[t];
+			ThreadLocalCleanup::CleanupFunc func = tuple.Func;
+			if (func) func(tuple.Id,tuple.Type,tuple.Index);
+		}			
+	}
+
 };
 
 void ThreadLocalCleanup::Delete(unsigned long id)
 {
-    Vector<ThreadLocalCleanupTuple> tuples;
+	Vector<ThreadLocalCleanupTuple> tuples;
 
-    Assert(Impl);
-    {
-        SpinLock::WriteLock write(Impl->Lock);
-        Result<bool, int> cleaner = Impl->Cleaner.Remove(id);
-        if (cleaner)
-        {
-            Iterand<ThreadLocalCleanupTuple> tuple = Impl->Cleaner.At(cleaner.Index).Forward();
-            while (tuple)
-            {
-                tuples.Append(tuple());
+	Assert(Impl);
+	{
+		SpinLock::WriteLock write(Impl->Lock);
+		Result<bool,int> cleaner = Impl->Cleaner.Remove(id);
+		if (cleaner)
+		{
+			Iterand<ThreadLocalCleanupTuple> tuple = Impl->Cleaner.At(cleaner.Index).Forward();
+			while(tuple)
+			{				
+				tuples.Append(tuple());
 
-                ++tuple;
-            }
-        }
-    }
+				++tuple;
+			}
+		}	
+	}
 
-    for (int t = 0; t < tuples.Size; ++t)
-    {
-        ThreadLocalCleanupTuple& tuple = tuples[t];
-        ThreadLocalCleanup::CleanupFunc func = tuple.Func;
-        if (func) func(tuple.Id, tuple.Type, tuple.Index);
-    }
+	for (int t=0;t<tuples.Size;++t)
+	{
+		ThreadLocalCleanupTuple & tuple = tuples[t];
+		ThreadLocalCleanup::CleanupFunc func = tuple.Func;
+		if (func) func(tuple.Id,tuple.Type,tuple.Index);
+	}
 }
 
 void ThreadLocalCleanup::Remove(unsigned long id, int index)
 {
-    Assert(Impl);
-    SpinLock::WriteLock write(Impl->Lock);
 
-    ThreadLocalCleanupTuple tuple(id, 0, index, 0);
-    Result<bool, int> cleaner = Impl->Cleaner.Select(id);
-    if (cleaner)
-    {
-        Impl->Cleaner.At(cleaner.Index).Remove(tuple);
-    }
+	Assert(Impl);
+	SpinLock::WriteLock write(Impl->Lock);
+
+	ThreadLocalCleanupTuple tuple(id,0,index,0);
+	Result<bool,int> cleaner = Impl->Cleaner.Select(id);
+	if (cleaner)
+	{
+		Impl->Cleaner.At(cleaner.Index).Remove(tuple);
+	}
 }
 
 void ThreadLocalCleanup::Remove(unsigned long id)
 {
-    Assert(Impl);
-    SpinLock::WriteLock write(Impl->Lock);
+	Assert(Impl);
+	SpinLock::WriteLock write(Impl->Lock);
 
-    Impl->Cleaner.Remove(id);
+	Impl->Cleaner.Remove(id);
+
 }
 
 void ThreadLocalCleanup::Update(unsigned long id, int type, int index, CleanupFunc func)
 {
-    Assert(Impl);
-    SpinLock::WriteLock write(Impl->Lock);
-    ThreadLocalCleanupTuple tuple(id, type, index, func);
-    Result<bool, int> cleaner = Impl->Cleaner.Update(id);
-    if (cleaner)
-    {
-        Impl->Cleaner.At(cleaner.Index).Update(tuple);
-    }
+	Assert(Impl);
+	SpinLock::WriteLock write(Impl->Lock);
+	ThreadLocalCleanupTuple tuple(id,type,index,func);
+	Result<bool,int> cleaner = Impl->Cleaner.Update(id);
+	if (cleaner)
+	{
+		Impl->Cleaner.At(cleaner.Index).Update(tuple);
+	}
 }
 
-ThreadLocalCleanup& ThreadLocalCleanup::Singleton()
-{
-    static ThreadLocalCleanup cleanup;
-    return cleanup;
+ThreadLocalCleanup & ThreadLocalCleanup::Singleton()
+{	
+	static ThreadLocalCleanup cleanup;
+	return cleanup;
 }
 
-ThreadLocalCleanup::ThreadLocalCleanup() : Impl(0)
+ThreadLocalCleanup::ThreadLocalCleanup():Impl(0)
 {
-    Impl = new ThreadLocalCleanupImpl();
+	Impl = new ThreadLocalCleanupImpl();
 }
 
 ThreadLocalCleanup::~ThreadLocalCleanup()
 {
-    if (Impl)
-        delete Impl;
+	if (Impl)
+		delete Impl;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1208,71 +1280,74 @@ ThreadLocalStorage::ThreadLocalStorageInit ThreadLocalStorage::Init;
 #endif
 
 ThreadLocalStorage::ThreadLocalStorage()
-{
-#ifdef HERO_PLATFORM_WINDOWS
-    Index = TlsAlloc();
-#endif
+{	
+	#ifdef HERO_PLATFORM_WINDOWS
+	Index = TlsAlloc();
+	#endif
 
-#ifdef HERO_PLATFORM_POSIX
-    pthread_key_create(&Index, 0);
-#endif
+	#ifdef HERO_PLATFORM_POSIX
+	pthread_key_create(&Index,0);
+	#endif
+
 }
 
 ThreadLocalStorage::~ThreadLocalStorage()
 {
-#ifdef HERO_PLATFORM_WINDOWS
-    TlsFree(Index);
-#endif
 
-#ifdef HERO_PLATFORM_POSIX
-    pthread_key_delete(Index);
-#endif
+	#ifdef HERO_PLATFORM_WINDOWS
+	TlsFree(Index);
+	#endif	
+
+	#ifdef HERO_PLATFORM_POSIX
+	pthread_key_delete(Index);
+	#endif	
 }
 
-bool ThreadLocalStorage::Set(void* data)
-{
-    return ThreadLocalStorage::Set(Index, data);
+bool ThreadLocalStorage::Set(void * data)
+{	
+	return ThreadLocalStorage::Set(Index,data);	
 }
 
-void* ThreadLocalStorage::Get()
+void * ThreadLocalStorage::Get()
 {
-    return ThreadLocalStorage::Get(Index);
+	return ThreadLocalStorage::Get(Index);
 }
 
-bool ThreadLocalStorage::Set(int index, void* data)
+bool ThreadLocalStorage::Set(int index, void * data)
 {
-#ifdef HERO_PLATFORM_WINDOWS
-    return TlsSetValue(index, data) != 0;
-#endif
 
-#ifdef HERO_PLATFORM_POSIX
-    return pthread_setspecific(index, data) == 0;
-#endif
+	#ifdef HERO_PLATFORM_WINDOWS
+	return TlsSetValue(index,data) != 0;
+	#endif
+
+	#ifdef HERO_PLATFORM_POSIX
+	return pthread_setspecific(index,data) == 0;
+	#endif		
 }
 
-void* ThreadLocalStorage::Get(int index)
+void * ThreadLocalStorage::Get(int index)
 {
-#ifdef HERO_PLATFORM_WINDOWS
-    void* data = TlsGetValue(index);
-#endif
+	#ifdef HERO_PLATFORM_WINDOWS
+	void * data = TlsGetValue(index);
+	#endif	
 
-#ifdef HERO_PLATFORM_POSIX
-    void* data = pthread_getspecific(index);
-#endif
+	#ifdef HERO_PLATFORM_POSIX
+	void * data = pthread_getspecific(index);
+	#endif		
 
-    return data;
+	return data;
 }
 
 bool ThreadLocalStorage::Del(int index)
 {
-#ifdef HERO_PLATFORM_WINDOWS
-    return TlsFree(index);
-#endif
+	#ifdef HERO_PLATFORM_WINDOWS
+	return TlsFree(index);
+	#endif	
 
-#ifdef HERO_PLATFORM_POSIX
-    return pthread_key_delete(index) == 0;
-#endif
-}
+	#ifdef HERO_PLATFORM_POSIX
+	return pthread_key_delete(index) == 0;
+	#endif		
+}	
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1288,21 +1363,23 @@ typedef long long RWBytes;
 
 bool SpinLock::LockRead(bool yield)
 {
-    while (true)
+    while(true)
     {
-        Assert((Bytes & ReaderBytes) < (ReaderBytes - 1));
 
-        unsigned long spin = 1;
-        while ((Bytes & WriterBytes) != 0)
-        {
+		Assert((Bytes&ReaderBytes) < (ReaderBytes-1));
+
+        unsigned long spin=1;
+        while((Bytes&WriterBytes) != 0)
+        {        
+
             if (!yield) return false;
-            Thread::Yield(spin);
-            spin = (spin) ? spin << 1 : 1;
+				Thread::Yield(spin);
+			spin = (spin)?spin<<1:1; 
         }
 
         Assert(Bytes < WriterBytes);
 
-        if ((Atomic::Inc((volatile RWBytes*)&Bytes) & WriterBytes) == 0)
+        if((Atomic::Inc((volatile RWBytes*)&Bytes)&WriterBytes) == 0)
             return true;
 
         Atomic::Dec((volatile RWBytes*)&Bytes);
@@ -1311,44 +1388,49 @@ bool SpinLock::LockRead(bool yield)
 
 bool SpinLock::UnlockRead()
 {
-    Atomic::Dec((volatile RWBytes*)&Bytes);
-    return true;
+	Atomic::Dec((volatile RWBytes*)&Bytes);
+	return true;
 }
 
 bool SpinLock::LockWrite(bool yield)
 {
-    while (true)
+    while(true)
     {
-        Assert((Bytes & WriterBytes) < (WriterBytes - 1));
+
+		Assert((Bytes&WriterBytes) < (WriterBytes-1));
 
         unsigned long spin = 1;
-        while ((Bytes & WriterBytes) != 0)
+        while((Bytes&WriterBytes) != 0)
         {
+
             if (!yield) return false;
-            Thread::Yield(spin);
-            spin = (spin) ? spin << 1 : 1;
+			Thread::Yield(spin);
+			spin = (spin)?spin<<1:1; 
         }
 
-        if ((Atomic::Add((volatile RWBytes*)&Bytes, WriterBit) & WriterBytes) == 0)
+ 		if((Atomic::Add((volatile RWBytes*)&Bytes,WriterBit)&WriterBytes) == 0)
         {
+
             unsigned long spin = 1;
-            while ((Bytes & ReaderBytes) != 0)
+            while((Bytes&ReaderBytes) != 0)
             {
+
                 Thread::Yield(spin);
-                spin = (spin) ? spin << 1 : 1;
+                spin = (spin)?spin<<1:1;
             }
 
             return true;
         }
 
-        Atomic::Sub((volatile RWBytes*)&Bytes, WriterBit);
+        Atomic::Sub((volatile RWBytes*)&Bytes,WriterBit);
+
     }
 }
 
 bool SpinLock::UnlockWrite()
 {
-    Atomic::Sub((volatile RWBytes*)&Bytes, WriterBit);
-    return true;
+	Atomic::Sub((volatile RWBytes*)&Bytes, WriterBit);
+	return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1357,73 +1439,77 @@ bool SpinLock::UnlockWrite()
 
 bool ReadWriteLock::LockRead(bool yield)
 {
-    if (!Writer)
-    {
-        if (SpinLock::LockRead(yield))
-        {
-            unsigned long id = Thread::Identify();
-            Reader.Set(id);
-        }
+	if (!Writer)
+	{
 
-        return true;
-    }
+		if (SpinLock::LockRead(yield))
+		{
+			unsigned long id = Thread::Identify();
+			Reader.Set(id);	
+		}
 
-    return false;
+		return true;	
+	}
+
+	return false;
 }
 
 bool ReadWriteLock::UnlockRead()
 {
-    unsigned long reader = Reader.Get();
-    if (reader)
-    {
-        SpinLock::UnlockRead();
-        Reader.Set(0);
-        return true;
-    }
+	unsigned long reader = Reader.Get();
+	if (reader)
+	{
+		SpinLock::UnlockRead();
+		Reader.Set(0);
+		return true;
+	}
 
-    return false;
+	return false;
 }
 
 bool ReadWriteLock::LockWrite(bool yield)
 {
-    unsigned long id = Thread::Identify();
-    if (Writer != id)
-    {
-        unsigned long reader = Reader.Get();
-        if (reader == id)
-        {
-            SpinLock::UnlockRead();
-            Reader.Set(0);
-        }
 
-        if (SpinLock::LockWrite(yield))
-        {
-            Writer = id;
-            return true;
-        }
-    }
+	unsigned long id = Thread::Identify();	
+	if (Writer != id)
+	{
+		unsigned long reader = Reader.Get();		
+		if (reader == id)
+		{
 
-    return false;
+			SpinLock::UnlockRead();
+			Reader.Set(0);
+		}
+
+		if (SpinLock::LockWrite(yield))	
+		{
+			Writer = id;
+			return true;
+		}
+	}
+
+	return false;
 }
 
 bool ReadWriteLock::UnlockWrite()
 {
-    Writer = 0;
-    SpinLock::UnlockWrite();
-    return true;
+
+	Writer = 0;
+	SpinLock::UnlockWrite();
+	return true;
 }
 
 bool ReadWriteLock::IsReader()
 {
-    unsigned long id = Thread::Identify();
-    unsigned long& reader = Reader.Get();
-    return (reader == id);
-}
+	unsigned long id = Thread::Identify();
+	unsigned long & reader = Reader.Get();
+	return (reader == id);
+}	
 
 bool ReadWriteLock::IsWriter()
 {
-    unsigned long id = Thread::Identify();
-    return (Writer == id);
+	unsigned long id = Thread::Identify();
+	return (Writer == id);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1432,10 +1518,11 @@ bool ReadWriteLock::IsWriter()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
+
+} 
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace Hero
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -23,11 +23,6 @@ SOFTWARE.
 */
 #pragma once
 
-
-
-
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -52,49 +47,13 @@ namespace Hero {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-	
-
-
-
-
-
-
-
-
-
 
 class FileStorage;
 
@@ -103,21 +62,20 @@ class FilePath : public Path
 public:
 	class Path Path;
 	class Path Name;
-	
 
 	FilePath();
 	FilePath(const Substring & str);
 	FilePath(const char * name);
 	FilePath(char * name, int size);
 	~FilePath();
-	
+
 	Substring Foldername();
 	Substring Basename();
 	Substring Extension();
-	
+
 	void Normalise();		
 	void Construct();
-	
+
 	void Construct(char * path, int size);
 	void Construct(const Substring & path) {Construct(path.Data,path.Size);}
 	void Construct(const char * path) {Construct((char*)path,String::Length(path));}	
@@ -168,7 +126,7 @@ public:
 		OPTIONS_APPEND_TEXT_MUTABLE		=MODE_APPEND|TYPE_TEXT|ACCESS_MUTABLE,
 		OPTIONS_APPEND_TEXT_READ		=MODE_APPEND|TYPE_TEXT|ACCESS_READ,
 		OPTIONS_APPEND_TEXT_WRITE		=MODE_APPEND|TYPE_TEXT|ACCESS_WRITE,
-		
+
 		OPTIONS_OPEN_BINARY_MUTABLE		=MODE_OPEN|TYPE_BINARY|ACCESS_MUTABLE,
 		OPTIONS_OPEN_BINARY_READ		=MODE_OPEN|TYPE_BINARY|ACCESS_READ,
 		OPTIONS_OPEN_BINARY_WRITE		=MODE_OPEN|TYPE_BINARY|ACCESS_WRITE,
@@ -183,10 +141,8 @@ public:
 
 	};
 
-	
-	
 public:
-	
+
 	static Identity Instance;
 	virtual Identity& Identify() {return Instance;}
 
@@ -196,22 +152,13 @@ public:
 	}
 
 	int Compare(Object *object, int comparitor);
-	
-public:
-	
-	
 
-	
-	
-	
+public:
+
 	Strong<FileStorage *> Storage;
 
-	
-	
 	File();
-	
-	
-	
+
 	File(FileStorage * driver);
 	File(FileStorage * driver, const Substring & path);
 	File(Strong<FileStorage*> & driver);
@@ -222,16 +169,14 @@ public:
 	File(const char * path);
 	File(char * path, int size);
 	~File();
-	
+
 	void Construct();
 	void Construct(char * path, int size);
 	void Construct(const Substring & path) {Construct(path.Data,path.Size);}
 	void Construct(const char * path) {Construct((char*)path,String::Length(path));}	
-	
-		
+
 	virtual bool Open(int options = File::OPTIONS_OPEN_BINARY_MUTABLE);
 	virtual bool Open(int mode, int type, int access, int usage);
-
 
 	virtual bool OpenReadable();
 	virtual bool OpenWriteable();
@@ -243,26 +188,22 @@ public:
 
 	using Reader::Read;
 	virtual int Read(char * data, int size);
-	
 
 	using Writer::Write;
 	int Write(const char * data) {return Write((char*)data,String::Length(data));}
-	
+
 	virtual int Write(char * data, int size);
 
-	
-	
-	
 	virtual int ReadLine(String & string);
 	virtual int ReadLine(char * data, int size);
-	
+
 	int WriteLine()	{return Write((char*)"\n",1);}
 	int WriteLine(const char * data) {return WriteLine((char*)data,String::Length(data));}	
 	int WriteLine(const Substring & str) {return WriteLine(str.Data,str.Size);}
 	virtual int WriteLine(char * data, int size);
 
 	virtual bool Flush();
-	
+
 	virtual bool Create(int access = File::ACCESS_MUTABLE);
 	virtual bool Delete();
 	virtual bool Truncate();
@@ -270,23 +211,14 @@ public:
 	bool Rename(const Substring & name) {return Rename(name.Data,name.Size);}
 	bool Rename(const char *name) {return Rename((char*)name,String::Length(name));}
 	virtual bool Rename(char * name, int size);
-	
-	
+
 	virtual int Seek(int position, int origin=-1);	
 	virtual bool Eof();
-	
+
 	virtual int Error();
 
-	
-	
-	
-	
-	
-	
 	File & operator = (const File & file);
 
-	
-	
 	bool Status(Stat & stat);
 	Stat Status();
 
@@ -301,35 +233,15 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
-
-
-
-
-
-
-
-
 class FileStorage : public Kind
 {
 public:
 
 	FileStorage() {}
-	
-	
-	
-	
-	~FileStorage() {}
-	
-	virtual void Construct(const Path & path);
-	
-	
-	
 
-	
-	
-	
+	~FileStorage() {}
+
+	virtual void Construct(const Path & path);
 
 	virtual bool Open(const Path & path, int options = File::OPTIONS_OPEN_BINARY_MUTABLE);	
 	virtual bool Open(const Path & path, int mode, int type, int access, int usage)=0;
@@ -341,61 +253,52 @@ public:
 
 	virtual int Read(const Path & path, char * data, int size)=0;
 	virtual int Write(const Path & path, char * data, int size)=0;
-	
+
 	virtual int ReadLine(const Path & path, char * data, int size)=0;
 	virtual int ReadLine(const Path & path, String & string);
-	
+
 	virtual int WriteLine(const Path & path, char * data, int size)=0;
 
 	virtual bool Flush(const Path & path)=0;
-	
+
 	virtual bool Create(const Path & path, int access = File::ACCESS_MUTABLE)=0;
 	virtual bool Delete(const Path & path)=0;
 	virtual bool Truncate(const Path & path)=0;
 
-
 	virtual bool Rename(const Path & path, char * name, int size)=0;
-	
 
-	
 	virtual int Seek(const Path & path, int position, int origin=-1)=0;	
 
 	virtual bool Eof(const Path & path)=0;
-	
+
 	virtual int Error(const Path & path)=0;
-	
+
 	virtual bool Exists(const Path & path)=0;
-	
-	
 
 	virtual bool IsOpen(const Path & path)=0;
 	virtual bool IsClosed(const Path & path)=0;
-	
+
 	virtual bool IsReadable(const Path & path)=0;
 	virtual bool IsWriteable(const Path & path)=0;
-	
+
 	virtual Stat Status(const Path & path)=0;
-	
+
 };	
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 class FileStream : public Stream, public File
 {
 public:
 
-	
 	FileStream(){}
 	FileStream(const char * path):File(path){}
 	FileStream(char * path, int size):File(path,size){}
 	FileStream(const Substring & str):File(str){}
 	FileStream(File &file):File(file){}
 	~FileStream(){}
-
 
 	int Seek(int position, int origin=-1)				
 	{
@@ -426,9 +329,6 @@ public:
 		return read;
 	}
 
-
-
-
 	bool IsWriteable()					
 	{
 		if (!File::IsWriteable())
@@ -453,7 +353,6 @@ public:
 		return write;
 	}
 
-
 public:
 
 	class StreamAdapter : public Stream
@@ -464,7 +363,6 @@ public:
 
 		StreamAdapter(class File & file):File(file) {}
 		~StreamAdapter() {}
-
 
 		int Seek(int position, int origin=-1)				
 		{
@@ -526,7 +424,6 @@ public:
 		}
 	};
 
-
 	class FileAdapter : public File
 	{
 	public:
@@ -543,7 +440,7 @@ public:
 		int Read(char * data, int size)
 		{
 			if (!Bridge.IsReadable()) return 0;
-			
+
 			if (data == 0 || !(size > 0))
 			{
 				RaiseError<FileError>("FileAdapter::Read - The destination is null or has zero size.\n");	
@@ -585,8 +482,6 @@ public:
 
 			int write = 0;
 			write = Bridge.Write((char*)data,size);
-			
-			
 
 			return write;
 		}
@@ -602,33 +497,31 @@ public:
 			return write;
 		}
 
-
 		bool Flush()
 		{
-			
-			
+
 			return true;
 		}
 
 		bool Create(int access = File::ACCESS_MUTABLE)
 		{
-			
+
 			return true;
 		}
 
 		bool Delete()
 		{
-			
+
 			return true;
 		}
-		
+
 		using File::Rename;
 		bool Rename(char * data, int size)
 		{
 			Name.Replace(data,size);
 			return true;
 		}
-		
+
 		bool Truncate()
 		{
 			return false;
@@ -636,7 +529,7 @@ public:
 
 		int Seek(int position, int origin=-1)
 		{
-			
+
 			return Bridge.Seek(position,origin);
 		}	
 
@@ -657,5 +550,4 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 

@@ -22,6 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+
 #include "hero/config.h"
 #include "hero/parser.h"
 #include "hero/stream.h"
@@ -33,201 +34,205 @@ SOFTWARE.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace Hero
-{
+namespace Hero {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool Options::Parse(int argc, char* argv[])
+bool Options::Parse(int argc, char * argv[])
 {
-    for (int i = 0; i < argc; ++i)
-        (*this) << argv[i];
-    return Parse();
+	for (int i=0;i<argc;++i)
+		(*this) << argv[i];
+	return Parse();
 }
 
 bool Options::Parse()
 {
-    StringParser parser(*this);
-    while (!parser.Eof())
-    {
-        parser.SkipWhitespace();
-        if (parser.Is("-"))
-        {
-            parser.Next();
-            if (parser.Is("-"))
-                parser.Next();
-            if (parser.ParseWord())
-            {
-                String opt = parser.Token;
-                Array<Substring> values;
+	StringParser parser(*this);
+	while (!parser.Eof())
+	{
+		parser.SkipWhitespace();
+		if (parser.Is("-"))
+		{
+			parser.Next();
+			if (parser.Is("-"))
+				parser.Next();
+			if (parser.ParseWord())
+			{
+				String opt = parser.Token;
+				Array<Substring> values;
 
-                parser.SkipWhitespace();
-                while (!parser.Eof() && !parser.Is("-"))
-                {
-                    parser.Mark();
-                    while (!parser.Eof() && !parser.IsWhitespace())
-                        parser.Next();
-                    parser.Trap();
+				parser.SkipWhitespace();
+				while (!parser.Eof() && !parser.Is("-"))
+				{
+					parser.Mark();
+					while(!parser.Eof() && !parser.IsWhitespace())
+						parser.Next();
+					parser.Trap();
 
-                    Substring value = parser.Token;
-                    if (!value.IsEmpty())
-                        values.Append(value);
+					Substring value = parser.Token;
+					if (!value.IsEmpty())
+						values.Append(value);
 
-                    parser.SkipWhitespace();
-                }
+					parser.SkipWhitespace();
+				}
 
-                if (!Match(opt, values))
-                {
-                }
-            }
-        }
-        else
-        {
-            parser.Next();
-        }
-    }
+				if (!Match(opt,values))
+				{
 
-    Apply();
+				}
 
-    return true;
+			}
+		}
+		else
+		{
+			parser.Next();
+		}
+	}
+
+	Apply();
+
+	return true;
 }
 
-bool Options::Match(const String& opt, Array<Substring>& values)
+bool Options::Match(const String & opt, Array<Substring> & values)
 {
-    Iterand<Arg*> args = Args.Forward();
-    while (args)
-    {
-        if (args()->Matches(opt))
-        {
-            Iterand<Substring> value = values.Forward();
-            while (value)
-            {
-                args()->Val.Append(value());
-                ++value;
-            }
+	Iterand<Arg*> args = Args.Forward();
+	while (args)
+	{	
+		if (args()->Matches(opt))
+		{
 
-            return true;
-        }
-    }
+			Iterand<Substring> value = values.Forward();
+			while(value)
+			{
+				args()->Val.Append(value());		
+				++value;
+			}
 
-    return false;
-}
+			return true;
+		}
+	}
+
+	return false;
+}	
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool Args::Construct(int argc, char* argv[])
+bool Args::Construct(int argc, char * argv[])
 {
-    String arguments;
-    for (int i = 0; i < argc; ++i)
-        arguments << argv[i] << " ";
+	String arguments;
+	for (int i=0;i<argc;++i)
+		arguments << argv[i] << " ";
 
-    return Construct(arguments);
+	return Construct(arguments);
 }
 
-bool Args::Construct(char* data, int size)
+bool Args::Construct(char * data, int size)
 {
-    String::Construct(data, size);
+	String::Construct(data,size);
 
-    StringParser parser;
-    parser.Assign(*this);
-    bool error = false;
-    while (!error && !parser.Eof())
-    {
-        if (parser.Is('-'))
-        {
-            parser.Next();
-            if (parser.Is('-'))
-                parser.Next();
+	StringParser parser;
+	parser.Assign(*this);
+	bool error = false;
+	while ( !error && !parser.Eof() )
+	{
+		if (parser.Is('-'))
+		{
+			parser.Next();
+			if (parser.Is('-'))
+				parser.Next();
 
-            Segment* path = new Segment();
-            Append(path);
+			Segment * path = new Segment();
+			Append(path);
 
-            if (parser.ParseWord())
-            {
-                if (parser.Eof() || parser.SkipWhitespace())
-                {
-                    Segment* name = new Segment();
-                    Segment* value = new Segment();
-                    path->Append(name);
-                    path->Append(value);
-                    name->Assign(parser.Token);
+			if (parser.ParseWord())
+			{
+				if (parser.Eof() || parser.SkipWhitespace())
+				{						
+					Segment * name = new Segment();
+					Segment * value = new Segment();
+					path->Append(name);
+					path->Append(value);
+					name->Assign(parser.Token);
 
-                    if (!parser.Is('-'))
-                    {
-                        parser.Mark();
-                        while (!parser.Eof() && !parser.IsWhitespace())
-                            parser.Next();
-                        parser.Trap();
+					if (!parser.Is('-'))
+					{
+						parser.Mark();
+						while (!parser.Eof() && !parser.IsWhitespace()) parser.Next();
+						parser.Trap();
 
-                        if (!parser.Token.IsEmpty())
-                            value->Assign(parser.Token);
-                    }
-                }
-                else
-                {
-                    error = true;
-                }
-            }
-            else
-            {
-                error = true;
-            }
-        }
-        else
-        {
-            parser.Mark();
-            while (!parser.Eof() && !parser.IsWhitespace())
-                parser.Next();
-            parser.Trap();
+						if (!parser.Token.IsEmpty())
+							value->Assign(parser.Token);
+					}
 
-            if (!parser.Token.IsEmpty())
-            {
-                Segment* path = new Segment();
-                path->Assign(parser.Token);
-                Append(path);
-            }
-        }
+				}
+				else
+				{
+					error = true;
+				}
+			}
+			else
+			{
+				error = true;
+			}
+		}
+		else
+		{
+			parser.Mark();
+			while (!parser.Eof() && !parser.IsWhitespace())
+				parser.Next();
+			parser.Trap();
 
-        if (!error && !parser.Eof() && !parser.SkipWhitespace() && !parser.Is('-'))
-            error = true;
-    }
+			if (!parser.Token.IsEmpty())
+			{
+				Segment * path = new Segment();
+				path->Assign(parser.Token);
+				Append(path);
+			}
+		}
 
-    if (error)
-    {
-        Release(false);
-        Raise("Args::Construct: Invalid token in arguments at column %d.", parser.Column());
-        return false;
-    }
-    else
-    {
-        return true;
-    }
+		if ( !error && !parser.Eof() && !parser.SkipWhitespace() && !parser.Is('-'))
+			error = true;
+	}
+
+	if (error)
+	{
+		Release(false);
+		Raise("Args::Construct: Invalid token in arguments at column %d.",parser.Column());
+		return false;
+	}
+	else
+	{
+		return true;
+	}
 }
 
-Segment* Args::Select(char* name, int size, bool caseless)
+Segment * Args::Select(char * name, int size, bool caseless)
 {
-    Path::Enumerator iterator(*this);
-    for (iterator.Forward(); iterator.Has(); iterator.Move())
-    {
-        if (iterator.Reference().Children() == 2)
-        {
-            if (iterator.Reference()[0].Is(name, size, caseless))
-            {
-                return &iterator.Reference()[1];
-            }
-        }
-        else
-        {
-            if (iterator.Reference().Is(name, size, caseless))
-                return &iterator.Reference();
-        }
-    }
+	Path::Enumerator iterator(*this);
+	for (iterator.Forward();iterator.Has();iterator.Move())
+	{
+		if (iterator.Reference().Children() == 2)
+		{
 
-    return 0;
+			if (iterator.Reference()[0].Is(name,size,caseless))
+			{
+				return &iterator.Reference()[1];
+			}
+		}
+		else
+		{
+
+			if (iterator.Reference().Is(name,size,caseless))
+				return &iterator.Reference();
+		}
+	}
+
+	return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -244,102 +249,107 @@ Segment* Args::Select(char* name, int size, bool caseless)
 
 Configuration::Configuration()
 {
+
 }
 
 Configuration::~Configuration()
 {
-    Sections.Destroy();
+	Sections.Destroy();
 }
 
-bool Configuration::Load(char* data, int size)
+bool Configuration::Load(char * data, int size)
 {
-    TextFileStream textFileStream(data, size);
-    TokenizerStream streamIterator(textFileStream);
-    streamIterator.Separators.Append(new Segment("\r"));
-    streamIterator.Separators.Append(new Segment("\n"));
+	TextFileStream textFileStream(data,size);
+	TokenizerStream streamIterator(textFileStream);
+	streamIterator.Separators.Append(new Segment("\r"));
+	streamIterator.Separators.Append(new Segment("\n"));
 
-    Hero::Section* section = 0;
+	Hero::Section * section = 0;
 
-    Result<bool, int> res;
+	Result<bool,int> res;
 
-    bool continued = false;
-    for (streamIterator.Forward(); streamIterator.Has(); streamIterator.Move())
-    {
-        StringParser parser;
-        parser.Assign(*streamIterator());
-        parser.ParseWhitespace();
+	bool continued=false;
+	for (streamIterator.Forward();streamIterator.Has();streamIterator.Move())
+	{
 
-        if (continued)
-        {
-            parser.Mark();
-            while (!parser.Eof() && !parser.Is("\\"))
-                parser.Next();
-            parser.Trap();
-            continued = (parser.Is("\\")) ? true : false;
+		StringParser parser;
+		parser.Assign(*streamIterator());
+		parser.ParseWhitespace();
 
-            section->Properties.Values[res.Index].Append(parser.Token);
-        }
-        else if (parser.Is("#") || parser.Is("!") || parser.Is(";") || parser.Is("//"))
-        {
-        }
-        else if (parser.Is("["))
-        {
-            parser.Mark();
-            while (!parser.Eof() && !parser.Is("]"))
-                parser.Next();
-            parser.Trap();
+		if (continued)
+		{
+			parser.Mark();
+			while (!parser.Eof() && !parser.Is("\\")) parser.Next();
+			parser.Trap();
+			continued = (parser.Is("\\"))?true:false;
 
-            if (parser.Is("]"))
-            {
-                if (section) Sections.Append(section);
-                section = new Hero::Section();
+			section->Properties.Values[res.Index].Append(parser.Token);
+		}
+		else
+		if (parser.Is("#") || parser.Is("!") || parser.Is(";") || parser.Is("//"))
+		{
 
-                section->Name = parser.Token;
-                parser.Next();
-            }
-            else
-            {
-                Raise("Properties::Load: Missing \"]\" after section name, line %d column %d\n", parser.Line(), parser.Column());
-            }
-        }
-        else if (!parser.Eof())
-        {
-            parser.Mark();
-            while (!parser.Eof() && !parser.IsWhitespace() && !parser.Is("="))
-                parser.Next();
-            parser.Trap();
+		}
+		else
+		if (parser.Is("["))
+		{
+			parser.Mark();
+			while (!parser.Eof() && !parser.Is("]"))
+				parser.Next();
+			parser.Trap();
 
-            Substring name(parser.Token);
+			if (parser.Is("]"))
+			{
+				if (section) Sections.Append(section);
+				section = new Hero::Section();
 
-            if (parser.Is("="))
-            {
-                parser.Next();
-                parser.Mark();
-                while (!parser.Eof() && !parser.Is("\\"))
-                    parser.Next();
-                parser.Trap();
-                continued = (parser.Is("\\")) ? true : false;
+				section->Name = parser.Token;
+				parser.Next();
+			}
+			else
+			{
+				Raise("Properties::Load: Missing \"]\" after section name, line %d column %d\n",parser.Line(),parser.Column());
+			}
 
-                Substring value(parser.Token);
+		}
+		else
+		if (!parser.Eof())
+		{
+			parser.Mark();
+			while (!parser.Eof() && !parser.IsWhitespace() && !parser.Is("="))
+				parser.Next();
+			parser.Trap();
 
-                if (!section)
-                {
-                    section = new Hero::Section();
-                }
+			Substring name(parser.Token);
 
-                res = section->Properties.Insert(name, value);
-            }
-            else
-            {
-                Raise("Configuration::Load: Missing \"=\" after attribute name, line %d column %d\n", parser.Line(), parser.Column());
-            }
-        }
-    }
+			if (parser.Is("="))
+			{
+				parser.Next();
+				parser.Mark();
+				while (!parser.Eof() && !parser.Is("\\")) parser.Next();
+				parser.Trap();
+				continued = (parser.Is("\\"))?true:false;
 
-    if (section)
-        Sections.Append(section);
+				Substring value(parser.Token);
 
-    return true;
+				if (!section)
+				{
+					section = new Hero::Section();
+				}
+
+				res = section->Properties.Insert(name,value);
+			}
+			else
+			{
+				Raise("Configuration::Load: Missing \"=\" after attribute name, line %d column %d\n",parser.Line(),parser.Column());
+			}
+		}
+	}
+
+	if (section)
+		Sections.Append(section);
+
+	return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -350,116 +360,125 @@ bool Configuration::Load(char* data, int size)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ConfigurationParser::ParseSection(Section& section)
+void ConfigurationParser::ParseSection(Section & section)
 {
-    while (!Eof())
-    {
-        SkipWhitespace();
 
-        if (Is("["))
-        {
-            Mark();
-            while (!Eof() && !Is("]"))
-                Next();
-            Trap();
+	while(!Eof())
+	{
+		SkipWhitespace();
 
-            if (Is("]"))
-            {
-                section.Name = Token;
-                Next();
-                ParseProperties(section.Properties);
-            }
-            else
-            {
-                Raise("ConfigurationParser::Load: ParseSection \"]\" after section name, line %d column %d\n", Line(), Column());
-            }
-        }
-    }
+		if (Is("["))
+		{
+			Mark();
+			while (!Eof() && !Is("]"))
+				Next();
+			Trap();
+
+			if (Is("]"))
+			{
+				section.Name = Token;
+				Next();
+				ParseProperties(section.Properties);
+			}
+			else
+			{
+				Raise("ConfigurationParser::Load: ParseSection \"]\" after section name, line %d column %d\n",Line(),Column());
+			}
+		}
+	}
+
 }
 
-void ConfigurationParser::ParseProperties(Properties& properties)
+void ConfigurationParser::ParseProperties(Properties & properties)
 {
-    bool continued = false;
 
-    while (!Eof() && !Is("["))
-    {
-        ParseWhitespace();
+	bool continued=false;
 
-        if (continued)
-        {
-            Mark();
-            while (!Eof() && !Is("\\"))
-                Next();
-            Trap();
-            continued = (Is("\\")) ? true : false;
-        }
-        else if (Is("#") || Is("!") || Is(";") || Is("//"))
-        {
-            SkipLine();
-        }
-        else if (!Eof())
-        {
-            Mark();
-            while (!Eof() && !IsWhitespace() && !Is("="))
-                Next();
-            Trap();
-            SkipWhitespace();
+	while (!Eof() && !Is("["))
+	{
+		ParseWhitespace();
 
-            Substring name(Token);
+		if (continued)
+		{
+			Mark();
+			while (!Eof() && !Is("\\")) Next();
+			Trap();
+			continued = (Is("\\"))?true:false;
 
-            if (Is("="))
-            {
-                Next();
-                SkipWhitespace();
+		}
+		else
+		if (Is("#") || Is("!") || Is(";") || Is("//"))
+		{
 
-                Mark();
-                while (!Eof() && !Is("\\") && !Is(Characters::NewLine) && !Is(Characters::CarriageReturn))
-                    Next();
-                Trap();
-                continued = (Is("\\")) ? true : false;
+			SkipLine();
+		}
+		else
+		if (!Eof())
+		{
+			Mark();
+			while (!Eof() && !IsWhitespace() && !Is("="))
+				Next();
+			Trap();
+			SkipWhitespace();
 
-                Substring value(Token);
+			Substring name(Token);
 
-                if ((value.StartsWith("'") && value.EndsWith("'")) || (value.StartsWith('"') && value.EndsWith('"')))
-                {
-                    value.Trim(1);
-                }
+			if (Is("="))
+			{
+				Next();
+				SkipWhitespace();
 
-                properties.Insert(name, value);
-            }
-            else
-            {
-                Raise("ConfigurationParser::ParseProperties: Missing \"=\" after attribute name, line %d column %d\n", Line(), Column());
-            }
-        }
-    }
+				Mark();
+				while (!Eof() && !Is("\\") && !Is(Characters::NewLine) && !Is(Characters::CarriageReturn)) Next();
+				Trap();
+				continued = (Is("\\"))?true:false;
+
+				Substring value(Token);
+
+				if ((value.StartsWith("'") && value.EndsWith("'")) || (value.StartsWith('"') && value.EndsWith('"')))
+				{
+
+					value.Trim(1);
+				}
+
+				properties.Insert(name,value);
+			}
+			else
+			{
+				Raise("ConfigurationParser::ParseProperties: Missing \"=\" after attribute name, line %d column %d\n",Line(),Column());
+			}
+		}
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ConfigurationFile::Read(Properties& properties)
+void ConfigurationFile::Read(Properties & properties)
 {
-    String string;
-    File::Read(string);
 
-    ConfigurationParser configurationParser(string);
+	String string;
+	File::Read(string);
 
-    while (!configurationParser.Eof())
-        configurationParser.ParseProperties(properties);
+	ConfigurationParser configurationParser(string);
+
+	while (!configurationParser.Eof())
+		configurationParser.ParseProperties(properties);
 }
 
-void ConfigurationFile::Write(Properties& properties)
+void ConfigurationFile::Write(Properties & properties)
 {
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace Hero
+} 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+

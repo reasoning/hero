@@ -27,13 +27,11 @@ SOFTWARE.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
 #include "hero/unsigned.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 namespace Hero {
 
@@ -41,43 +39,34 @@ namespace Hero {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
-
 class Signed 
 {
 public:
 
-	
-    
 	enum Signs { SIGN_NEGATIVE = -1, SIGN_ZERO = 0, SIGN_POSITIVE = 1 };
 
 	int Sign;
 	Unsigned Magnitude;
-
-
 
 	Signed() : Sign(SIGN_ZERO), Magnitude() {}
 	Signed(const Signed &x) : Sign(x.Sign), Magnitude(x.Magnitude) {};	
 	Signed(const Substring& str);
 
 	Signed(const Block *data, int size, int sign);
-	
+
 	Signed(const Block *data, int size) : Magnitude(data, size) 
 	{
-		
+
 		Sign = Magnitude.IsZero() ? SIGN_ZERO : SIGN_POSITIVE;
 	}
 
-	
 	Signed(const Unsigned &x, int sign);	
 	Signed(const Unsigned &x) : Magnitude(x) 
 	{
-		
+
 		Sign = Magnitude.IsZero() ? SIGN_ZERO : SIGN_POSITIVE;
 	}
 
-	
 	Signed(  signed long long x);
 	Signed(unsigned long long x);
 	Signed(  signed long x);
@@ -88,13 +77,10 @@ public:
 	Signed(unsigned short x);
 
 	~Signed();
-	
-	
+
 	String Str();
 
-	
 	void operator=(const Signed &x);
-
 
 	Signed & Clone(Signed & x)
 	{
@@ -118,10 +104,6 @@ public:
 		return *this;
 	}	
 
-	
-	
-	
-
 	signed short		SignedShort();
 	signed int			SignedInt();
 	signed long			SignedLong();
@@ -131,25 +113,17 @@ public:
 	unsigned int		UnsignedInt();
 	unsigned long		UnsignedLong();
 	unsigned long long	UnsignedLongLong();
-		
-	
 
-
-	
 	template <class X> X ConvertToUnsignedPrimitive();
 	template <class X, class UX> X ConvertToSignedPrimitive();
-
 
 	bool IsZero() const { return Sign == SIGN_ZERO; } 
 
 	bool IsPositive() const {return Sign == SIGN_POSITIVE;}
 	bool IsNegative() const {return Sign == SIGN_NEGATIVE;}
 
-
-	
 	int Compare(const Signed &x);
 
-	
 	bool operator == (const Signed &x) const
 	{
 		return Sign == x.Sign && Magnitude == x.Magnitude;
@@ -165,7 +139,6 @@ public:
 	bool operator >= (const Signed &x) {return Compare(x) >= 0;}
 	bool operator >  (const Signed &x) {return Compare(x) > 0;}
 
-
 	Signed & Add(const Signed &a, const Signed &b);
 	Signed & Add(const Signed &x) {Add(*this,x);return *this;}
 
@@ -174,22 +147,16 @@ public:
 
 	Signed & Multiply(const Signed &a, const Signed &b);
 	Signed & Multiply(const Signed &x) {Multiply(*this,x);return *this;}
-	
+
 	Signed & Divide(const Signed &a, const Signed &b);
 	Signed & Divide(const Signed &x) {Divide(*this,x);return *this;}
 
 	Signed & Pow(const Signed &x);
 	Signed & Mod(const Signed &x);
 
-	
-	
-	
 	void DivideWithRemainder(const Signed &b, Signed &q);
-	
+
 	Signed & Negate(const Signed &a);
-	
-	
-	
 
 	Signed operator +(const Signed &x);
 	Signed operator -(const Signed &x);
@@ -204,26 +171,18 @@ public:
 	Signed & operator /=(const Signed &x);
 	Signed & operator %=(const Signed &x);
 
-	
 	Signed& Flip();
 
 	Signed & operator ++();
 	Signed & operator --();
-	
+
 	Signed operator ++(int);
 	Signed operator --(int);
 };
 
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
 
 template <class X>
 X ConvertUnsignedToPrimitiveAccess(const Unsigned &a) 
@@ -234,17 +193,15 @@ X ConvertUnsignedToPrimitiveAccess(const Unsigned &a)
 template <class X>
 X Signed::ConvertToUnsignedPrimitive() 
 {
-	
-	
+
 	if (Sign == SIGN_NEGATIVE)
 	{
 		Raise(new UnderflowError("Signed ConvertToUnsignedPrimitive: Cannot convert a negative integer to an unsigned type"));
 		return 0;
 	}
-	
+
 	return ConvertUnsignedToPrimitiveAccess<X>(Magnitude);
 }
-
 
 template <class X, class UX>
 X Signed::ConvertToSignedPrimitive() 
@@ -256,7 +213,7 @@ X Signed::ConvertToSignedPrimitive()
 	else
 	if (Magnitude.Length() == 1) 
 	{
-		
+
 		Block b = Magnitude.Get(0);
 		if (Sign == SIGN_POSITIVE) 
 		{
@@ -267,11 +224,11 @@ X Signed::ConvertToSignedPrimitive()
 		else 
 		{
 			X x = -X(b);
-			
+
 			if (x < 0 && Block(UX(-x)) == b)
 				return x;
 		}
-		
+
 	}
 
 	Raise(new OverflowError("Signed::ConvertToSignedPrimitive<>: Value is too big to fit in the requested type"));

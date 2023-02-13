@@ -23,13 +23,9 @@ SOFTWARE.
 */
 #pragma once
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
 
 #include "hero/hero.h"
 #include "hero/interface.h"
@@ -37,24 +33,15 @@ SOFTWARE.
 #include "hero/generic.h"
 #include "hero/string.h"
 
-
-
 namespace Hero {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
-
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -80,64 +67,42 @@ public:
 	{
 		Segment * Parent;
 	};
-	
+
 	struct Node
 	{
 		Segment * That;
 		Segment * Parent;
 		int Count;
-		
+
 		Segment * Child[];
-		
-		
-		
-		
-		
+
 	};
-	
-	
+
 	union Model
 	{		
-		
-		
-		
+
 		struct Node * Node;
 		void * Empty;
-		
 
-		
 		Model(void * seg=0):Empty(seg)
-		
+
 		{
 		}
-		
-		
 
-		
-		
-		
-		
-		
 		operator void * () 
 		{
 			return Empty;
 		}
 
-		
 	};
-	
+
 	union Model Model;
 
-		
-	
 	bool IsPath();
 	bool IsSegment() {return !IsPath();}
 
 	bool IsLeaf();
 	bool IsNode();
-
-	
-	
 
 	Segment * Parent();
 	Segment * First();
@@ -145,10 +110,8 @@ public:
 	Segment * Prev();
 	Segment * Next();		
 
-	
-	
 	int Children();
-	
+
 	Segment(Segment & segment);
 	Segment(const Substring & str);
 	Segment(char * data, int size);
@@ -159,7 +122,7 @@ public:
 	Segment(double d);
 	Segment();
 	~Segment();
-	
+
 	Segment & operator = (const Segment & segment) {Release();Construct(segment.Data,segment.Size);return *this;}
 	Segment & operator = (const Substring & data) {Release();Construct(data.Data,data.Size);return *this;}
 	Segment & operator = (char * data) {Release();Construct(data);return *this;}
@@ -167,22 +130,17 @@ public:
 	Segment & operator = (int i) {Release();Construct(i);return *this;}
 	Segment & operator = (float f) {Release();Construct(f);return *this;}
 	Segment & operator = (double d) {Release();Construct(d);return *this;}
-	
+
 	Segment & operator[] (int index);
 	class String & operator () (){return *(class String *)this;};
 
 	void Destroy() {Destroy(true);}
 	void Destroy(bool complete);
-	
+
 	void Release() {Release(true);}
 	void Release(bool complete);
-	
+
 	bool IsSegmentOf(Segment * segment) {return (segment)?IsSubstringOf(*segment):false;}
-
-	
-	
-	
-
 
 	Hero::Segments Segments();
 
@@ -197,11 +155,8 @@ public:
 	Segment & Insert(Segment * segment, Segment * place, int placement = PLACE_AFTER);
 	Segment & Insert(Segment * segment, int index);
 
-	
-	
 	Segment & Insert(const char * data, Segment * place, int placement = PLACE_AFTER) {return Insert((char*)data,String::Length(data),place,placement);}
 	Segment & Insert(char * data, int size, Segment * place, int placement = PLACE_AFTER);
-
 
 	Segment & Remove(Segment *segment);
 	Segment & Remove();
@@ -218,25 +173,16 @@ public:
 	Segment * Containing(char *data, int size, bool caseless = false);
 	Segment * Containing(Segment *from, char *data, int size, bool caseless = false);
 
-
 	using String::Slice;
 	Substring Slice(Segment * from, Segment * to) {return String::Slice(IndexAt(from->Data),IndexAt(to->Data));}
 	Substring Slice(Segment * from) {return String::Slice(IndexAt(from->Data));}
 
-
-	using String::CharAt;
-
 	using String::IndexAt;
 	int IndexAt(Segment * segment) {return (segment)?String::IndexAt(segment->Data):-1;}
-	
+
 	int Tokenise(const char * tokens, bool keep = false);	
 	int Tokenise(Regex & regex, bool keep=false);
 
-	
-	
-	
-	
-	
 	int Split(const char data, bool keep=false, bool nested=false) {return Split((char*)&data,1,keep,nested);}
 	int Split(const Substring & str, bool keep=false, bool nested=false) {return Split(str.Data,str.Size,keep,nested);}
 	int Split(const char * data, bool keep=false, bool nested=false) {return Split((char*)data,String::Length(data),keep,nested);}
@@ -245,12 +191,6 @@ public:
 	int Split(int from, int to, bool keep=false, bool nested=false);
 	int Split(Regex & regex, bool keep=false, bool nested=false);
 
-
-	
-	
-	
-	
-	
 	int Span(const char data, bool keep=false) {return Span((char*)&data,1,keep);}
 	int Span(const Substring & str, bool keep=false) {return Span(str.Data,str.Size,keep);}
 	int Span(const char *data,bool keep=false) {return Span((char*)data,String::Length(data),keep);}
@@ -259,14 +199,11 @@ public:
 	int Span(int from, int to, bool keep=false);
 	int Span(Regex & regex, bool keep=false);
 
-	
-
 	Superstring Join(const char data, bool nested=false) {return Join(&((char&)data),1,nested);}
 	Superstring Join(const Substring & str, bool nested=false) {return Join(str.Data,str.Size,nested);}
 	Superstring Join(const char * data, bool nested=false) {return Join((char*)data,String::Length(data),nested);}
 	Superstring Join(char * data, int size, bool nested=false);
 	Superstring Join(bool nested=false) {return Join(0,0,nested);}
-
 
 	Segment & AttachBefore(const Substring & str) {return AttachBefore(str.Data,str.Size);}
 	Segment & AttachBefore(const char *data) {return AttachBefore((char*)data,String::Length(data));}
@@ -283,17 +220,12 @@ public:
 	Segment & Attach(char * data, int size, int placement = PLACE_AFTER);
 	Segment & Attach(Segment * segment, int placement = PLACE_AFTER);
 
-
 	using String::Assign;
 	Segment & Assign(char * data, int size);
-
 
 	using String::At;
 	class Substring At(Segment * from, Segment * to) {return String::Slice(IndexAt(from->Data),IndexAt(to->Data));}
 	class Substring At(Segment * from) {return String::Slice(IndexAt(from->Data));}
-
-	
-	
 
 	void Activate(bool assign=false);
 	void Deactivate();
@@ -302,8 +234,6 @@ public:
 
 	bool HasActivated();
 	bool IsActivated()	{return !IsNull();};
-
-	
 
 	Segment & Allocate(int amount);
 	Segment & Reserve(int amount);
@@ -315,14 +245,12 @@ public:
 	Segment & Clear();
 	Segment & Term();
 
-
 	using String::Remaining;
 	int Remaining();
 
 	virtual bool IsSubstring();
 
 protected:
-
 
 	void Distribute(Segment * origin);
 
@@ -332,31 +260,12 @@ protected:
 	void Left(int amount, Segment * origin);
 	void Right(int amount, Segment * origin);
 
-
-	
-	
-	
-
-
 	Segment * FirstSibling(bool active=true);
 	Segment * NextSibling(bool active=true);
 	Segment * PrevSibling(bool active=true);
 	Segment * LastSibling(bool active=true);
 
 };
-		
-
-		
-
-
-
-
-
-
-
-
-
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -365,31 +274,21 @@ protected:
 class Segments : public Iterable<Segment>
 {
 public: 
-	
+
 	Segment * That;
 	Segment * Parent;
-	
-	
+
 	Segment ** Child;
-	
+
 	int Count;
 	int Index;
 
 	Segments(Segment * segment, Segment * at=0):
 		That(segment),Parent(0),Child(0),Count(0),Index(0)
 	{
-		
-		
-		
-		
-		
-		
-		
-		
-		
+
 		Construct(segment,at);
 	}
-
 
 	Segments(Segment ** segment, Segment ** at=0):
 		That((segment)?*segment:0),Parent(0),Child(0),Count(0),Index(0)
@@ -436,18 +335,17 @@ public:
 	{
 		return That == 0 || ((Segment*)That->Model.Empty) == 0;
 	}
-	
+
 	bool Leaf()
 	{
 		return !Empty() && ((Segment*)That->Model.Empty) != That;
 	}
-	
+
 	bool Node()
 	{
 		return !Empty() && ((Segment*)That->Model.Empty) == That;
 	}
-	
-	
+
 	Segment & At(int index)
 	{
 		if (index >= 0 && index < Count && Child)
@@ -456,7 +354,6 @@ public:
 			if (segment) return *segment;
 		}
 
-		
 		Assert(false);
 		return *That;
 	}
@@ -469,17 +366,17 @@ public:
 			return &Child[Index];
 		return 0;
 	}
-	
+
 	Segment ** operator [] (int index)
 	{
 		if (Indices::Normalise(index,Count) && Child)
 			return &Child[index];
 		return 0;
 	}	
-	
+
 	Segment ** operator ++ (int)
 	{
-		
+
 		if (Index >= 0 && Index < Count-1 && Child)
 		{
 			Segment ** segment = &Child[Index];		
@@ -491,13 +388,12 @@ public:
 			Index = -1;
 		}
 
-		
 		return 0;		
 	}
-	
+
 	Segment ** operator ++ ()
 	{		
-		
+
 		if (Index >= 0 && Index < Count-1 && Child)
 		{
 			++Index;
@@ -508,13 +404,12 @@ public:
 			Index = -1;
 		}
 
-
 		return 0;
 	}
-	
+
 	Segment ** operator -- (int)
 	{
-		
+
 		if (Index > 0 && Index < Count && Child)
 		{
 			Segment ** segment = &Child[Index];
@@ -528,11 +423,10 @@ public:
 
 		return 0;
 	}
-		
-			
+
 	Segment ** operator -- ()
 	{
-		
+
 		if (Index > 0 && Index < Count && Child)
 		{
 			--Index;
@@ -545,7 +439,7 @@ public:
 
 		return 0;
 	}
-		
+
 	Segment ** First(bool active=true)
 	{
 		for(Index=0;Index < Count;++Index)
@@ -562,9 +456,6 @@ public:
 		return 0;
 	}
 
-	
-	
-	
 	Segment ** Next(bool active=true)
 	{
 		while(Index < Count-1)
@@ -593,13 +484,12 @@ public:
 	{	
 		return Insert(Count,data,size,assign);
 	}
-	
+
 	Segment ** Append(Segment ** segment=0) {return Append((segment)?*segment:0);}
 	Segment ** Append(Segment * segment=0)
 	{
 		return Insert(Count,segment);
 	}
-
 
 	Segment ** Prepend(const char * data, bool assign=false) {return Prepend((char*)data,String::Length(data),assign);}
 	Segment ** Prepend(Substring & str, bool assign=false) {return Prepend(str.Data,str.Size,assign);}
@@ -607,7 +497,6 @@ public:
 	{	
 		return Insert(0,data,size,assign);
 	}
-
 
 	Segment ** Prepend(Segment ** segment=0) {return Prepend((segment)?*segment:0);}
 	Segment ** Prepend(Segment * segment=0)
@@ -639,15 +528,14 @@ public:
 	int IndexOf(Segment ** segment) {return IndexOf((segment)?*segment:0);}
 	int IndexOf(Segment * segment)
 	{
-		
-		
+
 		if (Child)
 			for (int index=0;index < Count;++index)
 				if (Child[index] == segment)
 					return index;
 		return -1;
 	}
-	
+
 	Segment ** Select(Segment ** segment) {return Select((segment)?*segment:0);}
 	Segment ** Select(Segment * segment)
 	{
@@ -664,7 +552,6 @@ public:
 		return 0;
 	}
 
-	
 	Segment ** Remove()
 	{
 		return Remove(Index);
@@ -679,7 +566,6 @@ public:
 
 	Segment ** Remove(int index, bool resize=false);
 
-
 	Segment ** Delete()
 	{
 		return Delete(Index);
@@ -692,7 +578,6 @@ public:
 		return (index < 0)?0:Delete(index,resize);		
 	}
 
-	
 	Segment ** Delete(int index, bool resize=false);
 
 	int FirstIndex(int index=0, bool active=true);
@@ -700,12 +585,7 @@ public:
 	int PrevIndex(int index, bool active=true);
 	int LastIndex(int index=0, bool active=true);
 
-	
-	
-	
-
 };
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -723,14 +603,9 @@ inline Iterand<Segment> end(const Segments & segments)
 	return it;
 }
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
 
 class PathsNavigator;
 
@@ -750,16 +625,9 @@ public:
 	static Paths Navigate(Paths & Paths);
 
 	operator PathsNavigator * ();
-	
+
 	Segment * operator () (); 
 
-	
-
-	
-	
-	
-	
-	
 	Paths & operator = (Segment ** segment);
 	Paths & operator = (Segment * segment);	
 	Paths & operator = (PathsNavigator * navigator);
@@ -770,8 +638,6 @@ public:
 
 	bool operator == (Paths & Paths) {return (*this)() == Paths();}
 	bool operator != (Paths & Paths) {return (*this)() != Paths();}
-
-
 
 };
 
@@ -790,9 +656,7 @@ public:
 	};
 
 	int State;
-	
-	
-	
+
 	Paths Navigate;
 
 	Hero::Segments Segments;
@@ -817,10 +681,6 @@ public:
 		return Segments.Count;
 	}
 
-	
-	
-	
-
 	Paths & Parent()
 	{
 		if (State == NAVIGATE_PARENT)
@@ -837,7 +697,7 @@ public:
 			return Navigate;
 
 		Hero::Segments siblings(Segments.Parent,Segments.That);
-		
+
 		Segment ** segment = siblings.Next(active);
 		Navigate = (segment)?new PathsNavigator(segment):0;	
 		State = NAVIGATE_NEXT;
@@ -850,7 +710,7 @@ public:
 			return Navigate;
 
 		Hero::Segments siblings(Segments.Parent,Segments.That);
-		
+
 		Segment ** segment = siblings.Prev(active);
 		Navigate = (segment)?new PathsNavigator(segment):0;
 		State = NAVIGATE_PREV;
@@ -862,22 +722,17 @@ public:
 		if (State == NAVIGATE_FIRST)
 			return Navigate;
 
-		
-		
 		Segment ** segment = Segments.First(active);
 		Navigate = (segment)?new PathsNavigator(segment):0;
 		State = NAVIGATE_FIRST;
 		return Navigate;
 	}	
 
-
 	Paths & Last(bool active=true)
 	{
 		if (State == NAVIGATE_LAST)
 			return Navigate;
 
-		
-		
 		Segment ** segment = Segments.Last(active);
 		Navigate = (segment)?new PathsNavigator(segment):0;
 		State = NAVIGATE_LAST;
@@ -885,8 +740,6 @@ public:
 	}			
 
 };
-
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -897,7 +750,6 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

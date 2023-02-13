@@ -23,7 +23,6 @@ SOFTWARE.
 */
 #pragma once
 
-
 #include "hero/generic.h"
 #include "hero/traits.h"
 
@@ -36,7 +35,6 @@ namespace Hero {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -52,20 +50,11 @@ public:
 
 	};
 
-
-	
-	
-	
-
 	class Base
 	{
 	public:
 	};
 
-
-	
-	
-	
 	class Derived : public Base, public Function
 	{
 	public:
@@ -75,7 +64,6 @@ public:
 	{
 	public:		
 	};
-
 
 	class Unknown;
 
@@ -91,9 +79,6 @@ public:
 	static const int SizeofVirtual = sizeof(CallVirtual);
 	static const int SizeofUnknown = sizeof(CallUnknown);
 
-	
-	
-	
 	enum CallType
 	{
 		TYPE_FUNCTION	= 1,
@@ -104,12 +89,8 @@ public:
         TYPE_FUNCTOR    = 6,
 	};
 
-
-    
     typedef int (*CallFunctor)(void *, int);
-    
-	
-	
+
 	union Calls
 	{
         CallFunctor Functor;    
@@ -148,7 +129,7 @@ public:
 	{
 		return Type != 0 && Func.Unknown != 0;
 	}
-	
+
     Call & operator = (const Call& call)
     {
         Type = call.Type;
@@ -164,7 +145,7 @@ public:
 
         Counted():References(0) {}
         virtual ~Counted() {}
-        
+
         void Increment()
         {
             ++References;
@@ -177,11 +158,6 @@ public:
                 delete this;
         }
     };
-
-
-    
-    
-    
 
     template<typename _Functor_,typename _Return_, typename... _Args_>
     struct Functor : Counted
@@ -200,25 +176,19 @@ public:
 
         }
 
-        
 		_Return_ operator () (_Args_&&... args)
         {
             return Func((_Args_&&)(args)...);
-			
+
         }
 
     };
 
 };
 
-
-
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 
 template <typename _Return_, typename... _Args_>
 class Callback : public Call
@@ -227,17 +197,16 @@ public:
 
 	#define Sizeofcall(call) (sizeof(call)<=SizeofBase?2:(sizeof(call)<=SizeofDerived?3:(sizeof(call)<=SizeofVirtual?4:(sizeof(call)<=SizeofUnknown?5:0))))
 
-
     typedef _Return_ (*ThunkType)(Calls & func, void * that, _Args_...args);
 
     ThunkType Thunk;
-    
+
     static _Return_ ThunkFunctor(Calls & func, void * that,_Args_...args)
     {
         typedef _Return_ (*FunctorInvoke)(void *, _Args_...);
         return ((FunctorInvoke)func.Functor)(that,(_Args_&&)args...); 
     }
-    
+
     static _Return_ ThunkFunction(Calls & func, void * that,_Args_...args)
     { 
         typedef _Return_ (*FunctionPrototype)(_Args_...); 
@@ -249,7 +218,7 @@ public:
         typedef _Return_ (Base::*BasePrototype)(_Args_...); 
         return (((Base*)that)->*((BasePrototype)func.Base))((_Args_&&)(args)...);
     }
-    
+
     static _Return_ ThunkDerived(Calls & func, void * that,_Args_...args)  
     { 
         typedef _Return_ (Derived::*DerivedPrototype)(_Args_...); 
@@ -261,7 +230,7 @@ public:
         typedef _Return_ (Virtual::*VirtualPrototype)(_Args_...); 
         return (((Virtual*)that)->*((VirtualPrototype)func.Virtual))((_Args_&&)(args)...);
     }
-    
+
     static _Return_ ThunkUnknown(Calls & func, void * that,_Args_...args)   
     { 
         typedef _Return_ (Unknown::*UnknownPrototype)(_Args_...); 
@@ -281,33 +250,22 @@ public:
         }
     }
 
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     template<typename _R_,typename... _A_>    
     Callback(const Callback<_R_, _A_...> & callback):Call((Call&)callback)
-    
-    
+
     {        
         Thunk = callback.Thunk;
         if (Type == TYPE_FUNCTOR)
         {
             ((Call::Counted*)That)->Increment();
         }
-        
+
     }
-    
+
     Callback & operator = (const Callback & callback)
     {
         Call::operator = ((Call&)callback);
-        
+
         Thunk = callback.Thunk;
         if (Type == TYPE_FUNCTOR)
         {
@@ -319,7 +277,7 @@ public:
 
     Callback(int null):Call()
     {
-        
+
         Thunk = 0;
     }
 
@@ -328,31 +286,24 @@ public:
         typename Traits::Enable<!Traits::Castable<_Functor_,Call>::Value>::Type ** type=0):
         Call(6,-1,0)
     {
-        
+
         typedef Functor<_Functor_,_Return_,_Args_...> FunctorType;
         struct FunctorInvoke
         {            
-            
+
             static _Return_ Invoke(void * that,_Args_...args)
             {   
                 return ((FunctorType*)that)->operator()((_Args_&&)args...);
             }
         };
 
-        
-        
-        
         That = (void*)new FunctorType((_Functor_&&)func);
-        
-        
-        
-        
+
         struct Info {_Return_ (*func)(void*,_Args_...);} info = {&FunctorInvoke::Invoke};
         memcpy(&Func,&info,sizeof(info));
 
         Type = Call::TYPE_FUNCTOR;
 
-        
         ((Call::Counted*)That)->Increment();
 
         Thunk = &ThunkFunctor;
@@ -393,7 +344,7 @@ public:
 	{
 		struct Info {_Return_ (*func)(_Args_...);} info = {call};
 		memcpy(&Func,&info,sizeof(info));
-        
+
         Thunk = &ThunkFunction;
 	}
 
@@ -401,35 +352,27 @@ public:
 	{        
 
 		#ifdef HERO_USING_TRACY
-		
+
         ZoneScoped;
 		#endif
 
         return Thunk((Calls&)Func,That,(_Args_&&)(args)...);
 
-        
-        
 	}	
 
-    
     template<typename _Class_>
     _Return_ operator() (_Class_ * that, _Args_... args) const
 	{
 		#ifdef HERO_USING_TRACY
-		
+
         ZoneScoped;
 		#endif
 
         return Thunk((Calls&)Func,that,(_Args_&&)(args)...);
 
-        
-       
 	}
 
-
 };
-
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -26,304 +26,293 @@ SOFTWARE.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "hero/atomic.h"
 #include "hero/hero.h"
+#include "hero/atomic.h"
 
 #include <malloc.h>
 #ifdef HERO_PLATFORM_POSIX
-    #include <mm_malloc.h>
+#include <mm_malloc.h>
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace Hero
-{
+namespace Hero {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Atomic::Cas(volatile int* dest, int prev, int with)
+int Atomic::Cas(volatile int * dest, int prev, int with)
 {
-#ifdef __wasm__
+    #ifdef __wasm__
     int value = *dest;
     if (value == prev)
         *dest = with;
     return value;
-#endif
-
-#ifdef HERO_PLATFORM_WINDOWS
-
-    return InterlockedCompareExchange((long*)((int*)dest), with, prev);
-#endif
-
-#ifdef HERO_PLATFORM_POSIX
-
-    #ifdef HERO_PLATFORM_APPLE
-
-    int value = prev;
-    while (!OSAtomicCompareAndSwap32(prev, with, dest))
-        if ((value = *dest) != prev) break;
-    return value;
-
-    #else
-
-        #if (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ > 0))
-
-    return __sync_val_compare_and_swap(dest, prev, with);
-
-        #else
-
-    asm volatile("lock;cmpxchgl %1,%2"
-                 : "=a"(prev)
-                 : "q"(with), "m"(*dest), "0"(prev)
-                 : "memory");
-    return prev;
-
-            #if defined(__i386__)
-
-            #endif
-
-            #if defined(__x86_64__)
-
-            #endif
-
-        #endif
-
     #endif
 
-#endif
+	#ifdef HERO_PLATFORM_WINDOWS
 
-    return 0;
+	return InterlockedCompareExchange((long*)((int*)dest),with,prev);
+	#endif
+
+	#ifdef HERO_PLATFORM_POSIX
+
+	#ifdef HERO_PLATFORM_APPLE
+
+	int value = prev;
+	while (!OSAtomicCompareAndSwap32(prev,with,dest))
+		if ((value = *dest) != prev) break;
+	return value;
+
+	#else
+
+	#if (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ > 0)) 
+
+	return __sync_val_compare_and_swap (dest,prev,with);
+
+	#else
+
+	asm volatile("lock;cmpxchgl %1,%2":"=a"(prev):"q"(with),"m"(*dest),"0"(prev):"memory");
+	return prev;	
+
+	#if defined(__i386__)
+
+	#endif
+
+	#if defined(__x86_64__)
+
+	#endif
+
+	#endif
+
+	#endif 
+
+	#endif 
+
+	return 0;
 }
 
-int Atomic::Swp(volatile int* dest, int with)
+int Atomic::Swp(volatile int * dest, int with)
 {
-#ifdef __wasm__
+    #ifdef __wasm__
     int value = *dest;
     *dest = with;
     return value;
-#endif
-
-#ifdef HERO_PLATFORM_WINDOWS
-    return InterlockedExchange((long*)((int*)dest), with);
-#endif
-
-#ifdef HERO_PLATFORM_POSIX
-
-    #ifdef HERO_PLATFORM_APPLE
-
-    int value = *dest;
-    while (!OSAtomicCompareAndSwap32(value, with, dest))
-        value = *dest;
-    return value;
-
-    #else
-
-        #if (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ > 0))
-
-    return __sync_lock_test_and_set(dest, with);
-
-        #else
-
-    int value;
-    asm volatile("lock;xchgl %1,%2"
-                 : "=r"(value)
-                 : "m"(*dest), "0"(with)
-                 : "memory");
-    return value;
-
-        #endif
-
     #endif
 
-#endif
+	#ifdef HERO_PLATFORM_WINDOWS
+	return InterlockedExchange((long*)((int*)dest),with);
+	#endif
 
-    return 0;
+	#ifdef HERO_PLATFORM_POSIX
+
+	#ifdef HERO_PLATFORM_APPLE
+
+	int value = *dest;
+	while (!OSAtomicCompareAndSwap32(value, with, dest))
+		value = *dest;
+	return value;
+
+	#else
+
+	#if (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ > 0)) 
+
+	return __sync_lock_test_and_set (dest,with);
+
+	#else
+
+	int value;
+	asm volatile("lock;xchgl %1,%2":"=r"(value):"m"(*dest),"0"(with):"memory");
+	return value;	
+
+	#endif
+
+	#endif 
+
+	#endif 
+
+	return 0;
 }
 
-int Atomic::Inc(volatile int* dest)
+int Atomic::Inc(volatile int * dest)
 {
-#ifdef __wasm__
+    #ifdef __wasm__
     *dest += 1;
     return *dest;
-#endif
-
-#ifdef HERO_PLATFORM_WINDOWS
-    return InterlockedIncrement((long*)((int*)dest));
-#endif
-
-#ifdef HERO_PLATFORM_POSIX
-
-    #ifdef HERO_PLATFORM_APPLE
-
-    return OSAtomicIncrement32Barrier(dest);
-
-    #else
-
-        #if (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ > 0))
-
-    return __sync_add_and_fetch(dest, 1);
-
-        #else
-
-    int value;
-    asm volatile("lock;incl %1;movl %1,%0"
-                 : "=r"(value)
-                 : "m"(*dest)
-                 : "memory");
-    return value;
-
-        #endif
-
     #endif
 
-#endif
+	#ifdef HERO_PLATFORM_WINDOWS
+	return InterlockedIncrement((long*)((int*)dest));
+	#endif
 
-    return 0;
+	#ifdef HERO_PLATFORM_POSIX
+
+	#ifdef HERO_PLATFORM_APPLE
+
+	return OSAtomicIncrement32Barrier(dest);
+
+	#else
+
+	#if (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ > 0)) 
+
+	return __sync_add_and_fetch(dest,1);
+
+	#else
+
+	int value;
+	asm volatile("lock;incl %1;movl %1,%0":"=r"(value):"m"(*dest):"memory");
+	return value;
+
+	#endif
+
+	#endif 
+
+	#endif 
+
+	return 0;	
+
 }
 
-int Atomic::Dec(volatile int* dest)
+int Atomic::Dec(volatile int * dest)
 {
-#ifdef __wasm__
+    #ifdef __wasm__
     *dest -= 1;
     return *dest;
-#endif
-
-#ifdef HERO_PLATFORM_WINDOWS
-    return InterlockedDecrement((long*)((int*)dest));
-#endif
-
-#ifdef HERO_PLATFORM_POSIX
-
-    #ifdef HERO_PLATFORM_APPLE
-
-    return OSAtomicDecrement32Barrier(dest);
-
-    #else
-
-        #if (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ > 0))
-
-    return __sync_sub_and_fetch(dest, 1);
-
-        #else
-
-    int value;
-    asm volatile("lock;decl %1;movl %1,%0"
-                 : "=r"(value)
-                 : "m"(*dest)
-                 : "memory");
-    return value;
-
-        #endif
-
     #endif
 
-#endif
+	#ifdef HERO_PLATFORM_WINDOWS
+	return InterlockedDecrement((long*)((int*)dest));
+	#endif	
 
-    return 0;
+	#ifdef HERO_PLATFORM_POSIX
+
+	#ifdef HERO_PLATFORM_APPLE
+
+	return OSAtomicDecrement32Barrier(dest);
+
+	#else
+
+	#if (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ > 0)) 
+
+	return __sync_sub_and_fetch(dest,1);
+
+	#else
+
+	int value;
+	asm volatile("lock;decl %1;movl %1,%0":"=r"(value):"m"(*dest):"memory");
+	return value;	
+
+	#endif
+
+	#endif 
+
+	#endif 
+
+	return 0;	
 }
 
-int Atomic::Add(volatile int* dest, int by)
-{
-#ifdef __wasm__
+int Atomic::Add(volatile int * dest, int by)
+{   
+    #ifdef __wasm__
     int value = *dest;
     *dest += by;
-    return value;
-#endif
+    return value;    
+    #endif
 
-#ifdef HERO_PLATFORM_WINDOWS
-    return InterlockedExchangeAdd((long*)((int*)dest), by);
-#endif
+	#ifdef HERO_PLATFORM_WINDOWS
+	return InterlockedExchangeAdd((long*)((int*)dest),by);
+	#endif
 
-#ifdef HERO_PLATFORM_POSIX
+	#ifdef HERO_PLATFORM_POSIX
 
-    int value;
-    asm volatile("lock; xaddl %2,%1"
-                 : "=a"(value)
-                 : "m"(*dest), "0"(by)
-                 : "memory");
-    return value;
+	int value;
+	asm volatile("lock; xaddl %2,%1":"=a"(value):"m"(*dest),"0"(by):"memory");
+	return value;		
 
-#endif
+	#endif 
 
-    return 0;
+	return 0;	
 }
 
-int Atomic::Sub(volatile int* dest, int by)
+int Atomic::Sub(volatile int * dest, int by)
 {
-#ifdef __wasm__
+    #ifdef __wasm__
     int value = *dest;
     *dest -= by;
     return value;
-#endif
+    #endif  
 
-#ifdef HERO_PLATFORM_WINDOWS
-    return InterlockedExchangeAdd((long*)((int*)dest), -by);
-#endif
+	#ifdef HERO_PLATFORM_WINDOWS
+	return InterlockedExchangeAdd((long*)((int*)dest),-by);
+	#endif
 
-#ifdef HERO_PLATFORM_POSIX
+	#ifdef HERO_PLATFORM_POSIX
 
-    int value;
-    asm volatile("lock; xaddl %2,%1"
-                 : "=a"(value)
-                 : "m"(*dest), "0"(-by)
-                 : "memory");
-    return value;
+	int value;
+	asm volatile("lock; xaddl %2,%1":"=a"(value):"m"(*dest),"0"(-by):"memory");
+	return value;
 
-#endif
+	#endif 
 
-    return 0;
+	return 0;	
+
 }
 
-int Atomic::Mul(volatile int* dest, int by)
+int Atomic::Mul(volatile int * dest, int by)
 {
-    int initial = 0;
-    int result = 0;
-    do
-    {
-        if (initial != *dest)
-        {
-            initial = *dest;
-            result = initial * by;
-        }
-    } while (Cas(dest, initial, result) != initial);
+	int initial = 0;
+	int result = 0;
+	do 
+	{
 
-    return result;
+		if (initial != *dest)
+		{
+
+			initial = *dest;
+			result = initial * by; 
+		}
+	}
+	while(Cas(dest,initial,result) != initial);
+
+	return result;
 }
 
-int Atomic::Div(volatile int* dest, int by)
+int Atomic::Div(volatile int * dest, int by)
 {
-    int initial = 0;
-    int result = 0;
-    do
-    {
-        if (initial != *dest)
-        {
-            initial = *dest;
-            result = initial / by;
-        }
-    } while (Cas(dest, initial, result) != initial);
+	int initial = 0;
+	int result = 0;
+	do 
+	{
+		if (initial != *dest)
+		{
+			initial = *dest;
+			result = initial / by; 
+		}
+	}
+	while(Cas(dest,initial,result) != initial);
 
-    return result;
+	return result;
 }
 
-int Atomic::Mod(volatile int* dest, int by)
+int Atomic::Mod(volatile int * dest, int by)
 {
-    int initial = 0;
-    int result = 0;
-    do
-    {
-        if (initial != *dest)
-        {
-            initial = *dest;
-            result = initial % by;
-        }
-    } while (Cas(dest, initial, result) != initial);
+	int initial = 0;
+	int result = 0;
+	do 
+	{
+		if (initial != *dest)
+		{
 
-    return result;
+			initial = *dest;
+			result = initial % by; 
+		}
+	}
+	while(Cas(dest,initial,result) != initial);
+
+	return result;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -333,85 +322,85 @@ int Atomic::Mod(volatile int* dest, int by)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void* Atomic::Cas(volatile void** dest, void* prev, void* with)
+void * Atomic::Cas(volatile void ** dest, void * prev, void * with)
 {
-#ifdef HERO_PLATFORM_X86_64
-    return (void*)Atomic::Cas((long long*)dest, (long long)prev, (long long)with);
-#else
-    return (void*)Atomic::Cas((int*)dest, (int)prev, (int)with);
-#endif
+    #ifdef HERO_PLATFORM_X86_64
+    return (void*)Atomic::Cas((long long *)dest,(long long)prev,(long long)with);
+    #else
+    return (void*)Atomic::Cas((int *)dest,(int)prev,(int)with);
+    #endif
 }
 
-void* Atomic::Swp(volatile void** dest, void* with)
+void * Atomic::Swp(volatile void ** dest, void * with)
 {
-#ifdef HERO_PLATFORM_X86_64
-    return (void*)Atomic::Swp((long long*)dest, (long long)with);
-#else
-    return (void*)Atomic::Swp((int*)dest, (int)with);
-#endif
+	#ifdef HERO_PLATFORM_X86_64
+    return (void*)Atomic::Swp((long long *)dest,(long long)with);
+	#else
+    return (void*)Atomic::Swp((int *)dest,(int)with);
+	#endif    
 }
 
-void* Atomic::Add(volatile void** dest, void* by)
+void * Atomic::Add(volatile void ** dest, void * by)
 {
-#ifdef HERO_PLATFORM_X86_64
-    return (void*)Atomic::Add((long long*)dest, (long long)by);
-#else
-    return (void*)Atomic::Add((int*)dest, (int)by);
-#endif
+	#ifdef HERO_PLATFORM_X86_64
+    return (void*)Atomic::Add((long long *)dest,(long long)by);
+	#else
+    return (void*)Atomic::Add((int *)dest,(int)by);
+	#endif
 }
 
-void* Atomic::Sub(volatile void** dest, void* by)
+void * Atomic::Sub(volatile void ** dest, void * by)
 {
-#ifdef HERO_PLATFORM_X86_64
-    return (void*)Atomic::Sub((long long*)dest, (long long)by);
-#else
-    return (void*)Atomic::Sub((int*)dest, (int)by);
-#endif
+	#ifdef HERO_PLATFORM_X86_64
+	return (void*)Atomic::Sub((long long *)dest,(long long)by);
+	#else
+	return (void*)Atomic::Sub((int *)dest,(int)by);
+	#endif    
 }
 
-void* Atomic::Inc(volatile void** dest)
+void * Atomic::Inc(volatile void ** dest)
 {
-#ifdef HERO_PLATFORM_X86_64
-    return (void*)Atomic::Inc((long long*)dest);
-#else
-    return (void*)Atomic::Inc((int*)dest);
-#endif
+	#ifdef HERO_PLATFORM_X86_64
+	return (void*)Atomic::Inc((long long *)dest);
+	#else
+	return (void*)Atomic::Inc((int *)dest);
+	#endif   
 }
 
-void* Atomic::Dec(volatile void** dest)
+void * Atomic::Dec(volatile void ** dest)
 {
-#ifdef HERO_PLATFORM_X86_64
-    return (void*)Atomic::Dec((long long*)dest);
-#else
-    return (void*)Atomic::Dec((int*)dest);
-#endif
+	#ifdef HERO_PLATFORM_X86_64
+	return (void*)Atomic::Dec((long long *)dest);
+	#else
+	return (void*)Atomic::Dec((int *)dest);
+	#endif    
 }
 
-void* Atomic::Mul(volatile void** dest, void* by)
+void * Atomic::Mul(volatile void ** dest, void * by)
 {
-#ifdef HERO_PLATFORM_X86_64
-    return (void*)Atomic::Mul((long long*)dest, (long long)by);
-#else
-    return (void*)Atomic::Mul((int*)dest, (int)by);
-#endif
+	#ifdef HERO_PLATFORM_X86_64
+	return (void*)Atomic::Mul((long long *)dest,(long long)by);
+	#else
+	return (void*)Atomic::Mul((int *)dest,(int)by);
+	#endif       
 }
 
-void* Atomic::Div(volatile void** dest, void* by)
+void * Atomic::Div(volatile void ** dest, void * by)
 {
-#ifdef HERO_PLATFORM_X86_64
-    return (void*)Atomic::Div((long long*)dest, (long long)by);
-#else
-    return (void*)Atomic::Div((int*)dest, (int)by);
-#endif
+	#ifdef HERO_PLATFORM_X86_64
+	return (void*)Atomic::Div((long long *)dest,(long long)by);
+	#else
+	return (void*)Atomic::Div((int *)dest,(int)by);
+	#endif    
 }
 
-void* Atomic::Mod(volatile void** dest, void* by)
+void * Atomic::Mod(volatile void ** dest, void * by)
 {
-#ifdef HERO_PLATFORM_X86_64
-    return (void*)Atomic::Mod((long long*)dest, (long long)by);
-#else
-    return (void*)Atomic::Mod((int*)dest, (int)by);
-#endif
+	#ifdef HERO_PLATFORM_X86_64
+	return (void*)Atomic::Mod((long long *)dest,(long long)by);
+	#else
+	return (void*)Atomic::Mod((int *)dest,(int)by);
+	#endif     
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -422,47 +411,47 @@ void* Atomic::Mod(volatile void** dest, void* by)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Atomic::Load(volatile int* dest)
+int Atomic::Load(volatile int * dest) 
 {
-    return Barrier::LoadAcquire(dest);
+	return Barrier::LoadAcquire(dest);
 }
 
-void* Atomic::Load(volatile void** dest)
+void * Atomic::Load(volatile void **  dest)
 {
-    return Barrier::LoadAcquire(dest);
+	return Barrier::LoadAcquire(dest);
 }
 
-void Atomic::Store(volatile int* dest, int with)
+void Atomic::Store(volatile int * dest, int with)
 {
-    return Barrier::StoreRelease(dest, with);
+	return Barrier::StoreRelease(dest,with);
 }
 
-void Atomic::Store(volatile void** dest, void* with)
+void Atomic::Store(volatile void ** dest, void * with)
 {
-    return Barrier::StoreRelease(dest, with);
+	return Barrier::StoreRelease(dest,with);
 }
-
-#ifdef HERO_PLATFORM_X86_64
-
-long long Atomic::Load(volatile long long* dest)
-{
-    return Barrier::LoadAcquire(dest);
-}
-
-void Atomic::Store(volatile long long* dest, long long with)
-{
-    return Barrier::StoreRelease(dest, with);
-}
-
-#endif
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #ifdef HERO_PLATFORM_X86_64
 
-long long Atomic::Cas(volatile long long* dest, long long prev, long long with)
+long long Atomic::Load(volatile long long * dest)
+{
+	return Barrier::LoadAcquire(dest);
+}
+
+void Atomic::Store(volatile long long * dest, long long with)
+{
+	return Barrier::StoreRelease(dest,with);
+}
+
+#endif
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#ifdef HERO_PLATFORM_X86_64
+
+long long Atomic::Cas(volatile long long * dest, long long prev, long long with)
 {
     #ifdef __wasm__
     int value = *dest;
@@ -473,40 +462,37 @@ long long Atomic::Cas(volatile long long* dest, long long prev, long long with)
 
     #ifdef HERO_PLATFORM_WINDOWS
 
-    return InterlockedCompareExchange64((long long*)((long long*)dest), with, prev);
+    return InterlockedCompareExchange64((long long*)((long long*)dest),with,prev);
     #endif
 
     #ifdef HERO_PLATFORM_POSIX
 
-        #ifdef HERO_PLATFORM_APPLE
+    #ifdef HERO_PLATFORM_APPLE
 
     long long value = prev;
-    while (!OSAtomicCompareAndSwap64(prev, with, dest))
+    while (!OSAtomicCompareAndSwap64(prev,with,dest))
         if ((value = *dest) != prev) break;
     return value;
 
-        #else
+    #else
 
-            #if (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ > 0))
+    #if (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ > 0))    
 
-    return __sync_val_compare_and_swap(dest, prev, with);
-            #else
+    return __sync_val_compare_and_swap(dest,prev,with);
+    #else
 
-    asm volatile("lock; cmpxchgq %1,%2"
-                 : "=a"(prev)
-                 : "q"(with), "m"(*dest), "0"(prev)
-                 : "memory");
-    return prev;
+	asm volatile("lock; cmpxchgq %1,%2":"=a" (prev):"q"(with),"m"(*dest),"0"(prev):"memory");
+	return prev;
 
-            #endif
+    #endif 
 
-        #endif
+    #endif 
 
     #endif
     return 0;
 }
 
-long long Atomic::Swp(volatile long long* dest, long long with)
+long long Atomic::Swp(volatile long long * dest, long long with)
 {
     #ifdef __wasm__
     int value = *dest;
@@ -515,42 +501,39 @@ long long Atomic::Swp(volatile long long* dest, long long with)
     #endif
 
     #ifdef HERO_PLATFORM_WINDOWS
-    return InterlockedExchange64((long long*)((long long*)dest), with);
+    return InterlockedExchange64((long long*)((long long*)dest),with);
     #endif
 
     #ifdef HERO_PLATFORM_POSIX
 
-        #ifdef HERO_PLATFORM_APPLE
+    #ifdef HERO_PLATFORM_APPLE
 
     int value = *dest;
     while (!OSAtomicCompareAndSwap64(value, with, dest))
         value = *dest;
     return value;
 
-        #else
+    #else
 
-            #if (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ > 0))
+    #if (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ > 0)) 
 
-    return __sync_lock_test_and_set(dest, with);
-            #else
+    return __sync_lock_test_and_set (dest,with);
+    #else
 
-    int value;
-    asm volatile("lock;xchgq %1,%2"
-                 : "=r"(value)
-                 : "m"(*dest), "0"(with)
-                 : "memory");
-    return value;
+	int value;
+	asm volatile("lock;xchgq %1,%2":"=r"(value):"m"(*dest),"0"(with):"memory");
+	return value;	    
 
-            #endif
+    #endif 
 
-        #endif
+    #endif 
 
     #endif
 
     return 0;
 }
 
-long long Atomic::Inc(volatile long long* dest)
+long long Atomic::Inc(volatile long long * dest)
 {
     #ifdef __wasm__
     *dest += 1;
@@ -563,35 +546,34 @@ long long Atomic::Inc(volatile long long* dest)
 
     #ifdef HERO_PLATFORM_POSIX
 
-        #ifdef HERO_PLATFORM_APPLE
+    #ifdef HERO_PLATFORM_APPLE
 
     return OSAtomicIncrement64Barrier(dest);
 
-        #else
+    #else
 
-            #if (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ > 0))
+    #if (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ > 0)) 
 
-    return __sync_add_and_fetch(dest, 1);
-            #else
+    return __sync_add_and_fetch(dest,1);
+    #else
 
-    int value;
-    asm volatile("lock;incq %1;movl %1,%0"
-                 : "=r"(value)
-                 : "m"(*dest)
-                 : "memory");
-    return value;
+	int value;
+	asm volatile("lock;incq %1;movl %1,%0":"=r"(value):"m"(*dest):"memory");
+	return value;	    
 
-            #endif
+    #endif 
 
-        #endif
+    #endif 
 
     #endif
 
-    return 0;
+    return 0;	
+
 }
 
-long long Atomic::Dec(volatile long long* dest)
+long long Atomic::Dec(volatile long long * dest)
 {
+
     #ifdef __wasm__
     *dest -= 1;
     return *dest;
@@ -599,68 +581,63 @@ long long Atomic::Dec(volatile long long* dest)
 
     #ifdef HERO_PLATFORM_WINDOWS
     return InterlockedDecrement64((long long*)((long long*)dest));
-    #endif
+    #endif	
 
     #ifdef HERO_PLATFORM_POSIX
 
-        #ifdef HERO_PLATFORM_APPLE
+    #ifdef HERO_PLATFORM_APPLE
 
     return OSAtomicDecrement64Barrier(dest);
 
-        #else
+    #else
 
-            #if (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ > 0))
+    #if (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ > 0)) 
 
-    return __sync_sub_and_fetch(dest, 1);
-            #else
+    return __sync_sub_and_fetch(dest,1);
+    #else
 
-    int value;
-    asm volatile("lock;decq %1;movl %1,%0"
-                 : "=r"(value)
-                 : "m"(*dest)
-                 : "memory");
-    return value;
+	int value;
+	asm volatile("lock;decq %1;movl %1,%0":"=r"(value):"m"(*dest):"memory");
+	return value;	    
 
-            #endif
+    #endif 
 
-        #endif
+    #endif 
 
     #endif
 
-    return 0;
+    return 0;	
 }
 
-long long Atomic::Add(volatile long long* dest, long long by)
+long long Atomic::Add(volatile long long * dest, long long by)
 {
+
     #ifdef __wasm__
     int value = *dest;
     *dest += by;
-    return value;
+    return value;    
     #endif
 
     #ifdef HERO_PLATFORM_WINDOWS
-    return InterlockedExchangeAdd64((long long*)((long long*)dest), by);
+    return InterlockedExchangeAdd64((long long*)((long long*)dest),by);
     #endif
 
     #ifdef HERO_PLATFORM_POSIX
 
-        #ifdef HERO_PLATFORM_CPP11
-
-        #endif
-
-    int value;
-    asm volatile("lock; xaddq %2,%1"
-                 : "=a"(value)
-                 : "m"(*dest), "0"(by)
-                 : "memory");
-
-    return value;
+ 	#ifdef HERO_PLATFORM_CPP11
 
     #endif
-    return 0;
+
+	int value;
+	asm volatile("lock; xaddq %2,%1":"=a"(value):"m"(*dest),"0"(by):"memory");
+
+	return value;    
+
+    #endif
+    return 0;	
 }
 
-long long Atomic::Sub(volatile long long* dest, long long by)
+long long Atomic::Sub(volatile long long * dest, long long by)
 {
     #ifdef __wasm__
     int value = *dest;
@@ -669,67 +646,71 @@ long long Atomic::Sub(volatile long long* dest, long long by)
     #endif
 
     #ifdef HERO_PLATFORM_WINDOWS
-    return InterlockedExchangeAdd64((long long*)((long long*)dest), -by);
+    return InterlockedExchangeAdd64((long long*)((long long*)dest),-by);
     #endif
 
-    #ifdef HERO_PLATFORM_POSIX
+    #ifdef HERO_PLATFORM_POSIX   
 
-    int value;
-    asm volatile("lock; xaddq %2,%1"
-                 : "=a"(value)
-                 : "m"(*dest), "0"(-by)
-                 : "memory");
-    return value;
+	int value;
+	asm volatile("lock; xaddq %2,%1":"=a"(value):"m"(*dest),"0"(-by):"memory");
+	return value;    
 
     #endif
 
-    return 0;
+    return 0;	
+
 }
 
-long long Atomic::Mul(volatile long long* dest, long long by)
+long long Atomic::Mul(volatile long long * dest, long long by)
 {
     long long initial = 0;
     long long result = 0;
-    do
+    do 
     {
+
         if (initial != *dest)
         {
+
             initial = *dest;
-            result = initial * by;
+            result = initial * by; 
         }
-    } while (Cas(dest, initial, result) != initial);
+    }
+    while(Cas(dest,initial,result) != initial);
 
     return result;
 }
 
-long long Atomic::Div(volatile long long* dest, long long by)
+long long Atomic::Div(volatile long long * dest, long long by)
 {
     long long initial = 0;
     long long result = 0;
-    do
+    do 
     {
         if (initial != *dest)
         {
             initial = *dest;
-            result = initial / by;
+            result = initial / by; 
         }
-    } while (Cas(dest, initial, result) != initial);
+    }
+    while(Cas(dest,initial,result) != initial);
 
     return result;
 }
 
-long long Atomic::Mod(volatile long long* dest, long long by)
+long long Atomic::Mod(volatile long long * dest, long long by)
 {
     long long initial = 0;
     long long result = 0;
-    do
+    do 
     {
         if (initial != *dest)
         {
+
             initial = *dest;
-            result = initial % by;
+            result = initial % by; 
         }
-    } while (Cas(dest, initial, result) != initial);
+    }
+    while(Cas(dest,initial,result) != initial);
 
     return result;
 }
@@ -748,98 +729,101 @@ long long Atomic::Mod(volatile long long* dest, long long by)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Barrier::StoreAcquire(volatile int* dest, int with)
+void Barrier::StoreAcquire(volatile int * dest, int with)
 {
-    Atomic::Swp(dest, with);
+
+	Atomic::Swp(dest,with);
 }
 
-void Barrier::StoreRelease(volatile int* dest, int with)
+void Barrier::StoreRelease(volatile int * dest, int with)
 {
-    AtomicCompilerBarrier();
-    *dest = with;
+
+	AtomicCompilerBarrier();
+	*dest = with;
 }
 
-int Barrier::LoadAcquire(volatile int* dest)
+int Barrier::LoadAcquire(volatile int * dest)
 {
-    int value = *dest;
-    AtomicCompilerBarrier();
-    return value;
+
+	int value = *dest;
+	AtomicCompilerBarrier();
+	return value;
 }
 
-int Barrier::LoadRelease(volatile int* dest)
+int Barrier::LoadRelease(volatile int * dest)
 {
-    AtomicMemoryBarrier();
-    return *dest;
+	AtomicMemoryBarrier();
+	return *dest;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Barrier::StoreAcquire(volatile void** dest, void* with)
+void Barrier::StoreAcquire(volatile void ** dest, void * with)
 {
+	#ifdef HERO_PLATFORM_X86_64
+	StoreAcquire((volatile long long *)dest,(long long)with);
+	#else
+	StoreAcquire((volatile int *)dest,(int)with);
+	#endif
+}
+
+void Barrier::StoreRelease(volatile void ** dest, void * with)
+{
+	#ifdef HERO_PLATFORM_X86_64
+	StoreRelease((volatile long long *)dest,(long long)with);
+	#else
+	StoreRelease((volatile int *)dest,(int)with);
+	#endif
+}
+
+void * Barrier::LoadAcquire(volatile void ** dest)
+{
+	#ifdef HERO_PLATFORM_X86_64
+	return (void *) LoadAcquire((volatile long long *)dest);
+	#else
+	return (void *) LoadAcquire((volatile int *)dest);
+	#endif
+}
+
+void * Barrier::LoadRelease(volatile void ** dest)
+{
+	#ifdef HERO_PLATFORM_X86_64
+	return (void *) LoadRelease((volatile long long *)dest);
+	#else
+	return (void *) LoadRelease((volatile int *)dest);
+	#endif
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 #ifdef HERO_PLATFORM_X86_64
-    StoreAcquire((volatile long long*)dest, (long long)with);
-#else
-    StoreAcquire((volatile int*)dest, (int)with);
-#endif
+
+void Barrier::StoreAcquire(volatile long long * dest, long long with)
+{
+	Atomic::Swp((volatile long long *)dest,(long long)with);
 }
 
-void Barrier::StoreRelease(volatile void** dest, void* with)
+void Barrier::StoreRelease(volatile long long * dest, long long with)
 {
-#ifdef HERO_PLATFORM_X86_64
-    StoreRelease((volatile long long*)dest, (long long)with);
-#else
-    StoreRelease((volatile int*)dest, (int)with);
-#endif
+	AtomicCompilerBarrier();
+	*dest = with;
 }
 
-void* Barrier::LoadAcquire(volatile void** dest)
+long long Barrier::LoadAcquire(volatile long long * dest)
 {
-#ifdef HERO_PLATFORM_X86_64
-    return (void*)LoadAcquire((volatile long long*)dest);
-#else
-    return (void*)LoadAcquire((volatile int*)dest);
-#endif
+	long long value = *dest;
+	AtomicCompilerBarrier();
+	return value;
 }
 
-void* Barrier::LoadRelease(volatile void** dest)
+long long Barrier::LoadRelease(volatile long long * dest)
 {
-#ifdef HERO_PLATFORM_X86_64
-    return (void*)LoadRelease((volatile long long*)dest);
-#else
-    return (void*)LoadRelease((volatile int*)dest);
-#endif
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-#ifdef HERO_PLATFORM_X86_64
-
-void Barrier::StoreAcquire(volatile long long* dest, long long with)
-{
-    Atomic::Swp((volatile long long*)dest, (long long)with);
-}
-
-void Barrier::StoreRelease(volatile long long* dest, long long with)
-{
-    AtomicCompilerBarrier();
-    *dest = with;
-}
-
-long long Barrier::LoadAcquire(volatile long long* dest)
-{
-    long long value = *dest;
-    AtomicCompilerBarrier();
-    return value;
-}
-
-long long Barrier::LoadRelease(volatile long long* dest)
-{
-    AtomicMemoryBarrier();
-    return *dest;
+	AtomicMemoryBarrier();
+	return *dest;
 }
 
 #endif
@@ -856,23 +840,21 @@ long long Barrier::LoadRelease(volatile long long* dest)
 
 void AtomicCompilerBarrier()
 {
-    asm volatile("" ::
-                     : "memory");
+	asm volatile("":::"memory");
 }
 
 void AtomicMemoryBarrier()
 {
-    #ifdef HERO_PLATFORM_I386
+	#ifdef HERO_PLATFORM_I386
 
-    volatile int value = 0;
-    Atomic::Swp(&value, 1);
-    #endif
+	volatile int value = 0;
+	Atomic::Swp(&value,1);
+	#endif
 
-    #ifdef HERO_PLATFORM_X86_64
+	#ifdef HERO_PLATFORM_X86_64
 
-    asm volatile("mfence" ::
-                     : "memory");
-    #endif
+	asm volatile("mfence":::"memory");
+	#endif
 }
 
 #endif
@@ -881,7 +863,7 @@ void AtomicMemoryBarrier()
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace Hero
+} 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

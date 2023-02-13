@@ -110,7 +110,7 @@ A full set of streaming objects, with integration into other types in the type s
 Handle errors like `C` (at the source) but with a structured take on `errno/GetLastError()`
 
 - Raise deep errors without exceptions using scoped `Try/Catch/Raise` via `Raise("Message")`
-- Common inbuild types for error categories using `RaiseError<>` such as `RaiseError<ConversionError>("Message")`, and `RaiseError<TimeoutError>("Message")`
+- Common inbuilt types for error categories using `RaiseError<>` such as `RaiseError<ConversionError>("Message")`, and `RaiseError<TimeoutError>("Message")`
 - Verify and test function results using `Verify()/Verified()`
 
 

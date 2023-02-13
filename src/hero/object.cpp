@@ -22,15 +22,16 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include <stdio.h>
 
-#include "hero/binary.h"
 #include "hero/object.h"
 #include "hero/string.h"
+#include "hero/binary.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -48,35 +49,39 @@ Identity Object::Instance;
 
 int Object::Hash()
 {
-    long long address = (long long)this;
-    return Hashing::SuperFastHash::Hash((const char*)&address, sizeof(long long));
+
+	long long address = (long long)this;
+	return Hashing::SuperFastHash::Hash((const char *)&address,sizeof(long long));
 }
 
-int Object::Compare(Object* object, int comparitor)
+int Object::Compare(Object *object, int comparitor)
 {
-    return (int)((long)this - (long)object);
+
+	return (int)((long)this - (long)object);
 }
 
-bool Object::Equals(Object* object, int comparitor)
+bool Object::Equals(Object * object, int comparitor)
 {
-    if (this == object)
-        return true;
-    else if (comparitor == Comparable::COMPARE_INSTANCE)
-        return false;
-    else
-        return Compare(object, comparitor) == 0;
+
+	if (this == object)
+		return true;
+	else
+	if (comparitor == Comparable::COMPARE_INSTANCE)
+		return false;
+	else
+		return Compare(object,comparitor)==0;
 }
 
-void Object::Print(String& string)
+void Object::Print(String &string)
 {
-    char address[32];
-#ifdef HERO_PLATFORM_I386
-    sprintf((char*)&address, "[%08lX]", (unsigned long)this);
-#else HERO_PLATFORM_X86_64
-    sprintf((char*)&address, "[%016llX]", (unsigned long long)this);
-#endif
+	char address[32];
+	#ifdef HERO_PLATFORM_I386
+	sprintf((char*)&address,"[%08lX]",(unsigned long)this);
+	#else HERO_PLATFORM_X86_64
+	sprintf((char*)&address,"[%016llX]",(unsigned long long)this);
+	#endif
 
-    string << address;
+	string << address;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -90,3 +95,4 @@ void Object::Print(String& string)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+

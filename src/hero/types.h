@@ -23,9 +23,6 @@ SOFTWARE.
 */
 #pragma once
 
-
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -36,7 +33,6 @@ SOFTWARE.
 
 namespace Hero {
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -46,8 +42,6 @@ namespace Hero {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 
 template <typename _Kind_>
 struct Template
@@ -62,7 +56,6 @@ struct Template
 
 	typedef _Kind_ && MoveReference;
 };
-
 
 template <typename _Kind_>
 struct Template<_Kind_&>
@@ -81,11 +74,11 @@ struct Template<_Kind_&>
 template <typename _Kind_>
 struct Template<_Kind_*>
 {
-	
+
 	typedef _Kind_ *  Value;
 	typedef _Kind_ ** Pointer;
 	typedef _Kind_ *& Reference;
-	
+
 	typedef const _Kind_ *         ConstValue;
 	typedef const _Kind_ * const * ConstPointer;
 	typedef const _Kind_ * const & ConstReference;
@@ -96,11 +89,11 @@ struct Template<_Kind_*>
 template <typename _Kind_>
 struct Template<_Kind_*&>
 {
-	
+
 	typedef _Kind_ *  Value;
 	typedef _Kind_ ** Pointer;
 	typedef _Kind_ *& Reference;
-	
+
 	typedef const _Kind_ *         ConstValue;
 	typedef const _Kind_ * const * ConstPointer;
 	typedef const _Kind_ * const & ConstReference;
@@ -111,13 +104,11 @@ struct Template<_Kind_*&>
 template <typename _Kind_>
 struct Template<_Kind_&&>
 {
-	
-	
 
 	typedef _Kind_ && Value;
 	typedef _Kind_ && Pointer;
 	typedef _Kind_ && Reference;
-	
+
 	typedef const _Kind_ &&  ConstValue;
 	typedef const _Kind_ &&  ConstPointer;
 	typedef const _Kind_ &&  ConstReference;
@@ -125,8 +116,6 @@ struct Template<_Kind_&&>
 	typedef _Kind_ && MoveReference;
 
 };
-
-
 
 template<>
 struct Template<void*>
@@ -149,14 +138,6 @@ struct Template<void>
 	typedef void ** Pointer;
 	typedef void *&  Reference;
 
-	
-	
-	
-	
-	
-	
-	
-
 	typedef const void * ConstValue;
 	typedef const void * const * ConstPointer;
 	typedef const void * const & ConstReference;
@@ -164,13 +145,9 @@ struct Template<void>
 	typedef void * && MoveReference;
 };
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
 
 template <typename _Kind_>
 struct Type
@@ -179,7 +156,6 @@ struct Type
 	typedef _Kind_   Value;
 	typedef _Kind_ * Pointer;
 	typedef _Kind_ & Reference;
-
 
 	typedef const _Kind_   ConstValue;
 	typedef const _Kind_ * ConstPointer;
@@ -218,16 +194,14 @@ struct Type<_Kind_*>
 	typedef _Kind_ && MoveReference;
 };
 
-
-
 template <typename _Kind_>
 struct Type<_Kind_*&>
 {
-	
+
 	typedef _Kind_   Value;
 	typedef _Kind_ * Pointer;
 	typedef _Kind_ & Reference;
-	
+
 	typedef const _Kind_   ConstValue;
 	typedef const _Kind_ * ConstPointer;
 	typedef const _Kind_ & ConstReference;
@@ -241,7 +215,7 @@ struct Type<_Kind_&&>
 	typedef _Kind_   Value;
 	typedef _Kind_ * Pointer;
 	typedef _Kind_ & Reference;
-	
+
 	typedef const _Kind_    ConstValue;
 	typedef const _Kind_ *  ConstPointer;
 	typedef const _Kind_ &  ConstReference;
@@ -254,17 +228,13 @@ struct Type<void*>
 {
 	typedef void   Value;
 	typedef void * Pointer;
-	
-	
-	
-	
-	
+
 	typedef void *& Reference;
 
 	typedef const void   ConstValue;
 	typedef const void * ConstPointer;
 	typedef const void * const & ConstReference;
-	
+
 	typedef void * && MoveReference;
 };
 
@@ -278,23 +248,13 @@ struct Type<void>
 	typedef const void   ConstValue;
 	typedef const void * ConstPointer;
 	typedef const void * const & ConstReference;
-	
+
 	typedef void * && MoveReference;
 };
 
-
-
-
-
-
-
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -310,7 +270,6 @@ struct Value
 	static typename Hero::Template<_Kind_>::Value Template(typename Hero::Template<_Kind_>::ConstPointer kind) {return (typename Hero::Template<_Kind_>::Reference)*kind;};
 };
 
-
 template <typename _Kind_>
 struct Value<_Kind_&>
 {
@@ -320,7 +279,6 @@ struct Value<_Kind_&>
 	static typename Hero::Template<_Kind_&>::Value Template(typename Hero::Template<_Kind_&>::ConstReference kind) {return (typename Hero::Template<_Kind_&>::Reference)kind;}
 	static typename Hero::Template<_Kind_&>::Value Template(typename Hero::Template<_Kind_&>::ConstPointer kind) {return (typename Hero::Template<_Kind_&>::Reference)*kind;}
 };
-
 
 template <typename _Kind_>
 struct Value<_Kind_*>
@@ -332,14 +290,9 @@ struct Value<_Kind_*>
 	static typename Hero::Template<_Kind_*>::Value Template(typename Hero::Template<_Kind_*>::ConstPointer kind) {return (typename Hero::Template<_Kind_*>::Reference)*kind;}	
 };
 
-
-
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 template <typename _Kind_>
 struct RemoveReference
@@ -396,11 +349,9 @@ public:
 	typedef _Kind_ && Type;
 };
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 template <typename _Kind_>
 struct Reference
@@ -417,7 +368,7 @@ struct Reference<_Kind_&>
 {
 	static typename Hero::Type<_Kind_&>::Reference Type(typename Hero::Template<_Kind_&>::ConstReference kind) {return (typename Hero::Template<_Kind_&>::Reference)kind;}
 	static typename Hero::Type<_Kind_&>::Reference Type(typename Hero::Template<_Kind_&>::ConstPointer kind) {return (typename Hero::Template<_Kind_&>::Reference)*kind;}
-	
+
 	static typename Hero::Template<_Kind_&>::Reference Template(typename Hero::Template<_Kind_&>::ConstReference kind) {return (typename Hero::Template<_Kind_&>::Reference)kind;}
 	static typename Hero::Template<_Kind_&>::Reference Template(typename Hero::Template<_Kind_&>::ConstPointer kind) {return (typename Hero::Template<_Kind_&>::Reference)*kind;}
 };
@@ -432,14 +383,9 @@ struct Reference<_Kind_*>
 	static typename Hero::Template<_Kind_*>::Reference Template(typename Hero::Template<_Kind_*>::ConstPointer kind) {return (typename Hero::Template<_Kind_*>::Reference)*kind;}
 };
 
-
-
 template <>
 struct Reference<void*>
 {	
-	
-	
-	
 
 	static Hero::Type<void*>::Reference Type(Hero::Template<void*>::ConstReference kind) {return (Hero::Template<void*>::Reference)kind;}	
 	static Hero::Type<void*>::Reference Type(Hero::Template<void*>::ConstPointer kind) {return (Hero::Template<void*>::Reference)*kind;}	
@@ -448,35 +394,27 @@ struct Reference<void*>
 	static Hero::Template<void*>::Reference Template(Hero::Template<void*>::ConstPointer kind) {return (Hero::Template<void*>::Reference)*kind;}
 };
 
-
-
-
-
 template <>
 struct Reference<void>
 {
 	static Hero::Type<void>::Reference Type(Hero::Template<void>::ConstReference kind) {return (Hero::Template<void>::Reference)kind;}	
-	
+
 	static Hero::Type<void>::Reference Type(Hero::Template<void>::ConstPointer kind) {return (Hero::Template<void>::Reference)*kind;}	
 
 	static Hero::Template<void>::Reference Template(Hero::Template<void>::ConstReference kind) {return (Hero::Template<void>::Reference)kind;}
 	static Hero::Template<void>::Reference Template(Hero::Template<void>::ConstPointer kind) {return (Hero::Template<void>::Reference)*kind;}
 };
 
-
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 template <typename _Kind_>
 struct Pointer
 {
 	static typename Hero::Type<_Kind_>::Pointer Type(typename Hero::Template<_Kind_>::ConstReference kind) {return (_Kind_*)&(char&)(typename Hero::Template<_Kind_>::Reference)kind;};
 	static typename Hero::Type<_Kind_>::Pointer Type(typename Hero::Template<_Kind_>::ConstPointer kind) {return (typename Hero::Template<_Kind_>::Pointer)kind;};
-	
+
 	static typename Hero::Template<_Kind_>::Pointer Template(typename Hero::Template<_Kind_>::ConstReference kind) {return (_Kind_*)&(char&)(typename Hero::Template<_Kind_>::Reference)kind;};
 	static typename Hero::Template<_Kind_>::Pointer Template(typename Hero::Template<_Kind_>::ConstPointer kind) {return (typename Hero::Template<_Kind_>::Pointer)kind;};
 };
@@ -487,8 +425,6 @@ struct Pointer<_Kind_&>
 	static typename Hero::Type<_Kind_&>::Pointer Type(typename Hero::Template<_Kind_&>::ConstReference kind) {return (_Kind_*)&(char&)(typename Hero::Template<_Kind_&>::Reference)kind;}
 	static typename Hero::Type<_Kind_&>::Pointer Type(typename Hero::Template<_Kind_&>::ConstPointer kind) {return (typename Hero::Template<_Kind_&>::Pointer)kind;};
 
-	
-	
 	static typename Hero::Template<_Kind_&>::Pointer Template(typename Hero::Template<_Kind_&>::ConstReference kind) {return (_Kind_*)&(char&)(typename Hero::Template<_Kind_&>::Reference)kind;}
 	static typename Hero::Template<_Kind_&>::Pointer Template(typename Hero::Template<_Kind_&>::ConstPointer kind) {return (typename Hero::Template<_Kind_&>::Pointer)kind;}
 };
@@ -507,16 +443,11 @@ struct Pointer<_Kind_*>
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
-
 namespace Types {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 
 	template<typename _Kind_>
 	struct Class
@@ -544,14 +475,9 @@ namespace Types {
 
 	};
 
-	
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-	
 
 	template <typename _Kind_>
 	struct Is
@@ -560,7 +486,7 @@ namespace Types {
 		static inline bool IsValue()		{return true;};
 		static inline bool IsReference()	{return false;};
 		static inline bool IsPointer()		{return false;};
-		
+
 		static inline bool IsClass()		{return Class<_Kind_>::Value;};
 		static inline bool IsPrimitive()	{return !IsClass();};
 	};
@@ -572,7 +498,7 @@ namespace Types {
 		static inline bool IsValue()		{return false;};
 		static inline bool IsReference()	{return true;};
 		static inline bool IsPointer()		{return false;};
-		
+
 		static inline bool IsClass()		{return Class<_Kind_>::Value;};
 		static inline bool IsPrimitive()	{return !IsClass();};
 
@@ -585,12 +511,11 @@ namespace Types {
 		static inline bool IsValue()		{return false;};
 		static inline bool IsReference()	{return false;};
 		static inline bool IsPointer()		{return true;};
-		
+
 		static inline bool IsClass()		{return Class<_Kind_>::Value;};
 		static inline bool IsPrimitive()	{return !IsClass();};
 
 	};
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -598,9 +523,7 @@ namespace Types {
 
 	struct Enum
 	{
-		
 
-	
 		template<bool, int _True_, int _False_>
 		struct Or
 		{
@@ -608,33 +531,21 @@ namespace Types {
 		};	
 
 		template<int _True_,int _False_>
-		
+
 		struct Or<true,_True_,_False_>
 		{
 			enum Enum {Value = _True_};
 		};
-		
+
 	};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-	
-
-	
-	
-	
-
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -668,14 +579,11 @@ namespace Types {
 		TYPE_DOUBLE				= (1)<<12,
 
 		TYPE_BOOL				= (1)<<13,
-	
+
 		TYPE_VOID				= (1)<<14,
 
 		TYPE_CLASS				= (1)<<15,
 
-		
-		
-		
 		TYPE_VALUE				= (1)<<16,
 		TYPE_REFERENCE			= (1)<<17,
 		TYPE_POINTER			= (1)<<18,
@@ -683,17 +591,47 @@ namespace Types {
 		TYPE_ATTRIBUTES			= TYPE_VALUE|TYPE_REFERENCE|TYPE_POINTER,
 	};
 
+	template<typename _Kind_>
+	struct IdClass
+	{
+
+		template<typename _Arg_>
+		static char Member(void (_Arg_::*)());
+
+		template<typename _Arg_>
+		static int Member(...);
+
+		#if defined(HERO_PLATFORM_APPLE) || defined(HERO_PLATFORM_LINUX)
+		static const int Value = (sizeof(Member<_Kind_>(0)) != sizeof(int));
+		#else
+
+		#ifdef HERO_PLATFORM_WINDOWS
+		enum Enum {Value = (sizeof(Member<_Kind_>(0)) != sizeof(int))};		
+		#else
+		static const int Value;
+		#endif		
+		#endif
+
+	};
+
+	#if !defined(HERO_PLATFORM_APPLE) && !defined(HERO_PLATFORM_LINUX) && !defined(HERO_PLATFORM_WINDOWS)
+	template<typename _Kind_>
+	const int IdClass<_Kind_>::Value = (sizeof(IdClass<_Kind_>::Member<_Kind_>(0)) != sizeof(int));
+	#endif
+
+	template<typename _Kind_>
+	struct IdIsClass
+	{
+		enum Enum{Value = IdClass<_Kind_>::Value};
+	};
 
 	template<typename _Kind_> struct Id 
 	{
-		
-		
-		
-		
-		static const int Value=Enum::Or<Class<typename Type<_Kind_>::Value>::Is(),TYPE_CLASS,TYPE_NONE>::Value;	
+
+		static const int Value=Enum::Or<IdIsClass<typename Type<_Kind_>::Value>::Value,TYPE_CLASS,TYPE_NONE>::Value;	
+
 	};
 
-	
 	template<> struct Id<char> {static const int Value=TYPE_CHAR;};
 	template<> struct Id<unsigned char> {static const int Value=TYPE_CHAR_UNSIGNED;};
 	template<> struct Id<signed char> {static const int Value=TYPE_CHAR_UNSIGNED;};
@@ -720,16 +658,10 @@ namespace Types {
 		Info(int value, int size):Value(value),Size(size) {}
 	};
 
-	
-	
 	template<typename _Kind_>
 	Info Identify()
 	{
-		
-		
-	
-		
-		
+
 		int value = Id<typename Type<_Kind_>::Value>::Value;
 		value |= (Is<_Kind_>::IsReference()?TYPE_REFERENCE:TYPE_NONE)|(Is<_Kind_>::IsPointer()?TYPE_POINTER:TYPE_NONE);
 		int size = sizeof(_Kind_);
@@ -738,11 +670,10 @@ namespace Types {
 	}
 
 	template<>
-	
+
 	Info Identify<void>();
 
 	bool Castable(Info from, Info to);
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -753,7 +684,6 @@ namespace Types {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 } 
 

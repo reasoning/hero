@@ -23,21 +23,13 @@ SOFTWARE.
 */
 #pragma once
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 #include "hero/assert.h"
 #include "hero/indices.h"
 #include "hero/platform.h"
-
-
-
-
-
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -48,10 +40,6 @@ namespace Hero {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
 
 #ifdef HERO_PLATFORM_WINDOWS
 
@@ -67,7 +55,6 @@ namespace Hero {
 
 #endif
 
-
 #ifdef HERO_PLATFORM_POSIX
 
 	typedef unsigned char		u8;
@@ -82,17 +69,13 @@ namespace Hero {
 
 #endif
 
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 #define HERO_BIT_COUNT_TABLE
 
@@ -127,7 +110,6 @@ public:
 		#endif
 	}
 
-
 	static int Count(unsigned int bits)
 	{
 		#ifdef HERO_BIT_COUNT_TABLE
@@ -156,7 +138,6 @@ public:
 		#endif
 	}
 
-
 public:
 
 	unsigned char * Byte;	
@@ -174,7 +155,7 @@ public:
 		Index = index;
 		Mask = 1 << Index;
 	}
-	
+
 	bool Get()
 	{
 		return (*Byte&Mask) != 0;
@@ -194,7 +175,7 @@ public:
 	{
 		return *Byte & Mask;
 	}
-	
+
 	Bit & operator = (Bit bit)
 	{
 		(bit==0)?Off():On();
@@ -202,11 +183,9 @@ public:
 	}
 };
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 #define FLAGS_GENERATOR(Type) \
 Type Bits;\
@@ -249,7 +228,7 @@ static Type Bit(Type bitmask, int i)				{ return (bitmask & ((Type)(1)<<i)); }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
- 
+
 class Mask
 {
 public:
@@ -258,18 +237,13 @@ public:
 	FLAGS_GENERATOR_STATIC(unsigned short)
 	FLAGS_GENERATOR_STATIC(unsigned int)
 	FLAGS_GENERATOR_STATIC(unsigned long long)
-	
+
 };
-
-
 
 template<int _Size_=8>
 class Flags : public Mask
 {
 public:
-
-	
-	
 
 	Flags():Bits(0){};
 	Flags(unsigned char bits):Bits(bits){}
@@ -307,13 +281,9 @@ public:
 
 };
 
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -328,7 +298,7 @@ public:
 	static const unsigned int BitsetSize = 32;
 	static const unsigned int BitsetMask = 31;
 	static const unsigned int BitsetLog2 = 5;
-	
+
 	typedef unsigned int Kind;
 
 	#endif
@@ -338,12 +308,10 @@ public:
 	static const unsigned long long BitsetSize = 64;
 	static const unsigned long long BitsetMask = 63;
 	static const unsigned long long BitsetLog2 = 6;
-	
+
 	typedef unsigned long long Kind;
 
 	#endif
-	
-	
 
 	int Allocated;
 	int Size;
@@ -352,17 +320,13 @@ public:
 	#define BitsetSlots(size) ((size+BitsetMask)/BitsetSize)
 	#define BitsetAllocated() (Allocated*BitsetSize)
 
-
-
 	Bitset(int size, bool value):
 		Allocated(BitsetSlots(size)),Size(size),Data(0)
 	{
-		
-		
+
 		Data = (Kind*) new Kind(Allocated);
 		Fill(value);
 	}
-
 
 	Bitset():
 		Allocated(0),Size(0),Data(0)
@@ -380,7 +344,6 @@ public:
 		Indices::Normalise(index,slots);
 		Assert(index < slots);
 
-		
 		Kind & slot = Data[index/BitsetSize];
 		return slot;
 	}
@@ -389,7 +352,6 @@ public:
 	{
 		Kind & slot = Slot(index);
 
-		
 		return ((1 & (slot >> (index&BitsetMask))) == 1);
 	}
 
@@ -403,13 +365,11 @@ public:
 
 	void On(int index)
 	{
-		
-		
+
 		Kind & slot = Slot(index);
 		Kind bit = ((Kind)1 << (index&BitsetMask));
 		slot |= bit;	
 	}
-
 
 	void Off(int index)
 	{
@@ -417,7 +377,6 @@ public:
 		Kind bit = ((Kind)1 << (index&BitsetMask));
 		slot &= ~bit;
 	}
-
 
 	void Resize(int size, bool value)
 	{
@@ -429,23 +388,21 @@ public:
 			{
 				for (int i=0;i<Allocated;++i)
 					slots[i] = Data[i];
-					
+
 				delete Data;		
 			}
-			
+
 			Data = slots;
 			Allocated = allocated;		
 		}
-		
-		
+
 		if (size > Size)
 			Fill(Size,size,value);
 
 		Size = size;
-		
 
 	}
-	
+
 	void Fill(bool value)
 	{
 		Kind bytes = (value)?(~0):0;
@@ -454,26 +411,19 @@ public:
 			Data[i] = bytes;	
 	}
 
-	
-	
-	
-	
-	
 	void Fill(int from, int to, bool value)
 	{
 		Indices::Normalise(from,Size);
 		Indices::Normalise(to,Size);
 		Assert(from <= to);
 		Assert(to < BitsetAllocated());
-		
-		
+
 		int fromSlot = (from/BitsetSize), toSlot = (to/BitsetSize);
 		int fromBit = (from&BitsetMask), toBit = (to&BitsetMask);
-		
+
 		Kind lowMask = (BitsetFill<<fromBit);
 		Kind highMask = (BitsetFill>>(BitsetMask-toBit));
-		
-		
+
 		if (fromSlot == toSlot)
 		{
 			Kind mask = (highMask & lowMask);
@@ -484,7 +434,7 @@ public:
 		}
 		else
 		{
-			
+
 			if (value)
 			{
 				Data[fromSlot] |= lowMask;
@@ -495,29 +445,26 @@ public:
 				Data[fromSlot] &= (~lowMask);
 				Data[toSlot] &= (~highMask);
 			}	
-			
-			
+
 			Kind bytes = (value)?(~0):0;
 			for (int i=fromSlot+1;i<toSlot;++i)
 				Data[i] = bytes;
 		}
 	}
-	
+
 	int Count(int from, int to)
 	{
 		Indices::Normalise(from,Size);
 		Indices::Normalise(to,Size);
 		Assert(from <= to);
 		Assert(to < BitsetAllocated());
-		
-		
+
 		int fromSlot = (from/BitsetSize), toSlot = (to/BitsetSize);
 		int fromBit = (from&BitsetMask), toBit = (to&BitsetMask);
-		
+
 		Kind lowMask = (BitsetFill<<fromBit);
 		Kind highMask = (BitsetFill>>(BitsetMask-toBit));
-		
-		
+
 		if (fromSlot == toSlot)
 		{			
 			Kind mask = (highMask & lowMask);
@@ -525,20 +472,17 @@ public:
 		}
 		else
 		{
-			
+
 			int count = 0;
 			count += Bit::Count(Data[fromSlot]&lowMask);
 			count += Bit::Count(Data[toSlot]&highMask);
-			
-			
+
 			for (int i=fromSlot+1;i<toSlot;++i)
 				count += Bit::Count(Data[i]);
-				
+
 			return count;
 		}		
 	}
-
-		
 
 };
 
@@ -551,5 +495,4 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 

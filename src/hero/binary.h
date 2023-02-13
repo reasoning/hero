@@ -34,7 +34,6 @@ SOFTWARE.
 
 #include "hero/bit.h"
 
-
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
@@ -47,7 +46,6 @@ SOFTWARE.
 #define HERO_BIT_EXPECT
 #endif
 
-
 #ifdef HERO_PLATFORM_WINDOWS
 #include <intrin.h>
 #include <vadefs.h>
@@ -55,20 +53,15 @@ SOFTWARE.
 
 #endif
 
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 namespace Hero {
 
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -83,8 +76,6 @@ class Bits
 {
 public:
 
-	
-	
 	enum BitDirection
 	{
 		DIRECTION_NONE		=0,
@@ -92,127 +83,80 @@ public:
 		DIRECTION_RIGHT		=1,			
 	};
 
-	
-
-	
 	enum BitScheme
 	{
 		SCHEME_NONE			=(0),
-		
-		
 
-		
 		SCHEME_INDEX_LEFT	=(0),	
 		SCHEME_INDEX_RIGHT	=(1)<<1,
 		SCHEME_INDEX = SCHEME_INDEX_LEFT|SCHEME_INDEX_RIGHT,
 
-		
 		SCHEME_BITS_LEFT	=(1)<<2,
 		SCHEME_BITS_RIGHT	=(0),	
 		SCHEME_BITS = SCHEME_BITS_LEFT|SCHEME_BITS_RIGHT
 	};
 
-
-	
-
-	
 	static inline int Count(int bits, int size=sizeof(int))
 	{
-		
+
 		size = size<<3;
-		
-		
+
 		return (bits + size-1)/size;
 	}
 
-
-	
 	static inline int Index(int bit, int size=sizeof(int))
 	{
 		size = size<<3;
-		
-		
+
 		return bit/size;
 	}
-	
-	
+
 	static inline int Mask(int bits, int index=0, int size=sizeof(int))
 	{
 		size = size<<3;
-		
-		
-		
-		
+
 		int mask = (int)((1LL<<bits)-1)<<((size-bits)-index);
-		
+
 		return mask;
 	}
-	
 
 	static int Append(int & to, int from, int bits, int toIndex=0, int fromIndex=0, int fromScheme=0, int size=sizeof(int));
 	static int Prepend(int & to, int from, int bits, int toIndex=-1, int fromIndex=0, int fromScheme=0, int size=sizeof(int));
 
-	
 	static int Insert(int & to, int from, int bits, int toIndex=0, int fromIndex=0, int toScheme=0, int fromScheme=0, int size=sizeof(int));
 
-
-	
-	
 	static int Twiddle(int & to, int from, int bits, int toIndex=0, int fromIndex=0, int toScheme=0, int fromScheme=0, int size=sizeof(int))
 	{
 		return Insert(to,from,bits,toIndex,fromIndex,toScheme,fromScheme,size);
 	}
 
-
-
-	
 	static inline void Move(void * to, void * from, int bits)
 	{
-		
+
 	}
 
-
-	
 	static inline void Copy(void * to, void * from, int bits)
 	{
 		int bytes = bits+7/8;
 
-		
         Assert(&from != &to);
 		Assert((&from+bytes < &to) || (&to+bytes < &from));
 
-
-		
-		
-		
-		
-		
-		
-		
-
 		const int size = sizeof(int);
 
-		
 		for (;bytes>size;bytes-=size,from=(int*)from+1,to=(int*)to+1)
 		{
 			*(int*)to = *(int*)from;
 		}
 
-		
 		for ( ; bytes%size != 0; --bytes,from=(char*)from+1,to=(char*)to+1 )
 		{
 			*(char*)to = *(char*)from;
 		}
 
-		
-		
-
-		
 		char mask = (char) Mask(bits%8,0,sizeof(char));
 		*(char*)to = *(char*)from & mask;
 	}
-
-
 
 };
 
@@ -220,28 +164,17 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
-	
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 class Hashing
 {
 public:
-
-	
-	
-	
-	
 
 	class OneAtATime
 	{
@@ -251,7 +184,7 @@ public:
 		{
 			unsigned int hash = 0;
 			int i;
-		 
+
 			for (i = 0; i < length; i++) {
 				hash += key[i];
 				hash += (hash << 10);
@@ -267,15 +200,6 @@ public:
 	class Lookup3Hash
 	{
 	public:
-
-		
-
-		
-		
-		
-		
-		
-		
 
 		#define Hashsize(n) ((unsigned int)1<<(n))
 		#define Hashmask(n) (Hashsize(n)-1)
@@ -302,16 +226,12 @@ public:
 			c ^= b; c -= Rot(b,24); \
 		}
 
-
-
 		static unsigned int Hashword(const unsigned int * key, int length, unsigned int primary)
 		{
 			unsigned int a,b,c;
 
-			
 			a = b = c = 0xdeadbeef + (((unsigned int)length)<<2) + primary;
 
-			
 			while (length > 3)
 			{
 				a += key[0];
@@ -322,7 +242,6 @@ public:
 				key += 3;
 			}
 
-			
 			switch(length)
 			{ 
 			case 3 : c+=key[2];
@@ -336,16 +255,13 @@ public:
 			return c;
 		}
 
-
 		static void Hashword (const unsigned int * key, int length, unsigned int * primary, unsigned int * secondary)
 		{
 			unsigned int a,b,c;
 
-			
 			a = b = c = 0xdeadbeef + ((unsigned int)(length<<2)) + *primary;
 			c += *secondary;
 
-			
 			while (length > 3)
 			{
 				a += key[0];
@@ -356,7 +272,6 @@ public:
 				key += 3;
 			}
 
-			
 			switch(length)
 			{ 
 			case 3 : c+=key[2];
@@ -366,33 +281,15 @@ public:
 			case 0:     
 				break;
 			}
-			
+
 			*primary=c; *secondary=b;
 		}
 	};
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+
 	class IntegerHash
 	{
 	public:
-		
-		
-		
-		
-		
-		
-		
-	
+
 		static unsigned int Hash32Shift(unsigned int key)
 		{
 		  key = ~key + (key << 15); 
@@ -404,7 +301,6 @@ public:
 		  return key;
 		}
 
-		
 		static unsigned int HashJenkins32(unsigned int key)
 		{
 			key = (key+0x7ed55d16) + (key<<12);
@@ -415,8 +311,7 @@ public:
 			key = (key^0xb55a4f09) ^ (key>>16);
 			return key;
 		}
-	
-			
+
 		static unsigned int Hash32ShiftMult(unsigned int key)
 		{
 			int c2=0x27d4eb2d; 
@@ -427,8 +322,7 @@ public:
 			key = key ^ (key >> 15);
 			return key;
 		}	
-		
-		
+
 		static unsigned long long Hash64Shift(unsigned long long key)
 		{
 			key = (~key) + (key << 21); 
@@ -440,7 +334,7 @@ public:
 			key = key + (key << 31);
 			return key;
 		}		
-		
+
 		static unsigned int Hash6432Shift(unsigned long long key)
 		{
 			key = (~key) + (key << 18); 
@@ -451,26 +345,12 @@ public:
 			key = key ^ (key >> 22);
 			return (int) key;
 		}
-		
+
 	};
 
-	
 	class SuperFastHash
 	{
 	public:
-
-		
-
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
 
 		#define Get16Bits(d) (*((const unsigned short *) (d)))
 
@@ -484,7 +364,6 @@ public:
 			rem = length & 3;
 			length >>= 2;
 
-			
 			for (;length > 0; length--) {
 				hash  += Get16Bits (data);
 				tmp    = (Get16Bits (data+2) << 11) ^ hash;
@@ -493,7 +372,6 @@ public:
 				hash  += hash >> 11;
 			}
 
-			
 			switch (rem) {
 				case 3: hash += Get16Bits (data);
 						hash ^= hash << 16;
@@ -509,7 +387,6 @@ public:
 						hash += hash >> 1;
 			}
 
-			
 			hash ^= hash << 3;
 			hash += hash >> 5;
 			hash ^= hash << 4;
@@ -522,29 +399,15 @@ public:
 
 	};
 
-
 	class FnvHash
 	{
 	public:
 
-		
-		
-
-		
-		
-
-		
-		
-		
-		
-
 		static unsigned int Hash(unsigned char * key, unsigned int length)
 		{
-			
-			
+
 			static unsigned int prime = 16777619;
 			static unsigned int offset = 2166136261U;
-			
 
 			unsigned int hash = offset;
 			for (unsigned int i=0; i < length; ++i)
@@ -557,36 +420,29 @@ public:
 		}
 	};
 
-	
-
 	class Djb2Hash
 	{
 	public:
-		
-		
-		
-		
-		
+
 		static const int Ascii[];
-	
+
 		static unsigned int Hash(unsigned char *key, unsigned int length, unsigned int seed=0)
 		{
 			unsigned int hash = seed?seed:5381;
 			for (unsigned int i=0; i < length; ++i) 
-				
+
 				hash = ((hash << 5) + hash) + Ascii[key[i]]; 
 			return hash;
 		}
-		
+
 		static unsigned int Rotate(unsigned int hash, unsigned int key)
 		{
-			
+
 			return ((hash << 5) + hash) + key;
 		}
-	
+
 	};
-	
-	
+
 	typedef Djb2Hash BernsteinHash;
 
 };
@@ -595,96 +451,43 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
 class Binary
 {
 public:
 
-
 	static inline int PowerOfTwo(unsigned int key)
 	{
-		
-		
-		
-		
-		
-		
-		
-		
-		
 
-
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
 		#if defined(HERO_PLATFORM_WINDOWS) && !defined(HERO_PLATFORM_MINGW)
-		
+
 		unsigned long index;
 		_BitScanReverse(&index,key);
 		return index; 
 		#else
-		
-		
-		
-		
+
 		key |= key >> 1;
 		key |= key >> 2;
 		key |= key >> 4;
 		key |= key >> 8;
 		key |= key >> 16;
-		
-		
-		
-		
+
 		return (key+1)>>1;	
 		#endif
-		
-		
-		
-		
-	
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-	}
 
+	}
 
 	static unsigned int BitIndex(unsigned int bit)
 	{
 		#ifndef HERO_PLATFORM_WASM
-		
-		
-		
 
 		#ifdef HERO_PLATFORM_LINUX
 		return (unsigned int)__builtin_clz(bit) + 1;
 		#endif
 		#ifdef HERO_PLATFORM_WINDOWS
-		
-		
+
 		return (unsigned int)__lzcnt((int32_t)bit) + 1;
 		#endif
-	
+
 		#else
 
 		int index = 0;
@@ -698,17 +501,16 @@ public:
 	static unsigned long long BitIndex(unsigned long long bit)
 	{
 		#if !defined(HERO_PLATFORM_32BIT) && !defined(HERO_PLATFORM_WASM)
-		
+
 		#ifdef HERO_PLATFORM_LINUX		
 		return (unsigned long long)__builtin_clzll(bit) + 1;
 		#endif
-		
+
 		#ifdef HERO_PLATFORM_WINDOWS
-		
-		
+
 		return (unsigned long long)__lzcnt64((int64_t)bit) + 1;
 		#endif				
-		
+
 		#else
 
 		int index = 0;
@@ -730,9 +532,6 @@ public:
 			return false;
 		#endif
 
-		
-		
-
 		#ifndef HERO_PLATFORM_WASM
 
 		#ifdef HERO_PLATFORM_LINUX
@@ -744,7 +543,7 @@ public:
 		#endif
 
 		#else
-		
+
 		index = BitIndex(bit);
 
 		#endif
@@ -764,7 +563,7 @@ public:
 		#endif
 
 		#if !defined(HERO_PLATFORM_32BIT) && !defined(HERO_PLATFORM_WASM)
-			
+
 		#ifdef HERO_PLATFORM_LINUX
 		index = (unsigned long long)__builtin_clzll(bit) + 1;
 		#endif
@@ -772,9 +571,9 @@ public:
 		unsigned long pos=0;
 		index = (unsigned long long)_BitScanReverse64(&pos,bit);
 		#endif
-		
+
 		#else
-		
+
 		index = BitIndex(bit);
 
 		#endif
@@ -783,8 +582,6 @@ public:
 
 	static bool BitIndexForward(unsigned int& index, unsigned int bit)
 	{
-		
-		
 
 		#ifdef HERO_BIT_EXPECT
 		if (__builtin_expect((bit == 0),0))
@@ -793,7 +590,7 @@ public:
 		if (bit == 0)
 			return false;
 		#endif
-		
+
 		#ifndef HERO_PLATFORM_WASM
 
 		#ifdef HERO_PLATFORM_LINUX
@@ -823,7 +620,6 @@ public:
 		if (bit == 0)
 			return false;
 		#endif
-			
 
 		#if !defined(HERO_PLATFORM_32BIT) && !defined(HERO_PLATFORM_WASM)
 
@@ -840,12 +636,10 @@ public:
 		index = 0;
 		while ((bit & 0x00000001LL) == 0 && ++index)
 			bit >>= 1;
-		
+
 		#endif
 		return true;
 	}
-
-
 
 	static unsigned int NextPowerOfTwo(unsigned int power)
 	{
@@ -861,12 +655,11 @@ public:
 		return 1ULL << (index + 1ULL);
 	}
 
-	
 public:
 
 	unsigned char * Data;		
 	int Size;
-	
+
 	int Count;					
 	int Index;					
 
@@ -875,7 +668,6 @@ public:
 		ENDIAN_NONE		=(0),		
 		ENDIAN_LITTLE 	=(1)<<1,	
 		ENDIAN_BIG 		=(1)<<2,	
-
 
 		ORDER_ASCENDING = ENDIAN_LITTLE,		
 		ORDER_DESCENDING = ENDIAN_BIG,
@@ -886,7 +678,7 @@ public:
 	void Endianness()
 	{
 		Mode = Endian();
-		
+
 		if (!Mode)
 		{
 			Raise(new SystemError("Binary::Endianness() - Cannot determine system byte order.\n"));
@@ -898,14 +690,9 @@ public:
 	{
 		int mode = 0;
 
-		
-
-		
-		
-
 		int thirtytwo = 0x01020304L;
 		char eight;
-		
+
 		memcpy(&eight,&thirtytwo,1);
 
 		switch (eight)
@@ -931,10 +718,6 @@ public:
 		return eight == 0x01;
 	}
 
-
-	    
-	
-
 	Binary()
 	{
 		Data=0;
@@ -951,33 +734,24 @@ public:
 			delete [] Data;
 	}
 
-
-	 
 	int Remaining() 
 	{
 		return 8*Size-Count;
 	}
-	
 
 	Binary & Allocate(int bits=0);
 
 	Binary & Resize(int bits);
 	Binary & Reserve(int bits);
 
-	
-	
-	
-	 
 	Binary & Left(int bits);
 	Binary & Right(int bits);
-	
-	
-	
+
 	void Copy(Binary &bits)
 	{
 		if (Data == 0)
 		{
-			
+
 			Allocate(bits.Count);
 			Count = bits.Count;
 		}
@@ -985,8 +759,7 @@ public:
 		{
 			Resize(bits.Count - Count);
 		}
-		
-		
+
 		memcpy(Data,bits.Data,Bytes());
 	}
 
@@ -995,12 +768,8 @@ public:
 		if (bits.Data == 0) 
 			return;
 
-		
-		
 		Assert(Data != bits.Data);
 
-		
-		
 		int offset = Count;
 		Resize(bits.Count);
 		memcpy(Data+offset,bits.Data,bits.Bytes());	
@@ -1012,19 +781,19 @@ public:
 
 		if (bits.Data == 0) 
 			return;
-		
+
 		Resize(bits.Count);
 		Left(bits.Count);
-		
+
 		memcpy(Data,bits.Data,Bytes());
 	}
 
 	int Bytes()			
 	{
 		return (Count+7)/8;
-		
+
 	}
-	
+
 	int Mask()
 	{	
 		return 2^Count-1;
@@ -1032,8 +801,7 @@ public:
 
 	bool Is(Binary &bits)
 	{ 
-		
-		
+
 		int mask = Mask() & bits.Mask();
 		int data = *(int*)Data & mask;
 		int comp = *(int*)bits.Data & mask;
@@ -1043,26 +811,20 @@ public:
 
 	bool Equals(Binary &bits)
 	{
-		
-		
-		
+
 	}
-	
+
 	void Clear()
 	{
-		
+
 		memset(Data,0,Bytes());
 	}
 
-	
-
 	Bit operator[](int bit) 
 	{
-		
-		
+
 		return Bit(&Data[Bits::Index(bit)],bit & 7);
 	}
-
 
 	static Superstring Pack(const char * format, ...)
 	{
@@ -1092,7 +854,7 @@ public:
 	}
 
 	static void PackVa(String & string, const char * format, va_list va);
-	
+
 	static void Pack(String & string, const char * format, String & args);
 
 	static void Unpack(Substring & sequence, const char * format, ...)
@@ -1104,39 +866,27 @@ public:
 	}
 
 	static void UnpackVa(Substring & sequence, const char * format, va_list va);
-	
+
 	static void Unpack(Substring & sequence, const char * format, String & args);
-	
-	
-	
+
 	void Terminate() 
 	{
-		
-		
-	
+
 	}
-
-
-
 
 	template<typename _Kind_>
 	static String BitsToString(_Kind_ kind, int endian = Binary::ENDIAN_LITTLE)
 	{
-	
+
 		int size = sizeof(_Kind_)*8;
 		String str;
 		str.Reserve(size);
-
-		
-		
-		
 
 		if (endian == 0) endian = Binary::Endian();
 
 		if (endian == Binary::ENDIAN_BIG)
 		{
-			
-			
+
 			while (size-- > 0)
 			{
 				str += (kind&(1))?1:0;
@@ -1145,8 +895,7 @@ public:
 		}
 		else
 		{
-			
-			
+
 			while (size-- > 0)
 			{
 				str += ((kind>>size)&1)?1:0;
@@ -1156,26 +905,19 @@ public:
 		return str;
 	}
 
-
 	template<typename _Kind_>
 	static _Kind_ StringToBits(const String & str, int endian = Binary::ENDIAN_LITTLE)
 	{
-		
-		
+
 		_Kind_ kind();
 
 		int size=str.Size;
-
-		
-		
-		
 
 		if (endian == 0) endian = Binary::Endian();
 
 		if (endian == Binary::ENDIAN_BIG)
 		{
-			
-			
+
 			while (size-- > 0)
 			{
 				int offset = ((str.Size-1)-size);
@@ -1185,8 +927,6 @@ public:
 		}
 		else
 		{
-			
-			
 
 			while (size-- > 0)
 			{
@@ -1199,10 +939,8 @@ public:
 		return kind;
 	}
 
-
 };
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1210,8 +948,6 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 
 class BinaryStream : public StreamFilter
  {
@@ -1221,23 +957,6 @@ public:
 	BinaryStream(class Stream * stream):StreamFilter(stream) {}
 	BinaryStream() {}
 	~BinaryStream() {}
-
-	
-	
-	
-	
-	
-
-	
-	
-	
-	
-
-	
-	
-
-
-	
 
 	using StreamFilter::Write;
 	int Write(const bool & data)				{return Write((char&)data);}
@@ -1256,17 +975,15 @@ public:
 	int Write(const double & data)				{return Write((char *) &data,sizeof(double));}
 	int Write(const void * & data)				{return Write((char*) &data,sizeof(void*));}
 
-
-	
 	int Write(char * data, int size, int mode);
-	
+
 	int Write8(const char & bits)					{return Write((char*)&bits,1);}
 	int Write8(const unsigned char & bits)			{return Write((char*)&bits,1);}
 	int Write16(const short & bits)					{return Write((char*)&bits,2);}
 	int Write16(const unsigned short & bits)		{return Write((char*)&bits,2);}
 	int Write32(const int & bits)					{return Write((char*)&bits,4);}
 	int Write32(const unsigned int & bits)			{return Write((char*)&bits,4);}
-	
+
 	#ifdef HERO_PLATFORM_WINDOWS
 	int Write32(const long & bits)					{return Write((char*)&bits,4);}
 	int Write32(const unsigned long & bits)			{return Write((char*)&bits,4);}
@@ -1274,16 +991,14 @@ public:
 	int Write64(const long & bits)					{return Write((char*)&bits,8);}
 	int Write64(const unsigned long & bits)			{return Write((char*)&bits,8);}
 	#endif	
-	
+
 	int Write64(const long long & bits)				{return Write((char*)&bits,8);}
 	int Write64(const unsigned long long & bits)	{return Write((char*)&bits,8);}
-	
+
 	int WriteNull8(int amount)					{unsigned char data=0;int size=0;while(amount-- > 0) size += Write8(data);return size;}
 	int WriteNull16(int amount)					{unsigned short data=0;int size=0;while(amount-- > 0) size += Write16(data);return size;}
 	int WriteNull32(int amount)					{unsigned int data=0;int size=0;while(amount-- > 0) size += Write32(data);return size;}
 	int WriteNull64(int amount)					{unsigned long long data=0;int size=0;while(amount-- > 0) size += Write64(data);return size;}
-	
-
 
 	using StreamFilter::Read;
 	int Read(bool & data)						{return Read((char&)data);}
@@ -1308,7 +1023,7 @@ public:
 	int Read16(unsigned short & bits)			{return Read((char*)&bits,2);}
 	int Read32(int & bits)						{return Read((char*)&bits,4);}
 	int Read32(unsigned int & bits)				{return Read((char*)&bits,4);}
-	
+
 	#ifdef HERO_PLATFORM_WINDOWS
 	int Read32(const long & bits)				{return Read((char*)&bits,4);}
 	int Read32(const unsigned long & bits)		{return Read((char*)&bits,4);}
@@ -1316,10 +1031,9 @@ public:
 	int Read64(const long & bits)				{return Read((char*)&bits,8);}
 	int Read64(const unsigned long & bits)		{return Read((char*)&bits,8);}
 	#endif	
-	
+
 	int Read64(long long & bits)				{return Read((char*)&bits,8);}
 	int Read64(unsigned long long & bits)		{return Read((char*)&bits,8);}
-
 
 	unsigned char Read8() {unsigned char bits;Read8(bits);return bits;}
 	unsigned short Read16() {unsigned short bits;Read16(bits);return bits;}
@@ -1331,9 +1045,7 @@ public:
 	int ReadNull32(int amount)					{unsigned int data=0;int size=0;while(amount-- > 0) size += Read32(data);return size;}
 	int ReadNull64(int amount)					{unsigned long long data=0;int size=0;while(amount-- > 0) size += Read64(data);return size;}
 
-
 };
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -22,6 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+
 #include "hero/error.h"
 #include "hero/parser.h"
 
@@ -29,8 +30,7 @@ SOFTWARE.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace Hero
-{
+namespace Hero { 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -40,62 +40,65 @@ namespace Hero
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void RaiseError(char* data, int size)
+void RaiseError(char * data, int size)
 {
-    Substring error(data, size);
 
-    Unwind& unwind = Unwind::Singleton();
-    if (unwind.Length())
-    {
-        Unwind::Result res = unwind.Peek();
-        unwind[res.Index]->Push(Level(error));
-    }
+	Substring error(data,size);
+
+	Unwind & unwind = Unwind::Singleton();
+	if (unwind.Length())
+	{
+
+		Unwind::Result res = unwind.Peek();
+		unwind[res.Index]->Push(Level(error));
+	}
 }
 
-void RaiseError(Error* error)
+void RaiseError(Error * error)
 {
-    Unwind& unwind = Unwind::Singleton();
-    if (unwind.Length())
-    {
-        Unwind::Result res = unwind.Peek();
-        unwind[res.Index]->Push(Level(error));
-    }
+	Unwind & unwind = Unwind::Singleton();
+	if (unwind.Length())
+	{
+
+		Unwind::Result res = unwind.Peek();
+		unwind[res.Index]->Push(Level(error));
+	}
 }
 
-Raise::Raise(Error& error)
+Raise::Raise(Error & error)
 {
-    RaiseError(&error);
+	RaiseError(&error);
 }
 
-Raise::Raise(Error* error)
+Raise::Raise(Error * error)
 {
-    RaiseError(error);
+	RaiseError(error);
 }
 
-Raise::Raise(const Substring& error)
+Raise::Raise(const Substring & error)
 {
-    RaiseError(error.Data, error.Size);
+	RaiseError(error.Data,error.Size);
 }
 
-Raise::Raise(char* data, int size)
+Raise::Raise(char * data, int size) 
 {
-    RaiseError(data, size);
+	RaiseError(data,size);
 }
 
-Raise::Raise(const char* format, ...)
+Raise::Raise(const char * format, ...)
 {
-    va_list va;
-    va_start(va, format);
-    String str;
-    str.FormatVa(format, va);
-    va_end(va);
+	va_list va;
+	va_start(va, format);
+	String str;
+	str.FormatVa(format,va);
+	va_end(va);
 
-    RaiseError(str.Data, str.Size);
+	RaiseError(str.Data,str.Size);
 }
 
-void Raise::Construct(Error* error)
+void Raise::Construct(Error * error)
 {
-    RaiseError(error);
+	RaiseError(error);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -104,53 +107,54 @@ void Raise::Construct(Error* error)
 
 Try::Try()
 {
-    Unwind& unwind = Unwind::Singleton();
-    unwind.Push(this);
+
+	Unwind & unwind = Unwind::Singleton();
+	unwind.Push(this);
 }
 
 Try::~Try()
 {
-    Unwind& unwind = Unwind::Singleton();
+	Unwind & unwind = Unwind::Singleton();
 
-    if (!unwind.Pop(this))
-        unwind.Remove(this);
+	if (!unwind.Pop(this))
+		unwind.Remove(this);
 }
 
-Catch::Catch()
+Catch::Catch() 
 {
-    Unwind& unwind = Unwind::Singleton();
-    if (unwind.Length())
-    {
-        Unwind::Result res = unwind.Peek();
+	Unwind & unwind = Unwind::Singleton();
+	if (unwind.Length())
+	{
+		Unwind::Result res = unwind.Peek();
 
-        unwind[res.Index]->Swap(*this);
-        unwind.RemoveAt(res.Index);
-    }
+		unwind[res.Index]->Swap(*this);
+		unwind.RemoveAt(res.Index);
+	}
 }
 
-Unwind& Unwind::Singleton()
+Unwind & Unwind::Singleton()
 {
-    static Unwind unwind;
-    return unwind;
+	static Unwind unwind;
+	return unwind;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-ParserError::ParserErrorToken::ParserErrorToken(const class Token& token)
+ParserError::ParserErrorToken::ParserErrorToken(const class Token & token)
 {
-    Position = token.Position;
-    Offset = token.Offset;
-    Line = token.Line;
-    Column = token.Column;
+	Position = token.Position;
+	Offset = token.Offset;
+	Line = token.Line;
+	Column = token.Column;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace Hero
+} 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

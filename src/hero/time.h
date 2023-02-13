@@ -23,11 +23,9 @@ SOFTWARE.
 */
 #pragma once
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 #include "hero/timer.h"
 #include "hero/string.h"
@@ -42,17 +40,7 @@ SOFTWARE.
 #ifdef HERO_PLATFORM_WINDOWS
 #include "winsock2.h"
 
-
-
-
-
-
-
-
-
 #endif
-
-
 
 #ifdef HERO_PLATFORM_POSIX
 #include <stdio.h>
@@ -62,11 +50,9 @@ SOFTWARE.
 #include <unistd.h>
 #endif
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -78,14 +64,9 @@ namespace Hero {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 class Local
 {
@@ -115,12 +96,8 @@ public:
 		Construct(seconds);
 	}
 
-	
-	
-	
 	bool Construct(long long seconds);
 	long long Seconds();
-
 
 	static long long Seconds(int day, int month, int year, int hour, int minute, int second)
 	{
@@ -137,24 +114,15 @@ class Calendar;
 class Interval;
 class Elapsed;
 
-
-
 class Times : public Timers
 {
 public:
-		
+
 	static bool IsLeapYear(int year)
 	{
-		
-  		
-		
-		
-		
-		
 
 		if (year == 0) return false;
 
-		
 		if ((year % 4) != 0) return false;
 		return ((year % 100) == 0)?((year % 400) == 0):true;
 	}
@@ -177,7 +145,6 @@ public:
 		}
 	}
 
-
 	static time_t Mktime(struct tm * lt)
 	{
 		return mktime(lt);
@@ -185,7 +152,6 @@ public:
 
 	static char * Asctime(const struct tm * lt, char * data)
 	{
-		
 
 		char * result = 0;
 		data = 0;
@@ -205,7 +171,6 @@ public:
 
 	static char * Ctime(const time_t * time, char * data)
 	{
-		
 
 		char * result = 0;
 		data = 0;
@@ -225,10 +190,9 @@ public:
 
 	static struct tm * Localtime(const time_t * time, struct tm * local)
 	{
-		
 
 		struct tm * result = 0;
-		
+
 		#if defined(HERO_PLATFORM_WINDOWS) || defined(HERO_PLATFORM_MINGW)
 		result = localtime(time);
 		if (result)
@@ -244,9 +208,6 @@ public:
 
 	static struct tm * Gmtime(const time_t * time, struct tm * local)
 	{
-		
-		
-		
 
 		struct tm * result = 0;
 
@@ -263,17 +224,10 @@ public:
 		return result;
 	}
 
-
 };
 
 class Interval;
 class Elapsed;
-
-
-
-
-
-
 
 class Time: public Times, public Printable
 {
@@ -291,7 +245,7 @@ public:
 	Time(const Calendar & calendar) {Construct(calendar);}
 	Time(const Time & time):Seconds(time.Seconds),Milliseconds(time.Milliseconds) {}
 	Time() {Construct();}
-	
+
 	bool Construct();
 	bool Construct(time_t seconds) {Seconds = seconds;Milliseconds = 0;return true;}
 	bool Construct(timeb time) {Seconds = time.time;Milliseconds=time.millitm;return true;}
@@ -303,13 +257,6 @@ public:
 
 	static Time Now() {return Time();}
 
-	
-	
-	
-	
-	
-	
-	
 	int Hour();	
 	int Minute();	
 	int Second();
@@ -333,11 +280,9 @@ public:
 	static String Year(Time & time);
 	static String Year(Calendar & calendar);
 	static String Year(int year);
-	
-	
+
 	int Ordinal();
 	static int Ordinal(const Calendar & calendar);
-
 
 	using Times::IsLeapYear;
 	bool IsLeapYear();
@@ -351,14 +296,12 @@ public:
 	using Printable::Print;
 	void Print(String & string);
 
-
 	Time & operator = (time_t seconds) {Construct(seconds);return *this;}
 	Time & operator = (timeb time) {Construct(time);return *this;}
 	Time & operator = (const char * data) {Construct(data);return *this;}
 	Time & operator = (const Substring & sequence) {Construct(sequence);return *this;}
 	Time & operator = (const Calendar & calendar) {Construct(calendar);return *this;}
 	Time & operator = (const Time & time) {Construct(time);return *this;}
-
 
 	bool operator == (const Time &time) const 
 	{
@@ -405,7 +348,6 @@ public:
 
 	Time & operator += (const Interval & interval);
 
-
 	Time operator + (Interval & interval);
 
 	Time operator + (int seconds)
@@ -417,8 +359,6 @@ public:
 	{
 		return Time(Seconds+(int)seconds, Milliseconds + ((seconds-(int)seconds)*Time::MillisecondsPerSecond));
 	}
-
-	
 
 	Time & operator -= (int seconds)
 	{
@@ -447,18 +387,13 @@ public:
 		return Time(Seconds-(int)seconds,Milliseconds-((seconds-(int)seconds)*Time::MillisecondsPerSecond));
 	}
 
-	
-
 	Interval operator - (const Time & time);
 
 };
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 
 class TimeHandler : public Handler
 {
@@ -474,7 +409,6 @@ public:
 	virtual void ProcessYear(int year)=0;
 };
 
-
 class TimeParser : public StringParser
 {
 public:
@@ -483,7 +417,7 @@ public:
 	TimeHandler * Handled;
 
 	TimeParser():Constant(0),Handled(0){}
-	
+
 	bool Parse();
 	bool ParseClock();
 	bool ParseClockLiteral();
@@ -502,11 +436,9 @@ public:
 	bool ParseYear();	
 };
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 class Timezone
 {
@@ -515,8 +447,6 @@ public:
 	int DaylightSavings;	
 };
 
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -524,22 +454,19 @@ class Clock: public Time, public Timezone
 {
 public:
 
-
 	Clock & operator = (Time & time) {Time::operator = (time);return *this;}
 	Clock & operator = (time_t seconds) {Time::operator = (seconds);return *this;}
 	Clock & operator = (timeb time) {Time::operator = (time);return *this;}
-	
+
 	void Print(String & string)
 	{	
 		Formatter::Append(string,"%02d:%02d:%02d %s",Hour(),Minute(),Second(),((Hour()%12)==Hour())?"AM":"PM");
 	}
 };
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 class Calendar: public Printable
 {
@@ -616,7 +543,6 @@ public:
 		return *this;
 	}
 
-
 	Calendar & operator += (const Interval & interval) 
 	{
 		Time time(*this);
@@ -643,7 +569,7 @@ public:
 
 	bool operator == (const Calendar & calendar)
 	{
-		
+
 		return (long long)(*this) == (long long)calendar;
 	}
 
@@ -656,13 +582,11 @@ public:
 	{
 		return (long long)(*this) <= (long long)calendar;
 	}
-	
 
 	bool operator > (const Calendar & calendar)
 	{
 		return (long long)(*this) > (long long)calendar;
 	}
-	
 
 	bool operator >= (const Calendar & calendar)
 	{
@@ -683,21 +607,15 @@ public:
 
 	long long operator - (const Calendar & calendar);
 
-
 	operator long long ()
 	{
-		
-		
-		
-		
+
 		return ((const Calendar&)(*this)).operator long long();
 	}
 
 	operator long long () const
 	{
-		
-		
-		
+
 		unsigned long long number = Year*10000;
 		number = number*100 + Month;
 		number = number*100 + Day;
@@ -707,21 +625,13 @@ public:
 		return number;
 	}
 
-	
 	int Weekday();
-	
+
 protected:
 
 	double CalendarMonths()
 	{
-		
-		
-		
-		
-		
 
-		
-		
 		double months=Month-1;
 		months += (double)(Day-1) / Time::DaysInMonth(Month,Year);
 		months += (double)((Hour*Time::SecondsPerHour) + (Minute*Time::SecondsPerMinute) + Second) / (Time::DaysInMonth(Month,Year) * Time::SecondsPerDay);
@@ -775,11 +685,11 @@ protected:
 
 	double CalendarSeconds()
 	{
-		
+
 		double seconds=0;		
 		for (int month=1;month<Month;++month)
 			seconds += Time::DaysInMonth(month,Year) * Time::SecondsPerDay;
-		
+
 		seconds += (Day-1) * Time::SecondsPerDay;
 		seconds += (Hour*Time::SecondsPerHour) + (Minute*Time::SecondsPerMinute) + Second;
 		return seconds;
@@ -822,15 +732,12 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
-
 class Epoch : public Calendar
 {
 public:
 
 	long long Ticks;
-	
+
 	double Scale;
 
 	Epoch(time_t time):
@@ -843,25 +750,21 @@ public:
 	{
 	}
 
-	
 	Epoch(const Calendar & calendar, long long ticks, double scale):
 		Calendar(calendar),Ticks(ticks),Scale((scale)>0?scale:1)
 	{
 	}
 
-	
 	Epoch(const char * data, long long ticks, double scale):
 		Calendar(data),Ticks(ticks),Scale((scale)>0?scale:1)
 	{
 	}
 
-	
 	Epoch(const Substring & sequence, long long ticks, double scale):
 		Calendar(sequence),Ticks(ticks),Scale((scale)>0?scale:1)
 	{
 	}
 
-	
 	Epoch(char * data, int size, long long ticks, double scale):
 		Calendar(data,size),Ticks(ticks),Scale((scale)>0?scale:1)
 	{
@@ -877,7 +780,6 @@ public:
 	{
 	}
 
-
 	Epoch(const Substring & sequence):
 		Calendar(sequence),Ticks(0),Scale(1)
 	{
@@ -887,7 +789,7 @@ public:
 		Calendar(data,size),Ticks(0),Scale(1)
 	{
 	}
-	
+
 	double Years();
 	double Years(const Epoch & epoch);
 
@@ -919,7 +821,7 @@ public:
 	double Seconds(const Epoch & epoch);
 
 	double operator - (Epoch & epoch) {return Seconds(epoch);}
-	
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -931,7 +833,6 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 class Interval
 {
@@ -946,7 +847,6 @@ public:
 	Interval(const char * data) {Construct(data);}
 	Interval(const Substring & sequence) {Construct(sequence);}
 	Interval(char * data, int size) {Construct(data,size);}
-
 
 	bool Construct(int seconds) {Seconds=seconds;Microseconds=0;return true;}
 	bool Construct(double interval) {Seconds=(int)interval;Microseconds=(interval-(int)interval)*Clock::MicrosecondsPerSecond;return true;}
@@ -978,7 +878,7 @@ public:
 	{
 		return Seconds >= seconds;
 	}
-	
+
 	Interval & operator += (int seconds)
 	{
 		Seconds += seconds;
@@ -1004,7 +904,6 @@ public:
 		Microseconds -= (seconds - (int)seconds) * Clock::MicrosecondsPerSecond;
 		return *this;
 	}
-	
 
 	double operator + (Interval & interval)
 	{
@@ -1022,7 +921,7 @@ public:
 	double operator + (double seconds)
 	{
 		return ((double)*this) + seconds;
-		
+
 	}
 
 	friend double operator + (int left, Interval & right)
@@ -1073,9 +972,7 @@ public:
 		return ((double)Seconds) + ((double)Microseconds / Clock::MicrosecondsPerSecond);
 	}
 
-
 };
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1083,7 +980,7 @@ public:
 class IntervalReader: public TimeParser, public TimeHandler
 {
 public:
-	
+
 	class Interval * Interval;
 
 	IntervalReader(class Interval * interval):Interval(interval){}
@@ -1103,7 +1000,6 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 class Elapsed
 {
@@ -1145,8 +1041,6 @@ public:
 		return true;
 	}
 
-	
-	
 	int Seconds() {return Interval;}	
 	int Milliseconds()	{return Interval.Microseconds/Time::MicrosecondsPerMillisecond;}
 	int Microseconds() {return Interval.Microseconds;}
@@ -1214,11 +1108,9 @@ public:
 
 };
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1243,20 +1135,17 @@ public:
 
 	operator int ()
 	{
-		
-		
+
 		return Time::Weekday();
 	}
 
 	void Print(String & string)
 	{
-		
-		
+
 		string.Append(Weekday::Weekdays[Time::Weekday()]);
 	}
 
 };
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1285,8 +1174,6 @@ public:
 	{
 		string.Append(Calendar(*this).Day);
 	}
-	
-	
 
 };
 
@@ -1303,7 +1190,6 @@ public:
 	Month(){};
 	Month(const Month & month):Time(month){};
 	Month(const Time & time):Time(time){};
-
 
 	void Assign(int month)
 	{
@@ -1332,11 +1218,6 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
-
-
-
 class Year: public Time
 {
 public:
@@ -1344,8 +1225,6 @@ public:
 	Year(){};
 	Year(const Year & year):Time(year) {}
 	Year(const Time & time):Time(time) {}
-
-
 
 	operator String ()
 	{
@@ -1358,15 +1237,12 @@ public:
 	{
 		return Calendar(*this).Year;
 	}
-	
-	
+
 	using Time::operator=;
 
 	int operator - (const Year & year)
 	{
-		
-		
-		
+
 		Calendar calendar(*this);
 		return calendar.Year - (int)year;
 	}
@@ -1385,18 +1261,14 @@ class Date: public Time, public Timezone
 {
 public:
 
-
 	void Print(String & string)
 	{
-		
 
-		
 		Calendar calendar(*this);
 		Formatter::Append(string,"%s %s %02d %04d",Time::Weekday(calendar).Slice(0,3).Print(), Time::Month(calendar).Slice(0,3).Print(),calendar.Day,calendar.Year); 
 	}
 
 };
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1410,11 +1282,6 @@ public:
 
 };
 
-
-
-
-
-
 class Lilian : public Epoch
 {
 public:
@@ -1424,75 +1291,17 @@ public:
 	}
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class Julian
 {
 public:
 
-
-	
 	static bool IsLeapYear(int year)
 	{
-		
-		
-		
-		
-		
-		
+
 		if (year == 0 || year < -4712) return false;
-		
-		
-		
-		
-		
-		
-		
+
 		year += 4712;
-		
+
 		if (year%4 == 3)
 			return true;
 	}
@@ -1504,9 +1313,7 @@ public:
 
 	static int DaysInMonth(int month, int year=0)
 	{
-		
-		
-		
+
 		switch (month)
 		{
 		case 1:case 3: case 5: case 7: case 8: case 10: case 12:
@@ -1517,21 +1324,16 @@ public:
 			return 30;
 		}
 	}
-	
+
 	Julian()
 	{
 	}
-
-
-	
 
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 
 class Timestamp : public String
 {
@@ -1574,7 +1376,6 @@ public:
 			TYPE_FORMAT_x	=(1)<<29,		
 			TYPE_FORMAT_X	=(1)<<30,		
 
-			
 			TYPE_FORMAT		=(((long long)1)<<31)-1,
 
 			TYPE_PERCENT	=(1)<<31,		
@@ -1586,9 +1387,9 @@ public:
 		Field():Index(0) {}
 		Field(int options):Flags<32>(options),Index(0) {}
 	};
-	
+
 	List<Field> Fields;
-	
+
 	Timestamp()
 	{
 	}
@@ -1597,8 +1398,6 @@ public:
 	{
 		Construct(format);
 	}
-	
-	
 
 	void Construct(const char * format);
 
@@ -1607,10 +1406,9 @@ public:
 		Calendar calendar(time);
 		return Format(string,calendar);
 	}
-	
+
 	void Format(String & string, Calendar & calendar);
-	
-	
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1626,9 +1424,4 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
 

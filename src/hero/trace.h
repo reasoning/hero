@@ -24,8 +24,6 @@ SOFTWARE.
 
 #pragma once
 
-
-
 struct Stacktrace {
 
     void print() {}

@@ -29,16 +29,13 @@ SOFTWARE.
 #include "hero/text.h"
 #include "hero/structure.h"
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 namespace Hero {
 
@@ -46,21 +43,16 @@ namespace Hero {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
 class Arg
 {
 public:
 
-	
 	String Key;
-	
-	
+
 	Array<String> Opt;
-	
-	
+
 	Array<String> Val;
-	
+
 	enum Bound
 	{
 		BIND_NONE		= (0),
@@ -74,29 +66,28 @@ public:
 		BIND_ARRAY		= (1)<<7,
 		BIND_FUNC		= BIND_MAP|BIND_SET|BIND_ARRAY
 	};
-	
+
 	struct Binder
 	{
 		int Type;
 		int Index;
 		void * Ptr;
-	
+
 		Binder(int type, int index, void* ptr=0):
 			Type(type),Index(index),Ptr(ptr)
 		{
 		}
-		
+
 		Binder():
 			Type(0),Index(0),Ptr(0)
 		{
 		}
-		
+
 		bool Apply(Arg & arg)
 		{
 			if (arg.Val.Size > Index)
 			{
-				
-				
+
 				switch(Type)
 				{
 				case BIND_NONE: return false;	
@@ -104,23 +95,22 @@ public:
 				case BIND_INT: *((int*)Ptr) = (int)arg.Integer(Index); break;
 				case BIND_LONGLONG: *((long long*)Ptr) = (long long)arg.Integer(Index); break;
 				case BIND_DOUBLE: *((double*)Ptr) = (double)arg.Real(Index); break;
-				
+
 				case BIND_FUNC: arg.Func(); break;
 				}
 			}
-			
+
 			return true;
 		}
 	};
-	
+
 	Binder Binding;
 	Callback<void> Func;
-	
-	
+
 	Arg(const String & key):Key(key)
 	{
 	}
-	
+
 	Arg()
 	{
 	}
@@ -129,48 +119,40 @@ public:
 		Key(arg.Key),Opt(arg.Opt),Val(arg.Val),Binding(arg.Binding),Func(arg.Func)
 	{
 	}
-	
+
 	bool Apply()
 	{
 		return Binding.Apply(*this);
 	}
-		
+
 	bool Option(Substring opt)
 	{
-		
+
 		opt.Trim();
 		opt.LTrim("-");		
 		Opt.Append(opt);
 		return true;
 	}
-	
-	
+
 	bool Matches(Substring opt)
 	{
-		
+
 		opt.Trim();
 		opt.LTrim("-");		
-		
-		
-		
-		
-		
-		
+
 		return false;	
 	}
-	
+
 	Arg & Bind(bool & value, int index=0) {Binding = Binder(BIND_BOOL,index,(void*)&value); return *this;}
 	Arg & Bind(int & value, int index=0) {Binding = Binder(BIND_INT,index,(void*)&value); return *this;}
 	Arg & Bind(long long & value, int index=0) {Binding = Binder(BIND_LONGLONG,index,(void*)&value); return *this;}
 	Arg & Bind(double & value, int index=0) {Binding = Binder(BIND_DOUBLE,index,(void*)&value); return *this;}
 	Arg & Bind(String & value, int index=0) {Binding = Binder(BIND_STRING,index,(void*)&value); return *this;}
 
-
 	template< template<typename,typename> class _Map_, typename _Key_, typename _Value_>
 	Arg & Bind(_Map_<_Key_,_Value_> & map, int index=0)
 	{
-		
-		
+
 		struct Inserter
 		{
 			Arg * Self;
@@ -182,39 +164,35 @@ public:
 				Map.Insert(Self->String(Index));
 			}				
 		};
-		
-		
-		
+
 		Binding = Binder(BIND_MAP,index);
 	}
-	
+
 	bool Boolean(int index=0)
 	{
 		if (index >= Val.Size) return false;
 		return Val[index].Boolean();
 	}
-	
+
 	long long Integer(int index=0)
 	{
 		if (index >= Val.Size) return 0;
 		return Val[index].Integer();
 	}	
-	
+
 	double Real(int index=0)
 	{
 		if (index >= Val.Size) return 0.0;
 		return Val[index].Real();
 	}	
-	
+
 	String String(int index=0)
 	{
 		if (index >= Val.Size) return "";
 		return Val[index];
 	}			
-	
-	
-};
 
+};
 
 class Options : public String
 {
@@ -222,18 +200,17 @@ public:
 
 	List<Arg*> Args;
 	Arg Null;
-	
+
 	Options()
 	{
-	
+
 	}
-	
+
 	~Options()
 	{
 		Args.Destroy();
 	}
-	
-	
+
 	Arg & Option(const String & key, const String & opt1)
 	{
 		Arg * arg = new Arg(key);
@@ -241,13 +218,13 @@ public:
 		Args.Append(arg);
 		return *arg;
 	}
-	
+
 	Arg & Option(const String & key, const String & opt1, const String & opt2)
 	{
 		Arg * arg = new Arg(key);
 		arg->Option(opt1);
 		arg->Option(opt2);
-		
+
 		Args.Append(arg);
 		return *arg;
 	}	
@@ -258,11 +235,10 @@ public:
 		arg->Option(opt1);
 		arg->Option(opt2);
 		arg->Option(opt3);
-		
+
 		Args.Append(arg);
 		return *arg;
 	}	
-
 
 	bool Contains(const String & key)
 	{
@@ -273,10 +249,10 @@ public:
 				return true;				
 			++args;
 		}
-		
+
 		return false;
 	}
-	
+
 	Arg & operator[] (const String & key)
 	{
 		Iterand<Arg*> args = Args.Forward();
@@ -286,13 +262,13 @@ public:
 				return *args();		
 			++args;
 		}
-		
+
 		return Null;	
 	}
-	
+
 	bool Parse(int argc, char * argv[]);
 	bool Parse();
-	
+
 	bool Apply()
 	{
 		Iterand<Arg*> args = Args.Forward();
@@ -301,22 +277,17 @@ public:
 			args()->Apply();
 			++args;
 		}
-		
+
 		return true;		
 	}
-	
+
 	bool Match(const String & opt, Array<Substring> & values);
-	
+
 };
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
 
 class Args : public Path
 {
@@ -343,11 +314,9 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 class Properties : public Multimap<String,String>
 {
@@ -355,16 +324,14 @@ public:
 
 	Properties():Multimap(Comparable::COMPARE_GENERAL)
 	{
-		
+
 	}
 
 	bool Contains(const char * data){return Contains((char*)data,String::Length(data));}
 	bool Contains(const Substring & str){return Contains(str.Data,str.Size);}	
 	bool Contains(char * data, int size)
 	{
-		
-		
-		
+
 		return Multimap<String,String>::Select(String(data,size))!=0;
 	}
 
@@ -379,7 +346,7 @@ public:
 		Result res = Select(String(str));
 		if (res)
 		{
-			
+
 			return Values[res.Index];
 		}
 		else
@@ -425,11 +392,10 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
 class Configuration
 {
 public:
-	
+
 	List<Hero::Section*> Sections;
 
 	Configuration();
@@ -512,7 +478,6 @@ public:
 	void Write(Properties & properties);
 };
 
-
 class ConfigurationParser : public StringParser
 {
 public:
@@ -522,7 +487,6 @@ public:
 	void ParseSection(Section & section);
 	void ParseProperties(Properties & properties);
 };
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -534,7 +498,6 @@ public:
 
 };
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -544,5 +507,4 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 

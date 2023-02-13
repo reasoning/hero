@@ -27,212 +27,227 @@ SOFTWARE.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "hero/file.h"
-#include "hero/error.h"
-#include "hero/number.h"
 #include "hero/storage.h"
+#include "hero/number.h"
+#include "hero/error.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace Hero
+namespace Hero {
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void FileStorage::Construct(const Path & path)
 {
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void FileStorage::Construct(const Path& path)
-{
 }
 
-bool FileStorage::Open(const Path& path, int options)
+bool FileStorage::Open(const Path & path, int options)
 {
-    return Open(path, options & File::MODE, options & File::TYPE, options & File::ACCESS, options & File::USAGE);
+	return Open(path,options&File::MODE,options&File::TYPE,options&File::ACCESS,options&File::USAGE);
 }
 
-int FileStorage::ReadLine(const Path& path, String& string)
+int FileStorage::ReadLine(const Path & path, String & string)
 {
-    int amount = 0;
 
-    char data;
-    int read = Read(path, &data, 1);
-    while (read && data != '\n' && data != '\r')
-    {
-        string.Append(&data, 1);
-        read = Read(path, &data, 1);
-        ++amount;
-    }
+	int amount=0;
 
-    return amount;
+	char data;
+	int read = Read(path,&data,1);
+	while (read && data != '\n' && data != '\r')
+	{
+		string.Append(&data,1);
+		read = Read(path,&data,1);
+		++amount;
+	}
+
+	return amount;
 }
 
-bool FileStorage::OpenReadable(const Path& path)
+bool FileStorage::OpenReadable(const Path & path)
 {
-    if (!IsOpen(path) && !Open(path) && !Open(path, File::OPTIONS_OPEN_BINARY_READ) && !Open(path, File::OPTIONS_CREATE_BINARY_READ))
-    {
-        RaiseError<FileError>("FileSystem::OpenReadable - The file could not be opened for reading.\n");
-        return false;
-    }
+	if (!IsOpen(path) && !Open(path) && !Open(path,File::OPTIONS_OPEN_BINARY_READ) && !Open(path,File::OPTIONS_CREATE_BINARY_READ)) 
+	{
 
-    if (!IsReadable(path))
-    {
-        RaiseError<FileError>("FileSystem::OpenReadable - The file could not be opened for reading.\n");
-        return false;
-    }
+		RaiseError<FileError>("FileSystem::OpenReadable - The file could not be opened for reading.\n");	
+		return false;
+	}
 
-    return true;
+	if (!IsReadable(path))
+	{
+		RaiseError<FileError>("FileSystem::OpenReadable - The file could not be opened for reading.\n");	
+		return false;
+	}
+
+	return true;
 }
 
-bool FileStorage::OpenWriteable(const Path& path)
+bool FileStorage::OpenWriteable(const Path & path)
 {
-    if (!IsOpen(path) && !Open(path) && !Open(path, File::OPTIONS_OPEN_BINARY_WRITE) && !Open(path, File::OPTIONS_CREATE_BINARY_WRITE))
-    {
-        RaiseError<FileError>("FileSystem::OpenWriteable - The file could not be opened for writing.\n");
-        return false;
-    }
+	if (!IsOpen(path) && !Open(path) && !Open(path,File::OPTIONS_OPEN_BINARY_WRITE) && !Open(path,File::OPTIONS_CREATE_BINARY_WRITE))
+	{
 
-    if (!IsWriteable(path))
-    {
-        RaiseError<FileError>("FileSystem::OpenWriteable - The file could not be opened for writing.\n");
-        return false;
-    }
+		RaiseError<FileError>("FileSystem::OpenWriteable - The file could not be opened for writing.\n");	
+		return false;
+	}
 
-    return true;
+	if (!IsWriteable(path))
+	{
+		RaiseError<FileError>("FileSystem::OpenWriteable - The file could not be opened for writing.\n");	
+		return false;
+	}
+
+	return true;
 }
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 FilePath::FilePath()
 {
-    Append(&Path);
-    Append(&Name);
+	Append(&Path);
+	Append(&Name);
 
-    Construct();
+	Construct();
 }
 
-FilePath::FilePath(const Substring& str) : Hero::Path(str)
+FilePath::FilePath(const Substring & str):
+	Hero::Path(str)
 {
-    Append(&Path);
-    Append(&Name);
 
-    Construct();
+	Append(&Path);
+	Append(&Name);
+
+	Construct();
 }
 
-FilePath::FilePath(const char* name) : Hero::Path(name)
+FilePath::FilePath(const char * name):
+	Hero::Path(name)
 {
-    Append(&Path);
-    Append(&Name);
 
-    Construct();
+	Append(&Path);
+	Append(&Name);
+
+	Construct();
 }
 
-FilePath::FilePath(char* name, int size) : Hero::Path(name, size)
+FilePath::FilePath(char * name, int size):
+	Hero::Path(name,size)
 {
-    Append(&Path);
-    Append(&Name);
+	Append(&Path);
+	Append(&Name);
 
-    Construct();
+	Construct();
 }
 
 FilePath::~FilePath()
 {
+
 }
 
 void FilePath::Normalise()
 {
-    Translate(":*?\"<>|", "");
-    Construct();
+
+	Translate(":*?\"<>|","");
+	Construct();
 }
 
-void FilePath::Construct(char* path, int size)
+void FilePath::Construct(char * path, int size)
 {
-    String::Construct(path, size);
-    Construct();
+	String::Construct(path,size);
+	Construct();
 }
 
 void FilePath::Construct()
 {
-    if (Path.IsActivated() || Path.IsNode()) Path.Release();
-    if (Path.IsActivated() || Path.IsNode()) Name.Release();
 
-    if (IsEmpty()) return;
+	if (Path.IsActivated() || Path.IsNode()) Path.Release();
+	if (Path.IsActivated() || Path.IsNode()) Name.Release();
 
-    int size = 0;
-    do
-    {
-        size = Size;
-        Replace("//", "/");
-        Replace("\\\\", "\\");
-    } while (size != Size);
+	if (IsEmpty()) return;
 
-    if (Size > 1 && Data[Size - 1] == '/' || Data[Size - 1] == '\\')
-    {
-        Size--;
-        Term();
-    }
+	int size = 0;
+	do
+	{
+		size = Size;
+		Replace("//","/");
+		Replace("\\\\","\\");
+	}
+	while (size != Size);
 
-    Trim(" \t\n\r");
+	if (Size > 1 && Data[Size-1] == '/' || Data[Size-1] == '\\')
+	{
+		Size--;
+		Term();
+	}
 
-    int index = Number::Max(LastIndexOf('/'), LastIndexOf('\\'));
-    if (index != -1)
-    {
-        Path.Assign(Slice(0, index));
-        Path.Split("/");
-        Path.Split("\\");
-        Name.Assign(Data + index + 1, Size - (index + 1));
+	Trim(" \t\n\r");
 
-        if (Path.At(1) == ':')
-        {
-            Path.Substring::Left(-2);
-        }
-    }
-    else
-    {
-        Name.Assign(*this);
-        if (Name.Size > 1 && Name.At(1) == ':')
-        {
-            Name.Substring::Left(-2);
-        }
-    }
+	int index = Number::Max(LastIndexOf('/'),LastIndexOf('\\'));
+	if (index != -1)
+	{
+		Path.Assign(Slice(0,index));
+		Path.Split("/");
+		Path.Split("\\");
+		Name.Assign(Data+index+1,Size-(index+1));
 
-    Assert(Path.Segments().Parent == this);
-    Assert(Name.Segments().Parent == this);
+		if (Path.At(1) == ':')
+		{
+
+			Path.Substring::Left(-2);
+		}
+	}
+	else
+	{
+
+		Name.Assign(*this);
+		if (Name.Size > 1 && Name.At(1) == ':')
+		{
+
+			Name.Substring::Left(-2);
+		}
+	}
+
+	Assert(Path.Segments().Parent == this);
+	Assert(Name.Segments().Parent == this);
 }
 
 Substring FilePath::Foldername()
 {
-    return Substring(Path.Data, Path.Size);
+	return Substring(Path.Data,Path.Size);
 }
 
-Substring FilePath::Basename()
+Substring FilePath::Basename() 
 {
-    Substring basename;
-    if (Path.Children())
-    {
-        basename.Assign(Path.Last()->Data, Path.Last()->Size);
-    }
-    else
-    {
-        basename.Assign(Path.Data, Path.Size);
-    }
-    return basename;
+	Substring basename;
+	if (Path.Children())
+	{
+		basename.Assign(Path.Last()->Data,Path.Last()->Size);
+	}
+	else
+	{
+		basename.Assign(Path.Data,Path.Size);
+	}
+	return basename;
 }
 
-Substring FilePath::Extension()
+Substring FilePath::Extension() 
 {
-    Substring extension;
-    int index = Name.LastIndexOf('.');
-    if (index != -1)
-    {
-        extension.Assign(Name.Data + index + 1, Name.Size - index - 1);
-    }
-    return extension;
+	Substring extension;
+	int index = Name.LastIndexOf('.');
+	if (index != -1)
+	{
+		extension.Assign(Name.Data+index+1,Name.Size-index-1);
+
+	}
+	return extension;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -241,251 +256,256 @@ Substring FilePath::Extension()
 
 Identity File::Instance;
 
-File::File()
+File::File() 
 {
-    Storage = new DriveFile();
+	Storage = new DriveFile();	
 }
 
-File::File(FileStorage* driver)
+File::File(FileStorage * driver) 
 {
-    Storage = driver;
+	Storage = driver;
 }
 
-File::File(FileStorage* driver, const Substring& path) : FilePath((Substring&)path)
+File::File(FileStorage * driver, const Substring & path):
+	FilePath((Substring&)path)
 {
-    Storage = driver;
+	Storage = driver;
 }
 
-File::File(Strong<FileStorage*>& driver)
+File::File(Strong<FileStorage*> & driver) 
 {
-    Storage = driver;
+	Storage = driver;
 }
 
-File::File(Strong<FileStorage*>& driver, const Substring& path) : FilePath((Substring&)path)
+File::File(Strong<FileStorage*> & driver, const Substring & path):
+	FilePath((Substring&)path)
 {
-    Storage = driver;
+	Storage = driver;
 }
 
-File::File(const File& file)
+File::File(const File & file)
 {
-    if (&file == this)
-        return;
-    operator=(file);
+	if (&file == this)
+		return;
+	operator = (file);
 }
 
-File::File(const Substring& path) : FilePath((Substring&)path)
+File::File(const Substring & path):
+	FilePath((Substring&)path)
 {
-    Storage = new DriveFile();
+	Storage = new DriveFile();		
 }
 
-File::File(const char* name) : FilePath(name)
+File::File(const char * name):
+	FilePath(name)
 {
-    Storage = new DriveFile();
+	Storage = new DriveFile();		
 }
 
-File::File(char* name, int size) : FilePath(name, size)
+File::File(char * name, int size):
+	FilePath(name,size)
 {
-    Storage = new DriveFile();
+	Storage = new DriveFile();	
 }
 
-File::~File()
+File::~File() 
 {
-    if (Storage) Storage->Close(*this);
+	if (Storage) Storage->Close(*this);
 }
 
 void File::Construct()
 {
-    if (Storage) Storage->Close(*this);
-    FilePath::Construct();
+	if (Storage) Storage->Close(*this);
+	FilePath::Construct();
 }
 
-void File::Construct(char* path, int size)
+void File::Construct(char * path, int size)
 {
-    if (Storage) Storage->Close(*this);
+	if (Storage) Storage->Close(*this);
 
-    FilePath::Construct(path, size);
+	FilePath::Construct(path,size);
 }
 
-File& File::operator=(const File& file)
+File & File::operator = (const File & file)
 {
-    if (&file == this)
-        return *this;
+	if (&file == this)
+		return *this;
 
-    Path::Construct(file);
-    Storage = file.Storage;
+	Path::Construct(file);
+	Storage = file.Storage;
 
-    int offset = 0;
+	int offset = 0;
 
-    if (!((File&)file).Path.IsEmpty())
-    {
-        offset = file.Path.Data - file.Data;
-        Path.Data = Data + offset;
-        Path.Size = file.Path.Size;
-    }
+	if (!((File&)file).Path.IsEmpty())
+	{
+		offset = file.Path.Data-file.Data;
+		Path.Data = Data+offset;
+		Path.Size = file.Path.Size;
+	}
 
-    if (!((File&)file).Name.IsEmpty())
-    {
-        offset = file.Name.Data - file.Data;
-        Name.Data = Data + offset;
-        Name.Size = file.Name.Size;
-    }
+	if (!((File&)file).Name.IsEmpty())
+	{
+		offset = file.Name.Data-file.Data;
+		Name.Data = Data+offset;
+		Name.Size = file.Name.Size;
+	}
 
-    return *this;
+	return *this;
 }
 
-int File::Compare(Object* object, int comparitor)
+int File::Compare(Object *object, int comparitor)
 {
-    if (Inheritance::IsHomozygous(this, object) || Inheritance::IsDominant(this, object))
-    {
-        return Path::Compare(object);
-    }
-    else
-    {
-        return Inheritance::Compare(this, object);
-    }
+	if (Inheritance::IsHomozygous(this,object) || Inheritance::IsDominant(this,object))
+	{
+		return Path::Compare(object);
+	}
+	else
+	{
+		return Inheritance::Compare(this,object);
+	}
 }
 
 bool File::Open(int options)
 {
-    return (Storage) ? Storage->Open(*this, options) : false;
+	return (Storage)?Storage->Open(*this,options):false;
 }
 
 bool File::Open(int mode, int type, int access, int usage)
 {
-    return (Storage) ? Storage->Open(*this, mode, type, access, usage) : false;
-}
+	return (Storage)?Storage->Open(*this,mode,type,access,usage):false;
+}	
 
 bool File::OpenReadable()
 {
-    return (Storage) ? Storage->OpenReadable(*this) : false;
+	return (Storage)?Storage->OpenReadable(*this):false;
 }
 
 bool File::OpenWriteable()
-{
-    return (Storage) ? Storage->OpenWriteable(*this) : false;
+{	
+	return (Storage)?Storage->OpenWriteable(*this):false;
 }
 
 bool File::Close()
 {
-    return (Storage) ? Storage->Close(*this) : false;
+	return (Storage)?Storage->Close(*this):false;
 }
 
 bool File::IsReadable()
 {
-    return (Storage) ? Storage->IsReadable(*this) : false;
+	return (Storage)?Storage->IsReadable(*this):false;
 }
 
 bool File::IsWriteable()
 {
-    return (Storage) ? Storage->IsWriteable(*this) : false;
+	return (Storage)?Storage->IsWriteable(*this):false;
 }
 
-int File::Read(char* data, int size)
+int File::Read(char * data, int size)
 {
-    return (Storage) ? Storage->Read(*this, data, size) : false;
+	return (Storage)?Storage->Read(*this,data,size):false;
 }
 
-int File::ReadLine(String& string)
+int File::ReadLine(String & string)
 {
-    return (Storage) ? Storage->ReadLine(*this, string) : false;
+	return (Storage)?Storage->ReadLine(*this,string):false;
 }
 
-int File::ReadLine(char* data, int size)
+int File::ReadLine(char * data, int size)
 {
-    return (Storage) ? Storage->ReadLine(*this, data, size) : false;
+	return (Storage)?Storage->ReadLine(*this,data,size):false;
 }
 
-int File::Write(char* data, int size)
+int File::Write(char * data, int size)
 {
-    return (Storage) ? Storage->Write(*this, data, size) : false;
+	return (Storage)?Storage->Write(*this,data,size):false;
 }
 
-int File::WriteLine(char* data, int size)
-{
-    return (Storage) ? Storage->WriteLine(*this, data, size) : false;
+int File::WriteLine(char * data, int size)
+{	
+	return (Storage)?Storage->WriteLine(*this,data,size):false;
 }
 
 bool File::Flush()
 {
-    return (Storage) ? Storage->Flush(*this) : false;
+	return (Storage)?Storage->Flush(*this):false;
 }
 
-bool File::Rename(char* name, int size)
+bool File::Rename(char * name, int size)
 {
-    return (Storage) ? Storage->Rename(*this, name, size) : false;
+	return (Storage)?Storage->Rename(*this,name,size):false;
 }
 
 bool File::Create(int access)
 {
-    return (Storage) ? Storage->Create(*this, access) : false;
+	return (Storage)?Storage->Create(*this,access):false;
 }
 
 bool File::Delete()
 {
-    return (Storage) ? Storage->Delete(*this) : false;
+	return (Storage)?Storage->Delete(*this):false;
 }
 
 bool File::Truncate()
 {
-    return (Storage) ? Storage->Truncate(*this) : false;
+	return (Storage)?Storage->Truncate(*this):false;
 }
 
 int File::Seek(int position, int origin)
 {
-    return (Storage) ? Storage->Seek(*this, position, origin) : 0;
+	return (Storage)?Storage->Seek(*this,position,origin):0;
 }
 
 bool File::Eof()
 {
-    return (Storage) ? Storage->Eof(*this) : false;
+	return (Storage)?Storage->Eof(*this):false;
 }
 
 int File::Error()
 {
-    return (Storage) ? Storage->Error(*this) : false;
+	return (Storage)?Storage->Error(*this):false;
 }
 
-bool File::Status(Stat& stat)
+bool File::Status(Stat & stat)
 {
-    if (Storage)
-    {
-        stat = Storage->Status(*this);
-        return true;
-    }
+	if (Storage)
+	{
+		stat = Storage->Status(*this);
+		return true;
+	}
 
-    return false;
+	return false;
 }
 
 Stat File::Status()
 {
-    if (Storage)
-    {
-        return Storage->Status(*this);
-    }
+	if (Storage)
+	{
+		return Storage->Status(*this);
+	}
 
-    return Stat();
+	return Stat();
 }
 
 bool File::Exists()
 {
-    return (Storage) ? Storage->Exists(*this) : false;
+	return (Storage)?Storage->Exists(*this):false;	
 }
 
 bool File::IsOpen()
 {
-    return (Storage) ? Storage->IsOpen(*this) : false;
+	return (Storage)?Storage->IsOpen(*this):false;
 }
 
 bool File::IsClosed()
 {
-    return (Storage) ? Storage->IsClosed(*this) : false;
+	return (Storage)?Storage->IsClosed(*this):false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace Hero
+} 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

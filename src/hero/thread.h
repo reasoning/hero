@@ -23,7 +23,6 @@ SOFTWARE.
 */
 #pragma once
 
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -34,43 +33,12 @@ SOFTWARE.
 #include "hero/callback.h"
 
 #ifdef HERO_PLATFORM_WINDOWS
-	
-	
-	
-	
 
-	
-	
-	
-	
-	
-	
-	
-
-	
-	
-	
-
-	
-	
-	
-	
-	
-	
-	
-	
 	#include <process.h>    
-	
-	
 
 #endif
 
-
 #ifdef HERO_PLATFORM_POSIX
-
-
-
-
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsign-conversion"
@@ -87,11 +55,9 @@ SOFTWARE.
 
 namespace Hero {
 
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 class Thread;
 
@@ -99,35 +65,24 @@ class Runnable
 {
 public:
 
-
 	virtual void Run(Thread * thread)
 	{
 	}
-	
+
 	virtual void Run(void *)
 	{	
 	}
 
-
 };
-
 
 class Thread
 {
 public:
 
-	
-	
-	
-	
-	
-	
 	class Runnable * Runnable;
 	void * Context;
-	
 
   Strong<void *,Shared> Handle;	
-  
 
   unsigned long Id;
 
@@ -145,27 +100,20 @@ public:
 	void Kill();
 
 	static void Sleep(unsigned int milliseconds = 1000);
-    
-    
+
 	static unsigned long Identify();
-	
-	
+
 	void Name(const Substring & name);
-    
+
     #if defined(HERO_PLATFORM_WINDOWS) || defined(HERO_PLATFORM_MINGW)
-    
+
     #undef Yield
     #endif
-    
+
     static void Yield(unsigned int spin=0);    
 
 	static void Pause();
 
-	
-	
-	
-	
-	
 	static Thread Start(class Runnable * runnable, void * pointer);
 
 protected:
@@ -179,55 +127,50 @@ protected:
 
 };
 
-
-
-
-
 class Fibre
 {
 public:
-	
+
 	class Thread Thread;
 	Hero::Callback<void, void *> Callback;
 	void * Context;
-		
+
 	class Runner : public Runnable
 	{
 	public:
-	
+
 		Runner()
 		{
-		
+
 		}
-	
+
 		void Run(class Thread * thread)
 		{
 			Fibre * fibre = (Fibre*)thread->Context;
-			
-			
+
 			fibre->Thread = *thread;
 			fibre->Callback((void*)fibre);
 			delete fibre;
 		}
 	};
-	
+
 	static Runner Run;
-	
+
 	Fibre():Thread(0),Context(0)
 	{
 
 	}
-	
+
 	Fibre(const Fibre & fibre):
 		Thread(fibre.Thread),Callback(fibre.Callback),Context(fibre.Context)
 	{		
 	}
-	
+
 	Fibre(const Hero::Callback<void, void *> callback, void * context=0):
 		Thread(0),Callback(callback),Context(context)
 	{
 	}
-	
+
 	Fibre & operator = (const Fibre & fibre)
 	{
 		Thread = ((Fibre&)fibre).Thread;
@@ -235,11 +178,11 @@ public:
 		Context = fibre.Context;
 		return *this;
 	}	
-	
+
 	~Fibre()
 	{
 	}
-	
+
 	Fibre & Start();
 	void Join();
 	void Stop();
@@ -250,20 +193,17 @@ public:
 
 };
 
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 } 
 
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #ifdef HERO_PLATFORM_POSIX
-
 
 #pragma clang diagnostic pop
 

@@ -23,16 +23,11 @@ SOFTWARE.
 */
 #pragma once
 
-
-
-
 #pragma warning(disable: 4293)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 
 #include <string.h>
 #include <stdio.h>
@@ -40,28 +35,10 @@ SOFTWARE.
 #include <stdlib.h>
 #include <stdarg.h>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 #include "hero/string.h"
 #include "hero/parser.h"
 #include "hero/structure.h"
 #include "hero/number.h"
-
-
-
-
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -73,13 +50,9 @@ SOFTWARE.
 
 namespace Hero {
 
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 
 class Formatter : public String
 {
@@ -87,14 +60,6 @@ public:
 
 	struct Field : public Flags<32>
 	{
-
-		
-		
-		
-		
-
-		
-		
 
 		enum FieldOptions
 		{
@@ -111,8 +76,7 @@ public:
 			TYPE_FORMAT_f	=(1)<<10,
 			TYPE_FORMAT_g	=(1)<<11,
 			TYPE_FORMAT_G	=(1)<<12,
-			
-			
+
 			TYPE_FORMAT_n	=(1)<<15,
 			TYPE_FORMAT_p	=(1)<<16,
 			TYPE_FORMAT_s	=(1)<<17,
@@ -122,14 +86,6 @@ public:
 			TYPE_FORMAT_X|TYPE_FORMAT_e|TYPE_FORMAT_E|TYPE_FORMAT_f|
 			TYPE_FORMAT_g|TYPE_FORMAT_G|TYPE_FORMAT_n|TYPE_FORMAT_p|
 			TYPE_FORMAT_s|TYPE_FORMAT_S,
-
-			
-			
-			
-
-			
-			
-			
 
 			TYPE_PERCENT	=(1)<<20,
 
@@ -147,9 +103,6 @@ public:
 			FLAG_SIGNED		=(1)<<31,
 		};
 
-		
-		
-		
 		short Index;
 		short Width;
 		short Precision;
@@ -161,9 +114,7 @@ public:
 
 	struct Arg : public Flags<32>
 	{
-		
-		
-		
+
 		enum ArgOptions
 		{
 			TYPE_CHAR		=(1),
@@ -181,15 +132,6 @@ public:
 			FIELD_PRECISION		=(1)<<12,
 		};
 
-		
-		
-		
-		
-		
-		
-		
-		
-		
 		struct ArgKind
 		{
 			ArgKind():Value(0),Pointer(0) {}
@@ -216,12 +158,11 @@ public:
 				double Double;
 				void * Void;
 			};
-			
-			
+
 			ArgValue Value;
 			char * Pointer;
 		};
-		
+
 		ArgKind Kind;
 
 		Arg():Kind() {}
@@ -249,10 +190,10 @@ public:
 		double Double() {return *(double*)Kind.Pointer;}
 
 	};
-	
+
 	List<Field> Fields;
 	List<Arg> Args;
-	
+
 	Formatter()
 	{
 	}
@@ -270,8 +211,6 @@ public:
 		ConstructVa(format,va);
 	}
 
-
-	
 	void Construct(const char * format, ...)
 	{
 		va_list va;
@@ -281,9 +220,8 @@ public:
 	}
 
 	void ConstructVa(const char * format, va_list va);
-	
-	void Format(String & string);
 
+	void Format(String & string);
 
 	virtual void FieldInteger(String & string, int index);
 	virtual void FieldString(String & string, int index);
@@ -291,12 +229,7 @@ public:
 	virtual void FieldChar(String & string, int index);
 	virtual void FieldVa(int index, va_list * va);
 
-
 public:
-
-	
-	
-	
 
 	static void Insert(String & string, int index, const char * format, ...)
 	{
@@ -316,7 +249,7 @@ public:
 		FormatVa(insert,format,va);
 		string.Insert(insert,index);
 	}
-	
+
 	static void Append(String & string, const char * format, ...)
 	{
 		va_list va;
@@ -365,7 +298,7 @@ public:
 		va_end(va);
 		return superstring;
 	}
-	
+
 	static Superstring FormatVa(const char * format, va_list va)
 	{
 		Superstring superstring;
@@ -373,24 +306,22 @@ public:
 		FormatVa(superstring,format,va);
 		return superstring;
 	}
-	
 
 	static int Format(String & string, const char * format, ...) 
 	{
-		
+
 		string.Release();
-		
+
 		va_list va;
 		va_start(va, format);		
 		int res = Format(string,0,format,va);
 		va_end(va);
 		return res;
 	}
-	
 
 	static int Format(String & string, int index, const char * format, ...)
 	{
-		
+
 		va_list va;
 		va_start(va, format);
 		int res = FormatVa(string,index,format,va);
@@ -398,40 +329,32 @@ public:
 		return res;
 	}
 
-
 	static int FormatVa(String & string, const char * format, va_list va);	
 	static int FormatVa(String & string, int index, const char * format, va_list va);
-
 
 	template<typename _Value_>
 	static int Format(String & string, int index, const char * format, _Value_ value)
 	{
-		
-		
-		
-		
+
 		Assert(Traits::IsPrimitive<_Value_>::Value);				
 		int amount = string.Remaining();
 		if (amount < 128)
 			string.Reserve(128);
-				
-		
-		
+
 		amount = 64;
-		
+
 		int count = Characters::Format(string.Data+string.Size,amount,format,value);
-				
+
 		if (count > -1 && count < amount)
 		{			
 			memmove(string.Data+index+count,string.Data+index,string.Size+count-index);
 			memmove(string.Data+index,string.Data+string.Size+count,count);
-			
+
 			string.Size += count;				
 			string.Term();
 			return count;
 		}	
-		
-		
+
 		string.Term();
 		return -1;				
 	}
@@ -445,163 +368,78 @@ class Formatting : public String
 {
 public:
 
-	
 	struct Specifier : public Flags<64>
 	{
 		enum SpecifierOptions
 		{
 
-			
-			
-			
-			
-			
-			
 			TYPE_FORMAT_c	=(1)<<0,
-			
 
-			
-			
 			TYPE_FORMAT_d	=(1)<<2,
 			TYPE_FORMAT_i	=(1)<<3,
 
-			
-			
 			TYPE_FORMAT_o	=(1)<<4,
 
-			
-			
 			TYPE_FORMAT_u	=(1)<<5,
 
-			
-			
 			TYPE_FORMAT_x	=(1)<<6,
 
-			
-			
 			TYPE_FORMAT_X	=(1)<<7,
 
-			
-			
-			
-			
 			TYPE_FORMAT_e	=(1)<<8,
 			TYPE_FORMAT_E	=(1)<<9,
 
-			
-			
 			TYPE_FORMAT_f	=(1)<<10,
 
-			
-			
-			
-			
 			TYPE_FORMAT_g	=(1)<<11,
 			TYPE_FORMAT_G	=(1)<<12,
 
-			
-			
-			
-			
-			
-			
 			TYPE_FORMAT_n	=(1)<<15,
 
-			
-			
 			TYPE_FORMAT_p	=(1)<<16,
-			
+
 			TYPE_FORMAT_s	=(1)<<17,
-			
-			
+
 			TYPE_FORMAT		= TYPE_FORMAT_c|TYPE_FORMAT_d|
 			TYPE_FORMAT_i|TYPE_FORMAT_o|TYPE_FORMAT_u|TYPE_FORMAT_x|
 			TYPE_FORMAT_X|TYPE_FORMAT_e|TYPE_FORMAT_E|TYPE_FORMAT_f|
 			TYPE_FORMAT_g|TYPE_FORMAT_G|TYPE_FORMAT_n|TYPE_FORMAT_p|
 			TYPE_FORMAT_s,
 
-			
-			
-			
-			
-			
-			
-			
 			TYPE_INCLUSION	=(1)<<20,
 
-			
-			
 			TYPE_EXCLUSION	=(1)<<21,
-			
-			
-			
-			
+
 			TYPE_SHIFT		=(1)<<22,	
 
-			
 			TYPE_UNSIGNED	=(1)<<23,
-			
-			
+
 			TYPE_SIGNED		=(1)<<24,
 
-			
 			TYPE_WIDTH		=(1)<<19,
-			
-			
-			TYPE_PRECISION	=(1)<<20,
-			
-			
-			
-			TYPE_PERCENT	=(1)<<21,
-			
-			
 
-			
-			
-			
+			TYPE_PRECISION	=(1)<<20,
+
+			TYPE_PERCENT	=(1)<<21,
+
 			MODIFIER_h		=(1)<<30,
 
-			
-			
-			
 			MODIFIER_l		=(1)<<31,
 
-			
-			
 			MODIFIER_L		=(1)<<32,
 
-			
-			
 			MODIFIER_ll		=(1)<<33,
 
-			
-			
 			FLAG_JUSTIFY	=(1)<<40,	
 
-			
-			
 			FLAG_SIGN		=(1)<<41,	
 
-			
-			
 			FLAG_SPACE		=(1)<<42,	
-			
-			
-			
-			
-			
-			
-			
+
 			FLAG_ALTERNATE	=(1)<<43,	
-			
-			
-			
-			
+
 			FLAG_PADDED		=(1)<<44,		
 
-			
-			
-			
 			FLAG_SUPPRESSOR	=(1)<<45,
 
  		};
@@ -634,9 +472,7 @@ public:
 
 	struct Argument : public Flags<32>
 	{
-		
-		
-		
+
 		enum ArgumentOptions
 		{
 			KIND_CHAR		=(1),
@@ -656,15 +492,6 @@ public:
 			TYPE_PRECISION	=(1)<<22,
 		};
 
-		
-		
-		
-		
-		
-		
-		
-		
-		
 		struct ArgumentKind
 		{
 			ArgumentKind():Value(0),Pointer(0) {}
@@ -674,7 +501,7 @@ public:
 			ArgumentKind(long long value, void * pointer):Value(value),Pointer(pointer) {}
 			ArgumentKind(double value, void * pointer):Value(value),Pointer(pointer) {}
 			ArgumentKind(void * value, void * pointer):Value(value),Pointer(pointer) {}
-			
+
 			ArgumentKind(String & value, void * pointer):Value(),String(value),Pointer(pointer) {}
 
 			union ArgumentValue
@@ -686,7 +513,6 @@ public:
 				ArgumentValue(long long value):LongLong(value) {}
 				ArgumentValue(double value):Double(value) {}
 				ArgumentValue(void * value):Void(value) {}
-				
 
 				char Char;
 				int Int;
@@ -694,17 +520,15 @@ public:
 				long long LongLong;
 				double Double;
 				void * Void;
-				
+
 			};
-						
+
 			ArgumentValue Value;
-			
-			
-			
+
 			String String;
 			void * Pointer;
 		};
-		
+
 		ArgumentKind Kind;
 
 		Argument():Kind() {}
@@ -732,7 +556,7 @@ public:
 		double Double() {return *(double*)Kind.Pointer;}
 
 	};
-	
+
 	enum FormattingModes
 	{
 		MODE_WRITE	=(1)<<0,		
@@ -756,9 +580,6 @@ public:
 	void Construct(const char * data, int mode) {Construct((char*)data,String::Length(data),mode);}
 	void Construct(char * data, int size, int mode);
 	void Construct(int mode);
-
-
-
 
 	Substring Before(int index)
 	{
@@ -788,7 +609,7 @@ public:
 		Substring token;
 		if (index > Specifiers.Length()-1)
 			return token;
-		
+
 		if (index < Specifiers.Length()-1)
 		{
 			Specifier & specifier = Specifiers[index+1];
@@ -808,9 +629,7 @@ public:
 
 	Argument Specify(int mode, int index)
 	{
-		
-		
-		
+
 		Argument argument;
 		argument.On();
 
@@ -819,28 +638,22 @@ public:
 
 		}
 
-		
 		return Argument();
 	}
 };
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 class FormattingStream : public Formatting, public StreamFilter
 {
 public:
 
-
 	int Index;
-	
-	
+
 	class Token Token;
 
-	
 	Formatting::Value Width;
 	Formatting::Value Precision;
 
@@ -872,16 +685,12 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
 class Format
 {
 public:
 
 	FormattingStream Formatting;
-	
-	
-	
+
 	Format()
 	{
 	}
@@ -891,44 +700,28 @@ public:
 
 	}
 
-
 	Format(const char * format):Formatting(format,0)
 	{
 	}
 
-
 	Format & operator << (const String & s) {Formatting.WriteString((String&)s);return *this;}
-	
+
 	Format & operator << (const char & c) {Formatting.WriteChar((char&)c);return *this;}
 	Format & operator << (const int & i) {Formatting.WriteInteger((int&)i);return *this;}
-	
-	
-	
-	
-	
-	
+
 	Format & operator << (const double & d) {Formatting.WriteDouble((double&)d);return *this;}
 
-
-	
 	Format & operator >> (String & s) {Formatting.ReadString(s);return *this;}
 	Format & operator >> (int &i) {Formatting.ReadInteger(i);return *this;}
 	Format & operator >> (char & c) {Formatting.ReadChar(c);return *this;}
-	
-	
-	
+
 	Format & operator >> (double &d) {Formatting.ReadDouble(d);return *this;}
 
-	
-	
-	
-	
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 Format & operator << (String & string, Format & format);
 Format & operator << (const String & string, const Format & format);
@@ -936,24 +729,13 @@ Format & operator << (const String & string, const Format & format);
 Format & operator >> (String & string, Format & format);
 Format & operator >> (const String & string, const Format & format);
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-
-
-
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -964,5 +746,4 @@ Format & operator >> (const String & string, const Format & format);
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 

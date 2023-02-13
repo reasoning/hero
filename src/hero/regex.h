@@ -23,13 +23,9 @@ SOFTWARE.
 */
 #pragma once
 
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 
 #include <memory.h>
 
@@ -41,38 +37,24 @@ SOFTWARE.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
 namespace Hero {
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
-
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 
 class RegexIdentifier: public Flags<32>
 {
 public:
 
-	
-	
-	
-	
 	enum IdentifierTypes
 	{
 		IDENTIFIER_ANY					=(1),		
@@ -94,8 +76,6 @@ public:
 		IDENTIFIER_SYMBOL				=(1)<<13,		
 	};
 
-
-
 	static Flags<32> Classify(char data)
 	{
 		Flags<32> token;
@@ -111,7 +91,6 @@ public:
 		case Characters::NewLine: token.On(IDENTIFIER_NEW_LINE); break;
 		}						
 
-
 		if (Characters::IsAlphanumeric(data) || data == '_')
 		{
 			token.On(IDENTIFIER_WORD);
@@ -124,9 +103,6 @@ public:
 			token.On(IDENTIFIER_NON_DIGIT);
 			token.On(Characters::IsWhitespace(data)?IDENTIFIER_WHITESPACE:IDENTIFIER_NON_WHITESPACE);
 		}
-
-
-		
 
 		return token;
 	}
@@ -201,7 +177,7 @@ public:
 	RegexQuantifier(int count):
 		Type(QUANTIFIER_COUNT),Mode(QUANTIFIER_GREEDY),Minimum(count),Maximum(count)
 	{
-		
+
 	}
 
 	RegexQuantifier(int minimum, int maximum):
@@ -244,7 +220,6 @@ private:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 class RegexFunction
 {
@@ -305,7 +280,6 @@ public:
 	{
 	}
 
-	
 	RegexFunctionGroup(int group):
 		RegexFunction(FUNCTION_GROUP),Group(group)
 	{
@@ -412,8 +386,6 @@ class RegexFunctionSet : public RegexFunctionIdentifier
 {
 public:
 
-	
-	
 	enum SetTypes
 	{
 		SET_INCLUSION		=(1),		
@@ -434,7 +406,6 @@ public:
 	{
 		Type = FUNCTION_SET;
 	}
-
 
 	RegexFunctionSet(int set, int range, int token, String & symbol):
 		Set(set)
@@ -474,17 +445,13 @@ public:
 	}
 };
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 
 class RegexState
 {
@@ -496,18 +463,12 @@ public:
 	RegexQuantifier * Quantifier;
 	RegexState * Next;
 
-	
-	
 	int Index;
 
 	Substring Match;
 
-	
-	
 	int Base;
 
-	
-	
 	int Offset;
 
 	int Switch;
@@ -521,7 +482,7 @@ public:
 		Function(function),Parent(parent),Quantifier(quantifier),Next(0),
 		Offset(0),Index(0),Quantity(0),Maximum(0),Minimum(0),Switch(0),Base(0),Lazy(false),Possesive(false)
 	{
-		
+
 	}
 
 	~RegexState()
@@ -553,25 +514,17 @@ public:
 	}
 };
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
 
 class RegexFrame
 {
@@ -583,7 +536,7 @@ public:
 		FRAME_ENTER,
 		FRAME_LEAVE,
 	};
-	
+
 	Flags<8> Frame;
 
 	RegexState * State;
@@ -591,7 +544,7 @@ public:
 	int Offset;
 
 	RegexFrame(RegexState * state, int frame=0):State(state),Frame(frame),Switch(0),Offset(0) {}
-	
+
 	static RegexFrame Enter(RegexState * state) {return RegexFrame(state,FRAME_ENTER);}
 	static RegexFrame Leave(RegexState * state) {return RegexFrame(state,FRAME_LEAVE);}
 	static RegexFrame None(RegexState * state) {return RegexFrame(state,FRAME_NONE);}
@@ -613,7 +566,7 @@ template <typename _Kind_>
 class RegexArray : public Array<_Kind_>
 {
 public:
-	
+
 	RegexArray() 
 	{
 
@@ -626,39 +579,27 @@ public:
 
 	_Kind_ Pop()
 	{
-		
+
 		this->Size--;
 		return this->Data[this->Size];
 	}
 
 	_Kind_ Pop(int index)
 	{
-		
+
 		return (this->Size > 0 && index >= 0 && index < this->Size)?RemoveAt(this->Size-(1+index)):0;
 
-		
-		
-		
-		
-
-		
-		
-		
 	}
 
 	_Kind_ Peek(int index = 0)
 	{
-		
-		
-		
 
 		return (this->Size>0 && index >= 0 && index < this->Size)?this->Data[this->Size-(1+index)]:0;
-		
+
 	}
 
 	void Push(_Kind_ kind)
 	{
-		
 
 		if (this->Size == this->Allocated)
 			this->Allocate(0);
@@ -671,46 +612,29 @@ public:
 	{
 		Assert(&stack != this);
 
-		
-		
-		
-
-		
-		
-		
-
-		
 		int amount = stack.Length();
 		if (amount > 0)
 		{
 			if ((this->Allocated-this->Size) <= amount)
 				this->Allocate(this->Size + (amount+1));
-			
+
 			Assert(this->Allocated-this->Size > amount);
 
-			
 			for (int a = 0;a < amount;++a)
 				this->Data[this->Size+a] = stack.Data[a];
 			this->Size += amount;
 
 			Assert(this->Size <= this->Allocated);
 		}
-		
-		
-		
 
-
-		
 	}
 };
-
-
 
 template <typename _Kind_>
 class RegexStack
 {
 public:
-	
+
 	_Kind_ Heap[8];
 	_Kind_ * Data;
 	int Size;
@@ -723,8 +647,7 @@ public:
 
 	RegexStack():Data(Heap),Size(0),Allocated(8)
 	{
-		
-		
+
 	}
 
 	~RegexStack()
@@ -733,7 +656,7 @@ public:
 		{
 			delete [] Data;
 		}
-		
+
 	}
 
 	RegexStack & operator = (const RegexStack & stack)
@@ -768,7 +691,7 @@ public:
 
 	void Push(_Kind_ kind)
 	{
-		
+
 		if (Size >= Allocated)
 		{
 			Allocated = ((Size+1)*1.25);
@@ -791,7 +714,6 @@ public:
 
 		Assert(&stack != this);
 
-		
 		if (Size+stack.Size >= Allocated)
 		{
 			Allocated = ((Size+stack.Size+1)*1.25);
@@ -823,9 +745,9 @@ public:
 			if (Heap == Data)
 			{
 				Copy(stack.Heap,Heap,Size);
-				
+
 				Copy(Heap,heap,size);
-				
+
 			}
 			else
 			{
@@ -856,12 +778,6 @@ public:
 
 	void Copy(_Kind_ * to, _Kind_ * from, int size)
 	{
-		
-		
-		
-		
-		
-		
 
 		if (size > 0)
 		{
@@ -880,10 +796,9 @@ public:
 				} while(--loop > 0);
 			}
 		}
-		
+
 	}
 };
-
 
 class RegexConstants
 {
@@ -898,17 +813,13 @@ public:
 
 };
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 
 class RegexInterpreter
 {
 public:
-
 
 	RegexState * State;
 	Array< Array<Substring> > * Matches;
@@ -931,12 +842,6 @@ public:
 	int Match(int limit, const char * data) {return Match(limit,(char*)data,String::Length(data));}
 	int Match(int limit, char * data, int size)
 	{
-		
-		
-		
-
-		
-		
 
 		if (Matches)
 			Matches->Release();
@@ -954,24 +859,20 @@ public:
 		Substring input(data,size);
 
 		#define HERO_REGEX_RECURSION
-		
+
 		while (index <= input.Size && (matches < limit || limit == 0))
 		{
-			
+
 			capture.Size = 0;
 			next.Size = 0;
 			offset = -1;
 			base = index;
 
-			
 			#ifdef HERO_REGEX_RECURSION
-			
-			
 
-			
 			if (ProcessBacktrack(input,state,next,capture,base,offset) > -1)
 			#else
-			
+
 			if ((offset = ProcessBacktrack((Substring&)input,state,base)) > -1)
 			#endif
 			{
@@ -982,14 +883,8 @@ public:
 				#endif
 				if (match.Size >= 0)
 				{
-					
-					
-					
-					
-					index += (match.Size>0)?match.Size:1;
 
-					
-					
+					index += (match.Size>0)?match.Size:1;
 
 					if (Matches)
 					{
@@ -1012,13 +907,10 @@ public:
 				++index;
 			}
 
-			
 		}
 
 		return matches;
 	}
-
-
 
 	static int Minimum(RegexState * state)
 	{
@@ -1029,9 +921,6 @@ public:
 	{
 		return state->Quantifier?(state->Quantifier->Maximum?state->Quantifier->Maximum:0x7FFFFFFF):1;
 	}
-
-	
-
 
 	enum MatchTypes
 	{
@@ -1048,12 +937,9 @@ public:
 		MODE_THIS,
 	};
 
-
-
 	void ProcessNext(RegexState * state, RegexStack<RegexState*> & next)
 	{
-		
-		
+
 		if (state == 0)
 			return;
 
@@ -1090,9 +976,7 @@ public:
 		case RegexFunction::FUNCTION_GROUP:
 			{	
 				next.Push(state->Children[0]);
-				
-				
-				
+
 				state->Next = next.Peek();
 
 				s = state->Children[1];
@@ -1127,41 +1011,11 @@ public:
 		}
 	}
 
-
-
-
-
 	int Process(Substring & input, RegexState * state, RegexStack<RegexState*> & next, RegexStack<Substring> & capture, int & base, int & offset)
 	{
 		if (state == 0 || base > input.Size)
 			return -1;
 
-		
-		
-		
-		
-		
-		
-		
-		
-	
-		
-		
-		
-		
-		
-		
-		
-		
-		
-
-		
-		
-		
-		
-		
-		
-		
 		int q = 0;				
 		int b = base;			
 		int o = -1;				
@@ -1171,34 +1025,20 @@ public:
 		{
 		case RegexFunction::FUNCTION_SCOPE:
 			{
-				
-				
-				
-				
 
 				state->Parent->Base = base;
 
 				int len = capture.Size;
-				
-				
 
-				
-				
-				
-				
-				
-				
-				
 				if (((RegexFunctionGroup*)state->Parent->Function)->Group != RegexFunctionGroup::GROUP_PASSIVE)
-					
+
 					capture[state->Parent->Offset] = Substring(input.Data+state->Parent->Index,base-state->Parent->Index);
 
 				if (next.Size > 0)
-				
+
 				{
 					s = next.Pop();
-					
-					
+
 					o = Process(input,s,next,capture,b,o);
 					next.Push(s);
 				}
@@ -1211,14 +1051,6 @@ public:
 				{
 					offset = o;
 
-					
-					
-					
-					
-					
-
-					
-					
 				}	
 				else
 				{
@@ -1226,7 +1058,7 @@ public:
 					capture[state->Parent->Offset].Data = 0;
 					capture[state->Parent->Offset].Size = 0;
 				}
-				
+
 			}
 			break;
 		case RegexFunction::FUNCTION_SEQUENCE:
@@ -1244,81 +1076,58 @@ public:
 
 				next.Size = len;
 
-				
 			}
 			break;
 		case RegexFunction::FUNCTION_GROUP:
 			{	
 
-				
-				
-				
-
-
 				state->Offset = capture.Size;
 				if (((RegexFunctionGroup*)state->Function)->Group != RegexFunctionGroup::GROUP_PASSIVE)
 					capture.Push(Substring());
-				
+
 				int len = capture.Size;				
 				RegexStack<Substring> cap;
 				cap.Push(capture);
 
 				next.Push(state->Children.Data[0]);
-	
-				
-				
+
 				int g = base;
 				q = state->Minimum;
 				do 
 				{
-					
-					
-					
-					
-					
+
 					if ((state->Lazy && offset > -1) )
 						break;
 
-
-					
-					
-					
-					
 					state->Index = g;
 
 					if (next.Size > 0)
-					
+
 					{
-						
+
 						cap.Size = len;
 
 						s = (q == 0)?next.Pop():state->Children.Data[1];
-						
-												
+
 						b = g;
 						o = -1;
 						o = Process(input,s,next,cap,b,o);
-						
+
 						if (q == 0) next.Push(s);						
 
 						if (o >= offset && o > -1)
 						{
 							offset = o;
-							
+
 							capture.Size = 0;
 							capture.Push(cap);
-							
 
-							
-							
 							g = state->Base;
 						}	
 						else
 						if (state->Base > g)
 						{
-							
-							
-							
+
 							g = state->Base;
 						}
 						else
@@ -1334,11 +1143,9 @@ public:
 
 				} 
 				while (q++ < state->Maximum);
-				
-				
-				
+
 				--q;
-		
+
 				if (q < state->Minimum || q > state->Maximum)
 				{
 					offset = -1;
@@ -1349,11 +1156,7 @@ public:
 			break;
 		case RegexFunction::FUNCTION_CHOICE:
 			{
-				
-				
-				
-				
-				
+
 				int len = capture.Size;
 				RegexStack<Substring> cap;
 				cap.Push(capture);
@@ -1361,30 +1164,23 @@ public:
 				int cb = base;
 				int co = -1;
 
-				
-				
-				
-				
-
 				for (q = 0;q < state->Children.Size;++q)
 				{
 					s = state->Children.Data[q];
 					b = cb;
 					o = co;
 
-					
 					cap.Size = len;
-					
+
 					o = Process(input,s,next,cap,b,o);
 					if(o > offset)
 					{
-						
-						
+
 						offset = o;
-						
+
 						capture.Size = 0;
 						capture.Push(cap);
-						
+
 					}
 				}
 			}
@@ -1398,17 +1194,15 @@ public:
 				int len = capture.Size;
 				RegexStack<Substring> cap;
 				cap.Push(capture);
-				
+
 				int index = base;
 
 				s = (next.Size>0)?next.Pop():0;
-				
 
 				q = state->Minimum;
 				do
 				{
-					
-					
+
 					if (state->Lazy && offset > -1)
 						break;
 
@@ -1417,7 +1211,7 @@ public:
 
 					if (s != 0)
 					{				
-						
+
 						cap.Size = len;								
 
 						b = index;
@@ -1425,12 +1219,11 @@ public:
 						o = Process(input,s,next,cap,b,o);
 						if (o >= offset && o > -1)
 						{
-							
-							
+
 							offset = o;
 							capture.Size = 0;
 							capture.Push(cap);
-							
+
 						}
 					}
 					else
@@ -1458,9 +1251,6 @@ public:
 		return offset;
 	}
 
-
-
-
 	int ProcessBacktrack(Substring & input, RegexState * state, RegexStack<RegexState*> & next, RegexStack<Substring> & capture, int & base, int & offset)
 	{
 		if (state == 0 || base > input.Size)
@@ -1478,71 +1268,39 @@ public:
 				RegexState * group = state->Parent;
 				group->Base = base;
 
-
 				int index = group->Index;
 
 				int len = capture.Size;
 				RegexStack<Substring> cap;
 				cap.Push(capture);
 
-				
-				
-				
-				
-
 				cap.Size = group->Offset;
 
-				
-				
-	
-				
-				
-				
-	
 				++group->Quantity;
-
-				
-				
-				
 
 				if (!group->Lazy)
 				{
 					if (group->Quantity < group->Maximum)
 					{
-						
+
 						s = group;						
 						b = base;
 						o = -1;
 						o = ProcessBacktrack(input,s,next,cap,b,o);							
 
-						
-						
-						
 						group->Index = index;
 						group->Base = base;
 					}
 
 				}
 
-				
-				
-				
 				if (o <= offset)
 				{
-					
+
 					cap.Size = 0;
 					cap.Push(capture);
 					if (((RegexFunctionGroup*)group->Function)->Group != RegexFunctionGroup::GROUP_PASSIVE)
 						cap[group->Offset] = Substring(input.Data+group->Index,base-group->Index);
-					
-					
-					
-					
-					
-					
-					
-					
-					
 
 					if (next.Length() > 0)
 					{
@@ -1556,7 +1314,7 @@ public:
 					{
 						o = base;
 					}
-		
+
 					if (o > offset)
 					{
 						offset = o;
@@ -1570,14 +1328,11 @@ public:
 					capture.Size = 0;
 					capture.Push(cap);
 				}
-		
+
 			}
 			break;
 		case RegexFunction::FUNCTION_SEQUENCE:
 			{
-				
-				
-				
 
 				int len = next.Size;
 				for (q = state->Children.Size-1;q > 0;--q)
@@ -1597,38 +1352,22 @@ public:
 		case RegexFunction::FUNCTION_GROUP:
 			{
 
-				
-				
-				
 				state->Offset = capture.Size;
 
 				if (((RegexFunctionGroup*)state->Function)->Group != RegexFunctionGroup::GROUP_PASSIVE)
 					capture.Push(Substring());
-				
-				
-				
-				
-
-				
-				
-				
 
 				state->Index = base;
 
 				next.Push(state->Children.Data[0]);
 				s = state->Children.Data[1];
-				
+
 				o = ProcessBacktrack(input,s,next,capture,b,o);
 				next.Pop();
 
 				if (o <= offset && state->Quantity == 0 && state->Minimum == 0)
 				{
-					
-					
-					
 
-					
-					
 					if (next.Length() > 0)
 					{
 						s = next.Pop();
@@ -1640,8 +1379,7 @@ public:
 				if (o >= offset && o > -1)
 				{
 					offset = o;
-					
-					
+
 				}
 
 			}
@@ -1662,7 +1400,7 @@ public:
 					o = co;
 
 					cap.Size = len;
-					
+
 					o = ProcessBacktrack(input,s,next,cap,b,o);
 					if(o > offset)
 					{
@@ -1670,8 +1408,6 @@ public:
 						capture.Size = 0;
 						capture.Push(cap);
 
-						
-						
 						break;
 					}
 				}
@@ -1686,14 +1422,10 @@ public:
 				int len = capture.Size;
 				RegexStack<Substring> cap;
 				cap.Push(capture);
-				
-				
-				
 
 				RegexStack<int> back;
 
 				int index = base;
-
 
 				if (!state->Lazy)
 				{
@@ -1711,15 +1443,11 @@ public:
 				s = (next.Length()>0)?next.Pop():0;				
 				q = state->Minimum;
 
-				
-				
-				
 				if (back.Size > 0) back.Pop();
 
 				while (true)
 				{
-					
-					
+
 					if (s != 0)
 					{				
 						cap.Size = len;								
@@ -1751,7 +1479,7 @@ public:
 					}
 					else
 					{
-						
+
 						if (back.Size == state->Minimum || back.Size == 0)
 							break;
 
@@ -1774,7 +1502,6 @@ public:
 		return offset;
 	}
 
-
 	bool ProcessTerminal(Substring & input, RegexFunction * function, int & index, RegexStack<Substring> & capture)
 	{
 		switch (function->Type)
@@ -1782,18 +1509,11 @@ public:
 		case RegexFunction::FUNCTION_REFERENCE:
 			{
 
-				
-				
-				
-				
-				
 				if (((RegexFunctionReference*)function)->Index > capture.Length() || ((RegexFunctionReference*)function)->Index <= 0)
 					return true;
 
 				Substring ref = capture[((RegexFunctionReference*)function)->Index-1];
-				
-				
-				
+
 				if (ref.IsEmpty())
 					return true;
 
@@ -1818,9 +1538,6 @@ public:
 				{					
 				case RegexFunctionAnchor::ANCHOR_START:
 					{
-						
-						
-						
 
 						if (index == 0)
 							return true;
@@ -1831,8 +1548,6 @@ public:
 					break;
 				case RegexFunctionAnchor::ANCHOR_END:
 					{
-						
-						
 
 						if (index == input.Size) 
 							return true;
@@ -1856,27 +1571,14 @@ public:
 				case RegexFunctionAnchor::ANCHOR_WORD:
 				case RegexFunctionAnchor::ANCHOR_NON_WORD:
 					{
-						
-						
-						
-						
 
-						
-
-						
-						
-						
-						
-						
-						
-						
 						bool match = false;
 						if ((index == 0 && Characters::IsIdentifier(input.Data[index])) || (index == input.Size && Characters::IsIdentifier(input.Data[index-1])) || 
 							((index > 0 && index < input.Size) && 
 								(Characters::IsIdentifier(input.Data[index]) && !Characters::IsIdentifier(input.Data[index-1])) ||
 								(!Characters::IsIdentifier(input.Data[index]) && Characters::IsIdentifier(input.Data[index-1]))))
 							match = true;
-						
+
 						return (anchor == RegexFunctionAnchor::ANCHOR_WORD)?match:!match;
 					}
 					break;
@@ -1903,8 +1605,6 @@ public:
 		return false;
 	}
 
-
-
 	int ProcessStack(Substring & input, RegexState * state, int index = 0)
 	{
 		Map<RegexState*,RegexState*> scope;
@@ -1913,9 +1613,8 @@ public:
 		RegexStack<RegexState*> prev;
 		RegexStack<Substring> capture;
 
-		
 		int mode = MODE_NEXT;
-		
+
 		int base = index;
 		int offset = -1;
 
@@ -1926,31 +1625,15 @@ public:
 
 		next.Push(state);
 
-		
-		
-		
-		
-		
-		
-		
 		while( (mode == MODE_THIS) || (mode == MODE_NEXT && next.Length() > 0) || (mode == MODE_PREV && prev.Length() > 1) )
-		
+
 		{		
 
 			if (mode != MODE_THIS)
 			{
 				if (mode == MODE_NEXT)
 				{
-					
-					
 
-					
-					
-					
-
-					
-					
-					
 					if (s != 0 && base < s->Base) 
 						base = s->Base;
 
@@ -1963,43 +1646,20 @@ public:
 				else
 				if (mode == MODE_PREV)
 				{
-					
-					
 
-					
-					
-					
-					
 					if (s != 0 && offset < s->Offset)
 						offset = s->Offset;
 
 					b = scope[s];
 					if (b)
 					{
-						
-						
-						
-						
-						
-						
 
-						
-						
-						
-						
-
-						
-						
-						
 						b->Index = s->Base;
 					}
 
 					next.Push(prev.Pop());
 					s = prev.Peek();
 				}
-
-				
-				
 
 				if (s->Maximum == 0) s->Maximum = Maximum(s);
 				if (s->Minimum == 0) s->Minimum = Minimum(s);
@@ -2010,10 +1670,6 @@ public:
 			case RegexFunction::FUNCTION_SEQUENCE:
 				if (mode == MODE_NEXT)
 				{
-					
-					
-					
-					
 
 					if (s->Children.Size < 2)
 						break;
@@ -2035,16 +1691,10 @@ public:
 				switch (s->Switch)			
 				{
 				case 0:
-					
-					
-					
-					
-					
-					
 
 					if (s->Minimum == 0)
 					{
-						
+
 						base = s->Base;
 
 						if (next.Length() > 0)
@@ -2062,10 +1712,6 @@ public:
 						}
 					}
 
-					
-					
-					
-					
 					base = s->Base;
 					mode = MODE_NEXT;
 					scope.Insert(next.Peek(),s);
@@ -2075,17 +1721,9 @@ public:
 					break;
 				case 2:
 
-
-					
-					
-					
-					
-
 					if (s->Index > s->Base || offset > s->Offset)
 					{
-						
-						
-						
+
 						if (offset > s->Offset)
 						{
 							s->Offset = offset;
@@ -2095,10 +1733,7 @@ public:
 
 						if (s->Quantity < s->Maximum)
 						{												
-							
-							
-							
-							
+
 							if (s->Index > s->Base)
 							{
 								s->Base = s->Index;
@@ -2109,10 +1744,6 @@ public:
 							break;
 						}
 					}
-
-
-					
-					
 
 					next.Pop();
 					scope.Remove(next.Peek());
@@ -2134,23 +1765,18 @@ public:
 						++s->Index;
 						s->Switch = 1;
 
-						
-						
-						
-
 						base = s->Base;
 
 						mode = MODE_NEXT;
 						break;
 				case 1:
-					
+
 						if (offset > s->Offset)
 							s->Offset = offset;
 
 						next.Pop();
 						s->Switch = 0;
-						
-						
+
 						if (s->Index < s->Children.Size)						
 						{
 							mode = MODE_THIS;
@@ -2173,7 +1799,7 @@ public:
 					{
 						if (ProcessTerminal(input,s->Function,s->Index,capture))
 						{
-							
+
 							s->Switch = 1;
 							s->Quantity++;
 							base = s->Index;
@@ -2187,12 +1813,8 @@ public:
 								if (offset > s->Offset)
 									s->Offset = offset;
 
-								
-								
-								
 								s->Switch = 1;
 
-								
 								if (s->Quantity < s->Maximum)
 								{
 									mode = MODE_THIS;
@@ -2201,12 +1823,10 @@ public:
 							}
 							else
 							{
-								
-								
+
 								offset = base;
 								s->Offset = offset;
 
-								
 								if (s->Quantity < s->Maximum)
 								{
 									mode = MODE_THIS;
@@ -2216,18 +1836,9 @@ public:
 						}
 					}
 
-
 					if (s->Minimum == 0)
 					{
-						
-						
-						
-						
-						
 
-						
-						
-						
 						base = s->Base;
 
 						if (next.Length() > 0)
@@ -2243,10 +1854,6 @@ public:
 						}
 						else
 						{
-							
-							
-							
-							
 
 							offset = s->Base;
 						}
@@ -2267,23 +1874,15 @@ public:
 		return (s!=0)?s->Offset:-1;
 	}
 
-
-
 };
 
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 class RegexParser : public StringParser
 {
@@ -2306,8 +1905,6 @@ public:
 		return ParseChoice();
 	}
 
-
-	
 	RegexState * ParseChoice()
 	{
 		Substring token;
@@ -2318,10 +1915,6 @@ public:
 		{
 			RegexState * parent = new RegexState(new RegexFunction(RegexFunction::FUNCTION_CHOICE));
 			parent->Children.Append(child);
-
-			
-			
-			
 
 			do
 			{
@@ -2345,7 +1938,6 @@ public:
 		return child;
 	}
 
-	
 	RegexState * ParseSequence()
 	{
 		Substring token;
@@ -2355,7 +1947,6 @@ public:
 
 		if (!Eof() && !Is('|') && !Is(')') && child != 0)
 		{
-			
 
 			RegexState * parent = new RegexState(new RegexFunction(RegexFunction::FUNCTION_SEQUENCE));
 			parent->Children.Append(child);
@@ -2409,8 +2000,6 @@ public:
 
 			state = new RegexState(group);
 
-			
-			
 			state->Children.Append(new RegexState(new RegexFunctionScope()));
 			state->Children[0]->Parent = state;
 			state->Children.Append(ParsePattern());
@@ -2541,9 +2130,7 @@ public:
 			int literals=0;
 			do
 			{
-				
-				
-				
+
 				if (literals > 0 && !Eof(1) && IsQuantifier(*At(1,1)))
 					break;
 
@@ -2582,9 +2169,6 @@ public:
 	{
 		if (Is('\\'))
 		{
-			
-			
-			
 
 			Next();
 			Mark();
@@ -2629,9 +2213,6 @@ public:
 				Next();
 				ParseDecimal();
 
-				
-				
-				
 				if (Characters::IsDecimal(Token.Data,Token.Size))
 				{
 					state = new RegexState(new RegexFunctionReference(Token.Decimal()));
@@ -2649,11 +2230,8 @@ public:
 				case 'Z': state = new RegexState(new RegexFunctionAnchor(RegexFunctionAnchor::ANCHOR_STRING_END)); break;
 				}
 
-				
-				
-				
 				ParseQuantifier(state);
-				
+
 			}
 			else
 			if (IsAny(1,"bB"))
@@ -2679,18 +2257,16 @@ public:
 			}
 		}
 		else
-		
+
 		if (Is('^'))
 		{
-			
-			
-			
+
 			Mark();Next();Trap();
 			state = new RegexState(new RegexFunctionAnchor(RegexFunctionAnchor::ANCHOR_START));
 			ParseQuantifier(state);
 		}
 		else
-		
+
 		if (Is('$'))
 		{
 			Mark();Next();Trap();
@@ -2716,15 +2292,6 @@ public:
 
 	bool ParseQuantifier(RegexState * state)
 	{
-		
-		
-		
-		
-		
-		
-		
-		
-		
 
 		RegexQuantifier * quantifier = 0;
 		if (Is('*'))
@@ -2799,43 +2366,23 @@ public:
 
 		}
 
-		
-		
-		
-
 		state->Maximum = RegexInterpreter::Maximum(state);
 		state->Minimum = RegexInterpreter::Minimum(state);
 
 		state->Lazy = (state->Quantifier)?state->Quantifier->Mode == RegexQuantifier::QUANTIFIER_LAZY:false;
-		
 
-		
 		return true;
 	}
 
-
-
 };
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
-
- 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-
 
 class Pattern : public String
 {
@@ -2844,7 +2391,6 @@ public:
 	int Options;
 	Array< Array<Substring> > Matches;
 
-
 	explicit Pattern(const Substring & sequence):String(sequence),Options(0)
 	{
 	}
@@ -2852,7 +2398,6 @@ public:
 	Pattern():Options(0)
 	{
 	}
-
 
 	int Match(Substring & sequence) {return Match(1,sequence.Data,sequence.Size);}
 	int Match(const char * data) {return Match(1,(char*)data,String::Length(data));}
@@ -2865,7 +2410,6 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 #ifdef HERO_USING_DEELX
 
@@ -2891,8 +2435,7 @@ public:
 
 	~Regex()
 	{
-		
-		
+
 	}
 
 	Regex & Construct(const Substring & sequence) {return Construct(sequence.Data,sequence.Size);}
@@ -2914,10 +2457,9 @@ public:
 	Regex & operator = (const Substring & data) {Construct(data.Data,data.Size);return *this;}
 	Regex & operator = (const char * data) {Construct(data);return *this;}
 
-
 	static String & Escape(String & string)
 	{
-		
+
 		string.Replace("[","\\[");
 		string.Replace("]","\\]");
 		string.Replace("(","\\(");
@@ -2932,7 +2474,6 @@ public:
 	}
 
 };
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2988,29 +2529,18 @@ public:
 		Interpreter.Matches = &Matches;
 		Interpreter.Options = Options;
 
-		
-		
-		
-		
-		
 		return *this;
 	}
 
 	using Pattern::Match;
 	int Match(int limit, char * data, int size)
 	{
-		
-		
 
-		
-		
-		
 		Interpreter.Options = Options;		
 		int matches = Interpreter.Match(limit,data,size);
-		
+
 		return matches;
 	}
-
 
 	Regex & operator = (const Regex & regex) {Construct(regex);return *this;}
 	Regex & operator = (const Superstring & superstring) {Construct(superstring);return *this;}
@@ -3018,10 +2548,9 @@ public:
 	Regex & operator = (const Substring & data) {Construct(data.Data,data.Size);return *this;}
 	Regex & operator = (const char * data) {Construct(data);return *this;}
 
-
 	static String & Escape(String & string)
 	{
-		
+
 		string.Replace("[","\\[");
 		string.Replace("]","\\]");
 		string.Replace("(","\\(");
@@ -3039,7 +2568,6 @@ public:
 
 #endif
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3049,6 +2577,4 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 

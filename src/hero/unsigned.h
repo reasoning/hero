@@ -38,7 +38,6 @@ SOFTWARE.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
 namespace Hero {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -47,31 +46,14 @@ namespace Hero {
 
 class Integer;
 
-
-
-
-
-
 typedef unsigned long long Block;
-
-
-
-
-
-
 
 class Unsigned : public Vector<Block> 
 {
 public:
 
-	
-	
-	
-
-	
 	static const int N = 8 * sizeof(Block);
 
-	
 	Unsigned() : Vector<Block>() {}
 	Unsigned(const Unsigned & x) : Vector<Block>(x) {}
 	Unsigned(const Integer & integer);
@@ -79,18 +61,15 @@ public:
 
 	Unsigned(const Block *data, int size) : Vector<Block>((Block*)data,size) 
 	{
-		
-		
+
 		Trim();
 	}
 
 	Unsigned(int, int allocated) : Vector<Block>(allocated) 
 	{
-		
+
 	}		
 
-	
-	
 	Unsigned(unsigned long long x);
 	Unsigned(  signed long long x);
 
@@ -104,19 +83,15 @@ public:
 	Unsigned(float x);
 	Unsigned(double x);
 
-	
 	~Unsigned() {}
 
-	
 	String Str();
-
 
 	Unsigned & operator=(const Unsigned &x) 
 	{
 		Vector<Block>::operator =(x);
 		return *this;
 	}
-
 
 	Unsigned & Clone(Unsigned & x)
 	{
@@ -136,42 +111,30 @@ public:
 		return *this;
 	}
 
-	
 	void Trim() { 
 		while (Size > 0 && Data[Size - 1] == 0)
 			Size--;
 	}
 
-	
 	template <class X> void InitFromUnsignedPrimitive(X x);
-	
+
 	template <class X> void InitFromSignedPrimitive(X x);
 
-
-	
-	
-	
-
-	
 	unsigned long long UnsignedLongLong();
 	signed long long SignedLongLong();
-	
+
 	unsigned long UnsignedLong();
 	signed long SignedLong();
-	
+
 	unsigned int UnsignedInt();
 	signed int SignedInt();
-	
+
 	unsigned short UnsignedShort();
 	signed short SignedShort();
 
-
-	
 	template <class X> X ConvertToSignedPrimitive();
 	template <class X> X ConvertToUnsignedPrimitive();
 
-	
-	
 	Block operator[] (int index) {Get(index);}
 
 	Block Get(int index) 
@@ -179,35 +142,23 @@ public:
 		return index >= Size ? 0: Data[index];
 	}
 
-	
 	void Set(int index, Block block);
 
-	
 	bool IsZero() { return Vector<Block>::IsEmpty(); }
 
-	
-	
-	
 	int BitLength();
 
-
-	
-	
 	bool Bit(int index) 
 	{
 		return (Get(index / N) & (Block(1) << (index % N))) != 0;
 	}
 
-	
-	
 	void Bit(int index, bool bit);
 
 	bool Equals(const Unsigned &x) {return Compare(x) == 0;}
 
-	
 	int Compare(const Unsigned &x);
 
-	
 	bool operator == (const Unsigned &x) const 
 	{
 		if (Size != x.Size) return false;
@@ -216,13 +167,13 @@ public:
 			if (Data[i] != x.Data[i]) return false;
 
 		return true;
-		
+
 	}
 
 	bool operator !=(const Unsigned &x) const 
 	{
 		return !operator == (x);
-		
+
 	}
 
 	bool operator <  (const Unsigned &x) {return Compare(x) == -1;}
@@ -230,14 +181,9 @@ public:
 	bool operator >= (const Unsigned &x) {return Compare(x) != -1;}
 	bool operator >  (const Unsigned &x) {return Compare(x) == 1;}
 
-	
-
-	
-
-	
 	Unsigned & Add(const Unsigned &a, const Unsigned &b);
 	Unsigned & Add(const Unsigned &x) {Add(*this,x);return *this;}
-	
+
 	Unsigned & Subtract(const Unsigned &a, const Unsigned &b);
 	Unsigned & Subtract(const Unsigned &x) {Subtract(*this,x);return *this;}
 
@@ -246,7 +192,6 @@ public:
 
 	Unsigned & Divide(const Unsigned &a, const Unsigned &b);
 	Unsigned & Divide(const Unsigned &x) {Divide(*this,x);return *this;}
-
 
 	Unsigned & BitAnd(const Unsigned &a, const Unsigned &b);
 	Unsigned & BitAnd(const Unsigned &x) {BitAnd(*this,x);return *this;}
@@ -257,47 +202,29 @@ public:
 	Unsigned & BitXor(const Unsigned &a, const Unsigned &b);
 	Unsigned & BitXor(const Unsigned &x) {BitXor(*this,x);return *this;}
 
-
-	
-	
 	Unsigned & BitShiftLeft(const Unsigned &a, int b);
 	Unsigned & BitShiftLeft(int b) {BitShiftLeft(*this,b);return *this;}
 
 	Unsigned & BitShiftRight(const Unsigned &a, int b);
 	Unsigned & BitShiftRight(int b) {BitShiftRight(*this,b);return *this;}
 
-	
-	
-	
-	
-	
-	
 	void DivideWithRemainder(const Unsigned &b, Unsigned &q);
-
-	
-	
 
 	Unsigned & Pow(const Unsigned &x);
 	Unsigned & Mod(const Unsigned &x);
 
-
-	
 	Unsigned operator +(const Unsigned &x);
 	Unsigned operator -(const Unsigned &x);
 	Unsigned operator *(const Unsigned &x);
 	Unsigned operator /(const Unsigned &x);
 	Unsigned operator %(const Unsigned &x);
 
-
-	
-	
 	Unsigned operator &(const Unsigned &x);
 	Unsigned operator |(const Unsigned &x);
 	Unsigned operator ^(const Unsigned &x);
 	Unsigned operator <<(int b);
 	Unsigned operator >>(int b);
 
-	
 	Unsigned & operator +=(const Unsigned &x);
 	Unsigned & operator -=(const Unsigned &x);
 	Unsigned & operator *=(const Unsigned &x);
@@ -309,7 +236,6 @@ public:
 	Unsigned & operator <<=(int b);
 	Unsigned & operator >>=(int b);
 
-	
 	Unsigned & operator ++(   );	
 	Unsigned operator ++(int);	
 	Unsigned & operator --(   );	
@@ -321,20 +247,6 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 template <class X>
 void Unsigned::InitFromUnsignedPrimitive(X x) 
 {
@@ -342,19 +254,10 @@ void Unsigned::InitFromUnsignedPrimitive(X x)
 		; 
 	else 
 	{
-		
-
-		
-		
-		
 
 		Insert(Block(x),0);
 	}
 }
-
-
-
-
 
 template <class X>
 void Unsigned::InitFromSignedPrimitive(X x) 
@@ -364,44 +267,37 @@ void Unsigned::InitFromSignedPrimitive(X x)
 		Raise("Unsigned InitFromSignedPrimitive: Cannot construct a Unsigned from a negative number");
 		return;
 	}
-	
+
 	InitFromUnsignedPrimitive(x);
 }
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
 
 template <class X>
 X Unsigned::ConvertToUnsignedPrimitive() 
 {
 	if (Size == 0)
 	{
-		
+
 		return 0;
 	}
 	else 
 	if (Size == 1) 
 	{
-		
+
 		X x = X(Data[0]);
-		
+
 		if (Block(x) == Data[0])
-			
+
 			return x;
-		
+
 	}
 
 	Raise("Unsigned ConvertToPrimitive: Value is too big to fit in the requested type");
 	return 0;
 }
-
 
 template <class X>
 X Unsigned::ConvertToSignedPrimitive()
@@ -412,7 +308,7 @@ X Unsigned::ConvertToSignedPrimitive()
 		Raise("Unsigned ConvertToSignedPrimitive: Value is too big to fit in the requested type");
 		return 0;
 	}
-	
+
 	return x;	
 }
 

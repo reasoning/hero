@@ -46,9 +46,6 @@ namespace Hero {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
-
 class Text : public String
 {
 public:
@@ -56,28 +53,18 @@ public:
 	Text();
 	~Text();
 
-	
 	int IndexOf(int from, char *data, int size,  bool caseless=false);
-	
-	
+
 	int IndexOfXor(int from, char *data, int size,  bool caseless=false);
-	
+
 	int IndexOfRabinKarp(int from, char *data, int size,  bool caseless=false);
 
 	int IndexOfBoyerMoore(int from, char *data, int size,  bool caseless=false);
-	
 
-	
-	
-	
 	void Wrap(int columns, const char * indent=0, int tabs=8, const char * first=0) {}
 	void Pad() {}
-	
-	
+
 };
-
-
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -89,7 +76,7 @@ public:
 
 	TextFile(){}
 	TextFile(const File & file):File(file){}
-	
+
 	TextFile(const Substring & str):File(str){}
 	TextFile(const char * path):File(path){}
 	TextFile(char * path, int size):File(path,size){}
@@ -105,14 +92,10 @@ public:
 	{
 		if ( !IsOpen() && !Open() && !Open(File::OPTIONS_OPEN_TEXT_READ)) 
 		{
-			
-			
-			
 
 			Raise("TextFile::OpenReadable: The file does not exist or could not be opened for reading.\n");	
 			return false;
 		}
-
 
 		if (!IsReadable())
 		{
@@ -127,10 +110,7 @@ public:
 	{
 		if ( !IsOpen() && !Open() && !Open(File::OPTIONS_OPEN_TEXT_WRITE))
 		{
-			
-			
-			
-			
+
 			Raise("TextFile::OpenWriteable: The file does not exist or could not be opened for writing.\n");	
 			return false;
 		}
@@ -144,7 +124,6 @@ public:
 		return true;
 	}
 };
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -167,11 +146,9 @@ public:
 	}
 };
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 class TextStream : public StreamBuffer
 {
@@ -182,8 +159,6 @@ public:
 
 	int ReadLine(char * data, int size)
 	{
-		
-		
 
 		int read=0, amount=0;
 		char at;
@@ -193,7 +168,7 @@ public:
 			{
 				if (at != *Offset && (*Offset == Characters::CarriageReturn || *Offset == Characters::LineFeed))
 					Read(at);
-		
+
 				break;
 			}
 
@@ -226,16 +201,10 @@ public:
 
 	int ReadLine(String & string, int amount=0)
 	{
-		
-		
-		
 
-		
-		
 		if (amount)
 		{
-			
-			
+
 			if (string.Allocated <= amount)
 				string.Allocate(amount+1);
 
@@ -245,9 +214,6 @@ public:
 		{
 			if (string.Allocated == 0)
 				string.Allocate(0);
-
-			
-			
 
 			string.Size = 0;
 			char at;
@@ -265,7 +231,7 @@ public:
 				{
 					string.Allocate(0);
 				}
-				
+
 				string.Data[string.Size] = at;
 				string.Size++;
 			}
@@ -280,7 +246,7 @@ public:
 		String reader;
 		reader.Resize((amount>0)?amount:4096);
 		reader.Size = ReadLine(reader,amount);
-		
+
 		int write = writer.Write(reader);		
 		if (reader.Size != write)
 		{
@@ -306,12 +272,9 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 } 
 

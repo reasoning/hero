@@ -34,8 +34,7 @@ SOFTWARE.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace Hero
-{
+namespace Hero {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -43,188 +42,201 @@ namespace Hero
 
 Text::Text()
 {
+
 }
 
 Text::~Text()
 {
+
 }
 
-int Text::IndexOfXor(const int from, char* data, const int size, bool caseless)
+int Text::IndexOfXor(const int from, char *data, const int size,  bool caseless)
 {
-    if (data == 0 || size == 0 || size > Size)
-        return -1;
 
-    if (size < 5)
-    {
-        char* p = Data + from;
-        char* sentinel = PointerAt(Size - 1) - size;
-        int index = 0;
-        while (p <= sentinel)
-        {
-            index = strncmp(p, data, size);
-            if (index == 0)
-                return index;
-            ++p;
-        }
+	if (data == 0 || size == 0 || size > Size)
+		return -1;
 
-        return -1;
-    }
+	if (size < 5)
+	{
 
-    if (Size <= 128)
-    {
-        char* result = Characters::Find(Data + from, Size - from, data, size, caseless);
+		char *p = Data+from;
+		char *sentinel = PointerAt(Size-1)-size;
+		int index=0;
+		while (p <= sentinel)
+		{
+			index = strncmp(p,data,size);
+			if (index == 0)
+				return index;
+			++p;
+		}
 
-        if (result == 0)
-            return -1;
-        else
-            return result - Data;
-    }
+		return -1;
+	}
 
-    unsigned char checksum = 0;
-    unsigned char match = 0;
+	if (Size <= 128)
+	{
+		char *result = Characters::Find(Data+from,Size-from,data,size,caseless);
 
-    for (int i = 0; i < size; ++i)
-    {
-        checksum ^= data[i];
-        match ^= Data[i];
-    }
+		if (result == 0)
+			return -1;
+		else
+			return result - Data;
+	}
 
-    if (match == checksum && Characters::Equals(Data, data, size))
-        return 0;
+	unsigned char checksum = 0;		
+	unsigned char match = 0;		
 
-    int limit = Size - size + 1;
+	for (int i=0;i<size;++i)
+	{
+		checksum ^= data[i];	
+		match ^= Data[i];			
+	}
 
-    for (int n = 1; n < limit; ++n)
-    {
-        match ^= Data[n - 1];
-        match ^= Data[n + size];
+	if (match == checksum && Characters::Equals(Data,data, size))
+		return 0;	
 
-        if (match == checksum && Characters::Equals((Data + n), data, size))
-            return n;
-    }
+	int limit = Size-size+1;
 
-    return -1;
+	for(int n=1; n < limit;++n)
+	{
+		match ^= Data[n-1];			
+		match ^= Data[n+size];	
+
+		if (match == checksum && Characters::Equals((Data+n),data,size))
+			return n;		
+	}
+
+	return -1;	
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Text::IndexOf(int from, char* data, int size, bool caseless)
+int Text::IndexOf(int from, char *data, int size,  bool caseless)
 {
-    int hex = 0x00;
-    if (caseless)
-        hex = 0x20;
 
-    int key = ((data[from] | hex) << 16) & ((data[size - 1] | hex) << 8);
-    int hash = ((Data[from] | hex) << 16) & ((Data[size - 1] | hex) << 8);
+	int hex = 0x00;
+	if (caseless)
+		hex = 0x20;
 
-    for (int i = from + 1; i < size - 1; ++i)
-    {
-        key ^= data[i] | hex;
-        hash ^= Data[i] | hex;
+	int key = ((data[from]|hex)<<16) & ((data[size-1]|hex)<<8);
+	int hash = ((Data[from]|hex)<<16) & ((Data[size-1]|hex)<<8);
 
-        if ((i & 0x00000001) == 0)
-        {
-            key &= (0xFFFF & key) << 1;
-            hash &= (0xFFFF & hash) << 1;
-        }
-    }
+	for (int i=from+1;i<size-1;++i)
+	{
+		key ^= data[i]|hex;
+		hash ^= Data[i]|hex;
 
-    if (hash == key && Characters::Equals(Data, data, size, caseless)) return from;
+		if ((i&0x00000001) == 0)
+		{
+			key &= (0xFFFF&key)<<1;
+			hash &= (0xFFFF&hash)<<1;
+		}
+	}
 
-    int j = size - 1;
+	if (hash == key && Characters::Equals(Data,data,size,caseless)) return from;
 
-    int w = size - 2;
+	int j = size-1;
 
-    int lim = Size - size + 1;
+	int w = size-2;
 
-    int shift = size - 2 / 2;
+	int lim = Size-size+1;
 
-    for (int i = from + 1; i < lim; ++i)
-    {
-        hash &= ((Data[i] | hex) << 16) & ((Data[i + j] | hex) << 8);
+	int shift = size-2/2;
 
-        hash ^= (Data[i] | hex) << shift ^ (Data[i + w] | hex);
+    for (int i=from+1;i<lim;++i)
+	{
 
-        if (i % 2 == 0)
-        {
-            hash &= (0xFFFF & hash) << 1;
-        }
+		hash &= ((Data[i]|hex)<<16) & ((Data[i+j]|hex)<<8);
 
-        if (hash == key && Characters::Equals(Data + i, data, size)) return i;
-    }
+		hash ^= (Data[i]|hex)<<shift ^ (Data[i+w]|hex);
 
-    return -1;
+		if (i%2 == 0)
+		{
+			hash &= (0xFFFF&hash)<<1;
+		}
+
+		if (hash == key && Characters::Equals(Data+i,data,size)) return i;
+	}
+
+	return -1;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Text::IndexOfRabinKarp(int from, char* data, int size, bool caseless)
+int Text::IndexOfRabinKarp(int from, char *data, int size,  bool caseless)
 {
-    int p = 101;
 
-    int key = 0;
-    int hash = 0;
+	int p = 101;
 
-    for (int i = from; i < size; ++i)
-    {
-        key = (256 * key + Characters::Case(data[i], caseless)) % p;
-        hash = (256 * hash + Characters::Case(Data[i], caseless)) % p;
-    }
+	int key = 0;
+	int hash = 0;
 
-    int h = 1;
-    for (int i = 0; i < size; ++i)
-        h = (256 * h) % p;
+	for (int i=from;i<size;++i)
+	{
+		key = (256*key + Characters::Case(data[i],caseless)) % p;
+		hash = (256*hash + Characters::Case(Data[i],caseless)) % p;
+	}
 
-    int j = size;
+	int h = 1;
+	for (int i=0;i<size;++i)
+		h = (256*h) % p;
 
-    for (; j < Size; ++j)
-    {
-        if (hash == key && Characters::Equals(Data, data, size, caseless)) return from;
+	int j = size;
 
-        hash = (256 * (hash - (Characters::Case(Data[j - size], caseless)) * h) + (Characters::Case(Data[j], caseless))) % p;
+	for (;j<Size;++j)
+	{
 
-        if (hash < 0)
-            hash += p;
-    }
+		if (hash == key && Characters::Equals(Data,data,size,caseless)) return from;
 
-    return -1;
+		hash = (256*(hash - (Characters::Case(Data[j-size],caseless))*h) + (Characters::Case(Data[j],caseless))) % p;
+
+		if (hash < 0)
+			hash += p;
+	}
+
+	return -1;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int Text::IndexOfBoyerMoore(int from, char* data, const int size, bool caseless)
+int Text::IndexOfBoyerMoore(int from, char *data, const int size,  bool caseless)
 {
-    Map<char, Array<int>> pattern;
-    for (int i = 0; 0 < size; ++i)
-    {
-        Result<bool, int> res = pattern.Insert(Characters::Case(data[i], caseless));
-        pattern.Values[res.Index].Append(i);
-    }
 
-    int i = size - 1;
-    int j = 0;
-    int k = 0;
+	Map< char,Array<int> > pattern;
+	for (int i=0;0<size;++i)
+	{
 
-    while (i < Size)
-    {
-        j = 0;
-        while (j < size && Characters::Case(Data[i - j], caseless) == Characters::Case(data[size - 1 - j], caseless))
-            ++j;
+		Result<bool,int> res = pattern.Insert(Characters::Case(data[i],caseless));
+		pattern.Values[res.Index].Append(i);
 
-        if (j == size)
-            return i;
+	}
 
-        k = size - 1 - j;
-        Result<bool, int> res = pattern.Select(Data[i - j]);
-    }
+	int i=size-1;
+	int j=0;	
+	int k=0;
 
-    return -1;
+	while (i < Size)
+	{
+
+		j = 0;
+		while (j < size && Characters::Case(Data[i-j],caseless) == Characters::Case(data[size-1-j],caseless))
+			++j;
+
+		if (j == size)
+			return i;
+
+		k = size-1-j;
+		Result<bool,int> res = pattern.Select(Data[i-j]);
+
+	}
+
+	return -1;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -235,8 +247,9 @@ int Text::IndexOfBoyerMoore(int from, char* data, const int size, bool caseless)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace Hero
+} 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+

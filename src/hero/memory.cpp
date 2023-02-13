@@ -24,16 +24,16 @@ SOFTWARE.
 
 #ifdef HERO_PLATFORM_POSIX
 
-    #pragma clang diagnostic push
-    #pragma clang diagnostic ignored "-Wsign-conversion"
-    #pragma clang diagnostic ignored "-Wunused-variable"
-    #pragma clang diagnostic ignored "-Wunused-parameter"
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsign-conversion"
+#pragma clang diagnostic ignored "-Wunused-variable"
+#pragma clang diagnostic ignored "-Wunused-parameter"
 
 #endif
 
 #ifdef __wasm__
 
-    #pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -41,27 +41,26 @@ SOFTWARE.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "hero/memory.h"
-#include "hero/assert.h"
-#include "hero/binary.h"
-#include "hero/sync.h"
 #include "hero/thread.h"
+#include "hero/sync.h"
+#include "hero/binary.h"
+#include "hero/assert.h"
 
 #ifdef HERO_PLATFORM_POSIX
-    #ifndef __wasm__
-        #include <x86intrin.h>
-    #endif
+#ifndef __wasm__
+#include <x86intrin.h>
+#endif
 #endif
 
 #ifdef HERO_USING_TRACY
-    #include <tracy/Tracy.hpp>
+#include <tracy/Tracy.hpp>
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace Hero
-{
+namespace Hero {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -69,47 +68,48 @@ namespace Hero
 
 struct LeakDetectorCounter::LeakDetectorCounterImpl
 {
+
     int Count;
-#ifdef HERO_PLATFORM_X86_64
-    long long Peak;
-#else
+    #ifdef HERO_PLATFORM_X86_64
+    long long Peak; 
+    #else
     int Peak;
-#endif
+    #endif
 
     String Tag;
 
-    LeakDetectorCounterImpl(const char* tag) : Count(0), Peak(0), Tag(tag) {}
-
-    ~LeakDetectorCounterImpl()
+    LeakDetectorCounterImpl(const char * tag):Count(0),Peak(0),Tag(tag) {}
+    ~LeakDetectorCounterImpl() 
     {
-        printf("LeakDetector<%s> Peak: %lld, Count: %d\n", Tag.Data, Peak, Count);
+        printf("LeakDetector<%s> Peak: %lld, Count: %d\n",Tag.Data,Peak,Count);
         Assert(Count >= 0);
     }
 };
 
-LeakDetectorCounter::LeakDetectorCounter(const char* tag)
+LeakDetectorCounter::LeakDetectorCounter(const char * tag)
 {
     Impl = new LeakDetectorCounterImpl(tag);
 }
 
 LeakDetectorCounter::~LeakDetectorCounter()
 {
-    if (Impl) delete Impl;
+    if (Impl) delete Impl;    
 }
 
 void LeakDetectorCounter::Inc()
 {
-    Atomic::Inc((volatile int*)&Impl->Count);
-#ifdef HERO_PLATFORM_X86_64
-    Atomic::Inc((volatile long long*)&Impl->Peak);
-#else
-    Atomic::Inc((volatile int*)&Impl->Peak);
-#endif
+    Atomic::Inc((volatile int *)&Impl->Count);
+    #ifdef HERO_PLATFORM_X86_64
+    Atomic::Inc((volatile long long *)&Impl->Peak);
+    #else
+    Atomic::Inc((volatile int *)&Impl->Peak);
+    #endif
+
 }
 
 void LeakDetectorCounter::Dec()
 {
-    Atomic::Dec((volatile int*)&Impl->Count);
+    Atomic::Dec((volatile int *)&Impl->Count);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -119,50 +119,51 @@ void LeakDetectorCounter::Dec()
 struct LeakTrackerTable::LeakTrackerTableImpl
 {
     SpinLock Lock;
-    HashMap<void*, int> Address;
+    HashMap<void*,int> Address;
     String Tag;
 
-    LeakTrackerTableImpl(const char* tag) : Tag(tag) {}
-
+    LeakTrackerTableImpl(const char * tag):Tag(tag) {}
     ~LeakTrackerTableImpl() {}
+
 };
 
-LeakTrackerTable::LeakTrackerTable(const char* tag)
+LeakTrackerTable::LeakTrackerTable(const char * tag)
 {
     Impl = new LeakTrackerTableImpl(tag);
 }
 
 LeakTrackerTable::~LeakTrackerTable()
 {
-    delete Impl;
+    delete Impl;    
 }
 
-void LeakTrackerTable::Add(void* addr)
+void LeakTrackerTable::Add(void * addr)
 {
     SpinLock::WriteLock write(Impl->Lock);
 
-    Result<bool, int> map = Impl->Address.Insert(addr, 1);
+    Result<bool,int> map = Impl->Address.Insert(addr,1);
     if (!map)
 
         Impl->Address.At(map.Index)++;
 }
 
-void LeakTrackerTable::Del(void* addr)
+void LeakTrackerTable::Del(void * addr)
 {
     SpinLock::WriteLock write(Impl->Lock);
 
-    Result<bool, int> map = Impl->Address.Select(addr);
+    Result<bool,int> map = Impl->Address.Select(addr);
     if (!map)
-    {
-        printf("LeakTracker<%s> Address not found [%08LX]\n", Impl->Tag.Data, addr);
+    {   
+        printf("LeakTracker<%s> Address not found [%08LX]\n",Impl->Tag.Data,addr);
         Assert(false);
     }
 
-    int& value = Impl->Address.At(map.Index);
+    int & value = Impl->Address.At(map.Index);
 
     if (value < 0)
     {
-        printf("LeakTracker<%s> Double delete detected [%08LX] (%d)\n", Impl->Tag.Data, addr, value);
+
+        printf("LeakTracker<%s> Double delete detected [%08LX] (%d)\n",Impl->Tag.Data,addr,value);
         Assert(false);
     }
 }
@@ -177,20 +178,20 @@ void LeakTrackerTable::Del(void* addr)
 
 void* AlignedAlloc(size_t alignment, size_t size)
 {
-#ifdef HERO_PLATFORM_WINDOWS
-    return _aligned_malloc(alignment, size);
-#else
-    return aligned_alloc(alignment, size);
-#endif
+    #ifdef HERO_PLATFORM_WINDOWS
+    return _aligned_malloc(alignment,size);
+    #else
+    return aligned_alloc(alignment,size);
+    #endif
 }
 
 void AlignedFree(void* data)
 {
-#ifdef HERO_PLATFORM_WINDOWS
+    #ifdef HERO_PLATFORM_WINDOWS
     _aligned_free(data);
-#else
+    #else
     free(data);
-#endif
+    #endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -198,15 +199,21 @@ void AlignedFree(void* data)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 SlabEntry::SlabEntry()
-    : Next(0), Prev(0), Bytes(0), Offset(0)
+    : Next(0)
+    , Prev(0)
+    , Bytes(0)
+    , Offset(0)
 {
+
     memset(Data, 0, 4);
+
 }
 
 SlabEntry::~SlabEntry() {}
 
 SlabEntry* SlabList::Get(long long size)
 {
+
     if (size < Capacity[0])
         size = Capacity[0];
     int index = 0;
@@ -222,24 +229,20 @@ SlabEntry* SlabList::Get(long long size)
 
     SlabEntry* entry = 0;
 
-    if ((power > Capacity[Power - 1] && (power = size)) || Head[index] == 0)
-    {
+    if ((power > Capacity[Power - 1] && (power = size)) || Head[index] == 0) {
+
         char* data = new char[sizeof(SlabEntry) + power];
         entry = new (((char*)data)) SlabEntry();
-    }
-    else
-    {
+    } else {
+
         SlabEntry* head = 0;
         SlabEntry* next = 0;
 
-        do
-        {
+        do {
             head = Head[index];
-            if (head)
-            {
+            if (head) {
                 Hazard::Setter haz(Haz[index]);
-                if (!haz.Set)
-                {
+                if (!haz.Set) {
                     Thread::Yield();
 
                     break;
@@ -266,8 +269,8 @@ SlabEntry* SlabList::Get(long long size)
 
         } while (head);
 
-        if (!entry)
-        {
+        if (!entry) {
+
             char* data = new char[sizeof(SlabEntry) + power];
             entry = new (((char*)data)) SlabEntry();
         }
@@ -282,6 +285,7 @@ SlabEntry* SlabList::Get(long long size)
 
 bool SlabList::Put(SlabEntry* entry)
 {
+
     long long size = entry->Bytes;
     int index = 0;
     while (size > Capacity[index] && index < Power)
@@ -295,23 +299,19 @@ bool SlabList::Put(SlabEntry* entry)
     Assert(power > Capacity[Power - 1] || Capacity[index] == power);
     Assert(power > Capacity[Power - 1] || power == entry->Bytes);
 
-    if (power > Capacity[Power - 1] || Count[index] > 100)
-    {
+    if (power > Capacity[Power - 1] || Count[index] > 100) {
         entry->~SlabEntry();
         delete[](char*) entry;
-    }
-    else
-    {
+    } else {
         SlabEntry* data = (SlabEntry*)entry;
 
         SlabEntry* head = 0;
         SlabEntry* next = 0;
 
-        do
-        {
+        do {
             Hazard::Setter haz(Haz[index]);
-            if (!haz.Set)
-            {
+            if (!haz.Set) {
+
                 entry->~SlabEntry();
                 delete[](char*) entry;
 
@@ -340,7 +340,7 @@ bool SlabList::Put(SlabEntry* entry)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const long long SlabList::Capacity[] = {0x100000, 0xA00000, 0x6400000, 0x40000000, 0x280000000, 0x500000000};
+const long long SlabList::Capacity[] = { 0x100000, 0xA00000, 0x6400000, 0x40000000, 0x280000000, 0x500000000 };
 SlabEntry* SlabList::Head[] = {};
 int SlabList::Count[] = {};
 Hazard SlabList::Haz[] = {};
@@ -352,6 +352,7 @@ long long SlabList::Hits = 0;
 
 SlabAllocator& SlabAllocator::Singleton()
 {
+
     static SlabAllocator slab = SlabAllocator();
     return slab;
 }
@@ -371,11 +372,13 @@ void* SlabAllocator::Reallocate(SlabHandle& handle, long long amount, long long 
     long long pad = 0x800;
     bytes += pad * 2;
 
-    do
+    do 
     {
+
         Hazard::Setter haz(handle.Haz);
-        if (!haz.Set)
+        if (!haz.Set) 
         {
+
             Thread::Yield();
             continue;
         }
@@ -383,77 +386,80 @@ void* SlabAllocator::Reallocate(SlabHandle& handle, long long amount, long long 
         SlabEntry* entry = (SlabEntry*)Atomic::Load((volatile void**)&handle.Entry);
         long long offset = 0;
 
-        if (entry)
+        if (entry) 
         {
+
             Assert(entry->Offset < entry->Bytes);
 
             Assert(bytes > 0);
-#ifndef __wasm__
+            #ifndef __wasm__
             offset = Atomic::Load((volatile long long*)&(entry->Offset));
-#else
+            #else
             offset = Atomic::Load((volatile int*)&(entry->Offset));
-#endif
+            #endif 
 
-            if (bytes > entry->Bytes - offset)
-            {
+            if (bytes > entry->Bytes - offset) {
+
                 long long next = (bytes > entry->Bytes) ? bytes : entry->Bytes;
 
                 entry = SlabList::Get(next);
                 printf("* Next slab allocation of size ", entry->Bytes, " at ", (void*)entry);
 
-#ifndef __wasm__
+                #ifndef __wasm__
                 if (entry)
                     offset = Atomic::Load((volatile long long*)&(entry->Offset));
-#else
+                #else
                 if (entry)
                     offset = Atomic::Load((volatile int*)&(entry->Offset));
-#endif
+                #endif 
             }
-        }
-        else
+
+        } 
+        else 
         {
+
             entry = SlabList::Get(bytes);
             printf("* First slab allocation of size ", entry->Bytes, " at ", (void*)entry);
 
-#ifndef __wasm__
+            #ifndef __wasm__
             if (entry)
                 offset = Atomic::Load((volatile long long*)&(entry->Offset));
-#else
+            #else
             if (entry)
                 offset = Atomic::Load((volatile int*)&(entry->Offset));
-#endif
+            #endif 
         }
 
-        if (entry)
-        {
+        if (entry) {
+
             Assert(entry->Offset < entry->Bytes);
 
             char* data = entry->Data + offset + pad;
 
             (*(long long*)(data - sizeof(long long))) = bytes;
 
-            if (*data != 0)
-            {
+            if (*data != 0) {
                 printf("*** ERROR: Entry data was not null");
+
             }
 
             Assert(data >= entry->Data && data <= (entry->Data + entry->Bytes));
 
-            if (handle.Entry == entry)
-            {
+            if (handle.Entry == entry) {
+
 #ifndef __wasm__
                 Atomic::Add((volatile long long*)&(entry->Offset), bytes);
 #else
                 Atomic::Add((volatile int*)&(entry->Offset), bytes);
 #endif
 
-                if (*(entry->Data + entry->Offset) != 0)
-                {
+                if (*(entry->Data + entry->Offset) != 0) {
                     printf("*** ERROR: Entry data was not null");
+
                 }
-            }
-            else
-            {
+
+            } else {
+
                 memset(entry->Data, 0, entry->Bytes);
             }
 
@@ -463,9 +469,9 @@ void* SlabAllocator::Reallocate(SlabHandle& handle, long long amount, long long 
             Assert(entry->Offset < entry->Bytes);
 
             return (void*)data;
-        }
-        else
-        {
+
+        } else {
+
             printf("* Allocation failed ", bytes, " at ", (void*)entry);
 
             return 0;
@@ -482,13 +488,10 @@ MemoryPool::~MemoryPool() {}
 void MemoryPool::Clear()
 {
     int index = 0;
-    for (; index < Power; ++index)
-    {
-        do
-        {
+    for (; index < Power; ++index) {
+        do {
             Hazard::Setter haz(Haz[index]);
-            if (!haz.Set)
-            {
+            if (!haz.Set) {
                 Thread::Yield();
                 continue;
             }
@@ -497,12 +500,12 @@ void MemoryPool::Clear()
             MemoryPoolData* prev = 0;
 
             head = Head[index];
-            while (head)
-            {
+            while (head) {
                 prev = head;
                 head = head->Next;
 
                 AlignedFree((char*)prev);
+
             }
 
             Head[index] = 0;
@@ -513,6 +516,7 @@ void MemoryPool::Clear()
 
 MemoryStorage* MemoryPool::Get(int size)
 {
+
     if (size < 4)
         size = 4;
     int power = Binary::NextPowerOfTwo((uint32_t)size - 1);
@@ -523,25 +527,21 @@ MemoryStorage* MemoryPool::Get(int size)
 
     MemoryStorage* storage = 0;
 
-    if ((power > Capacity[Power - 1] && (power = size)) || Head[index] == 0)
-    {
+    if ((power > Capacity[Power - 1] && (power = size)) || Head[index] == 0) {
+
         char* data = (char*)AlignedAlloc(32, sizeof(MemoryStorage) + power);
 
         storage = new (((char*)data)) MemoryStorage();
-    }
-    else
-    {
+    } else {
+
         MemoryPoolData* head = 0;
         MemoryPoolData* next = 0;
 
-        do
-        {
+        do {
             head = Head[index];
-            if (head)
-            {
+            if (head) {
                 Hazard::Setter haz(Haz[index]);
-                if (!haz.Set)
-                {
+                if (!haz.Set) {
                     Thread::Yield();
                     continue;
 
@@ -566,8 +566,8 @@ MemoryStorage* MemoryPool::Get(int size)
 
         } while (head);
 
-        if (!storage)
-        {
+        if (!storage) {
+
             char* data = (char*)AlignedAlloc(32, sizeof(MemoryStorage) + power);
 
             storage = new (((char*)data)) MemoryStorage();
@@ -583,6 +583,7 @@ MemoryStorage* MemoryPool::Get(int size)
 
 bool MemoryPool::Put(MemoryStorage* storage)
 {
+
     int size = storage->Bytes;
     Assert(size >= 4);
     int power = Binary::NextPowerOfTwo((uint32_t)size - 1);
@@ -592,24 +593,21 @@ bool MemoryPool::Put(MemoryStorage* storage)
     Assert(power > Capacity[Power - 1] || Capacity[index] == power);
     Assert(power > Capacity[Power - 1] || power == storage->Bytes);
 
-    if (power > Capacity[Power - 1] || Count[index] > 1000)
-    {
+    if (power > Capacity[Power - 1] || Count[index] > 1000) {
         storage->~MemoryStorage();
 
         AlignedFree((char*)storage);
-    }
-    else
-    {
+
+    } else {
         MemoryPoolData* data = (MemoryPoolData*)storage;
 
         MemoryPoolData* head = 0;
         MemoryPoolData* next = 0;
 
-        do
-        {
+        do {
             Hazard::Setter haz(Haz[index]);
-            if (!haz.Set)
-            {
+            if (!haz.Set) {
+
                 storage->~MemoryStorage();
 
                 AlignedFree((char*)storage);
@@ -632,8 +630,8 @@ bool MemoryPool::Put(MemoryStorage* storage)
     return true;
 }
 
-const int MemoryPool::Capacity[] = {4, 8, 16, 32, 64, 128, 256, 512, 1024,
-                                    2048, 4096, 8192, 16384, 65536, 131072, 262144, 524288};
+const int MemoryPool::Capacity[] = { 4,    8,    16,   32,    64,    128,    256,    512,   1024,
+                                  2048, 4096, 8192, 16384, 65536, 131072, 262144, 524288 };
 MemoryPoolData* MemoryPool::Head[] = {};
 int MemoryPool::Count[] = {};
 Hazard MemoryPool::Haz[] = {};
@@ -641,6 +639,7 @@ long long MemoryPool::Hits = 0;
 
 MemoryAllocator& MemoryAllocator::Singleton()
 {
+
     static MemoryAllocator allocator = MemoryAllocator();
     return allocator;
 }
@@ -653,10 +652,9 @@ MemoryStorage* MemoryAllocator::Allocate(int amount, int size)
 MemoryStorage* MemoryAllocator::Reallocate(MemoryStorage* storage, int amount, int size)
 {
     int bytes = amount * size;
-    if (bytes > 0)
-    {
-        if (storage)
-        {
+    if (bytes > 0) {
+        if (storage) {
+
             Assert(bytes > 0);
 
             storage->Capacity = bytes;
@@ -672,12 +670,12 @@ MemoryStorage* MemoryAllocator::Reallocate(MemoryStorage* storage, int amount, i
     return storage;
 }
 
-struct AlignedAllocSlab
-{
+struct AlignedAllocSlab {
     SlabHandle Handle;
 
     AlignedAllocSlab()
     {
+
         SlabAllocator::Singleton().Allocate(Handle, 0x280000000, 1);
     }
 
@@ -690,7 +688,7 @@ struct AlignedAllocSlab
 
 void* SlabAlignedAlloc(size_t size)
 {
-#ifdef HERO_ALIGNED_ALLOC_SLAB_TRACY
+    #ifdef HERO_ALIGNED_ALLOC_SLAB_TRACY
 
     void* data = malloc(size);
 
@@ -700,26 +698,27 @@ void* SlabAlignedAlloc(size_t size)
     #endif
 
     return data;
-#else
+    #else
 
-    SlabHandle& handle = AlignedAllocSlab::Singleton()->Handle;
-    void* data = SlabAllocator::Singleton().Reallocate(handle, size, 1);
+    SlabHandle & handle = AlignedAllocSlab::Singleton()->Handle;
+    void * data = SlabAllocator::Singleton().Reallocate(handle, size, 1);
 
     if (size > 0x40000000)
     {
-        printf("*** INFO: Large alloc of ", size, " at ", data);
+        printf("*** INFO: Large alloc of ", size ," at ", data);
     }
 
     return data;
 
-#endif
+    #endif
+
 }
 
 static long long leaked = 0;
 
 void SlabAlignedFree(void* data)
 {
-#ifdef HERO_ALIGNED_ALLOC_SLAB_TRACY
+    #ifdef HERO_ALIGNED_ALLOC_SLAB_TRACY
 
     #ifdef HERO_USING_TRACY
 
@@ -728,20 +727,18 @@ void SlabAlignedFree(void* data)
 
     return free(data);
 
-#else
+    #else
 
     long long bytes = (*(long long*)(((char*)data) - sizeof(long long)));
 
-    if (bytes == 0 || bytes > 0x500000000)
-    {
+    if (bytes == 0 || bytes > 0x500000000) {
         printf("*** ERROR: Large or zero deallocation detected, possible memory underflow/overflow");
-    }
-    else
-    {
+    } else {
         leaked += bytes;
     }
 
-#endif
+    #endif
+
 }
 
 #ifdef HERO_ALIGNED_ALLOC
@@ -750,6 +747,7 @@ void* HeroAlignedAlloc(size_t alignment, size_t size)
 void* HeroAlignedAlloc(size_t, size_t size)
 #endif
 {
+
     void* data = 0;
 
 #ifdef HERO_ALIGNED_ALLOC_SLAB
@@ -774,8 +772,7 @@ void* HeroAlignedAlloc(size_t, size_t size)
     data = malloc(size);
 #endif
 
-    if (data == 0)
-    {
+    if (data == 0) {
         printf("bad alloc of size: ", size);
         std::abort();
     }
@@ -784,18 +781,19 @@ void* HeroAlignedAlloc(size_t, size_t size)
 
 void HeroAlignedFree(void* mem)
 {
-#ifdef HERO_ALIGNED_ALLOC_SLAB
+
+    #ifdef HERO_ALIGNED_ALLOC_SLAB
     SlabAlignedFree(mem);
-#else
+    #else
     free(mem);
-#endif
+    #endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace Hero
+} 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -803,6 +801,6 @@ void HeroAlignedFree(void* mem)
 
 #ifdef HERO_PLATFORM_POSIX
 
-    #pragma clang diagnostic pop
+#pragma clang diagnostic pop
 
 #endif

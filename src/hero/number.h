@@ -23,20 +23,15 @@ SOFTWARE.
 */
 #pragma once
 
-
-
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 #include "hero/hero.h"
 #include "hero/string.h"
 #include "hero/error.h"
 #include "hero/structure.h"
 #include "hero/signed.h"
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -48,26 +43,19 @@ SOFTWARE.
 
 #include <math.h>
 
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 namespace Hero {
 
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
 
 class Prime
 {
@@ -103,7 +91,6 @@ public:
 	static const int NumberCount;
 	static const int Number[];
 
-	
 	struct PowerOffset
 	{
         const int Offset[10];
@@ -117,39 +104,11 @@ public:
 	static const int PowerCount;
 	static const PowerOffset Power[];
 
-
 };
 
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -204,9 +163,6 @@ public:
 	static const double NotANumber;
 };
 
-
-
-
 class Int
 {
 };
@@ -215,12 +171,9 @@ class LongLong
 {
 };
 
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 
 class Numbers
 {
@@ -254,31 +207,26 @@ public:
 	{
 		bool sign = (a < 0);
 		int b = (int)a;
-		
+
 		if ((long long)(b) == a)
 			return b;
-    	
+
 		return (sign)?0x80000000:0x7FFFFFFF;
 	}
 
 	template <typename _Kind_>
 	static int Diff(_Kind_ lhs, _Kind_ rhs)
 	{
-		
+
 		Hero::Clamp<int,_Kind_>::Diff(lhs,rhs);
 	}
 
 	template <typename _Kind_>
 	static int Compare(_Kind_ lhs, _Kind_ rhs)
 	{
-		
+
 		return Hero::Comparer<_Kind_>::Compare(lhs,rhs);
 	}
-
-
-	
-	
-	
 
 	static float Log(float x)				{return log10(x);}
 	static double Log(double x)				{return log10(x);}
@@ -289,36 +237,32 @@ public:
 	static float Pow(float x, float y)		{return pow(x,y);}
 	static double Pow(double x, double y)	{return pow(x,y);}
 
-
-	
-
 	static float Round(float x)				{return (x-(int)x>=0.5)?ceil(x):floor(x);}
 	static double Round(double x)			{return (x-(int)x>=0.5)?ceil(x):floor(x);}
 
 	static long Random();
-	
+
 	static void Random(float & value)
 	{
 		value = (float)Numbers::Random();
 	}
-	
+
 	static void Random(double &value) 
 	{
 		Random((long long&)value);
 	}
-	
+
 	static void Random(long long &value) 
 	{
-		
-		
+
 		value = (((long long)Numbers::Random()<<32)|(long long)Numbers::Random());
 	}
-	
+
 	static void Random(int & value) 
 	{
 		value = Numbers::Random();
 	}
-	
+
 	static double Zero()
 	{
 		return 0.0;
@@ -336,18 +280,9 @@ public:
 
 	static double Infinity()
 	{
-		
-		
 
-		
-		
-		
-		
-
-		
 		static const double inf = (double)HUGE_VAL;
-		
-		
+
 		return inf;
 	}
 
@@ -360,20 +295,19 @@ public:
 	{
 		return Double::NegativeInfinity;
 	}
-	
-	
+
 	static signed short MinimumSignedShort()
 	{
 		static const short minimum = pow((double)2,(int)(sizeof(short)*8-1));
 		return minimum;
 	}
-	
+
 	static signed short MaximumSignedShort()
 	{
 		static const short maximum = pow((double)2,(int)(sizeof(short)*8-1))-1;
 		return maximum;
 	}
-	
+
 	static unsigned short MaximumUnsignedShort()
 	{
 		static const unsigned short maximum = pow((double)2,(int)(sizeof(short)*8))-1;
@@ -389,81 +323,79 @@ public:
 	static signed MaximumSigned()
 	{
 		static const int maximum = pow((double)2,(int)(sizeof(int)*8-1))-1;
-		
+
 		return maximum;
 	}
 
 	static unsigned MaximumUnsigned()
 	{
 		static const unsigned int maximum = pow((double)2,(int)(sizeof(int)*8))-1;
-		
+
 		return maximum;
 	}
-		
+
 	static signed int MinimumSignedInt() {return MinimumSigned();}
 	static signed int MaximumSignedInt() {return MaximumSigned();}
 	static unsigned int MaximumUnsignedInt() {return MaximumUnsigned();}
-	
-	
+
 	static signed long MinimumSignedLong()
 	{
 		static const long minimum = pow((double)2,(int)(sizeof(long)*8-1));
 		return minimum;
 	}
-	
+
 	static signed long MaximumSignedLong()
 	{
 		static const long maximum = pow((double)2,(int)(sizeof(long)*8-1))-1;
 		return maximum;
 	}
-	
+
 	static unsigned long MaximumUnsignedLong()
 	{
 		static const unsigned long maximum =  pow((double)2,(int)(sizeof(long)*8-1));
-		
+
 		return maximum;
 	}	
-	
+
 	static signed long long MinimumSignedLongLong()
 	{
 		static const long long minimum = (1LL<<(sizeof(long long)*8-1));
 		return minimum;
 	}
-	
+
 	static signed long long MaximumSignedLongLong()
 	{
-		
-		
+
 		static const long long maximum = ~(1LL<<(sizeof(long long)*8-1));
 		return maximum;
 	}
-	
+
 	static unsigned long long MaximumUnsignedLongLong()
 	{
 		static const unsigned long long maximum = ~0LL;
 		return maximum;
 	}	
-	
+
 	static float MaximumFloat()
 	{
-		
+
 		static const float maximum = (float)3.40282347e+38; 
 		return maximum;
 	}
 
 	static double MaximumDouble()
 	{
-		
+
 		static const double maximum = (double)1.7976931348623157e+308;	
 		return maximum;
 	}
 
 	static bool IsInfinity(float x)				{return x == Infinity() || x == -Infinity();}
 	static bool IsInfinity(double x)			{return x == Infinity() || x == -Infinity();}
-	
+
 	static bool IsZero(float x)					{return IsPositiveZero(x) || IsNegativeZero(x);}
 	static bool IsZero(double x)				{return IsPositiveZero(x) || IsNegativeZero(x);}
-	
+
 	static bool IsPositiveInfinity(float x)		{return x == Infinity();}
 	static bool IsPositiveInfinity(double x)	{return x == Infinity();}
 
@@ -483,20 +415,14 @@ public:
 	static bool IsNegative(int x)				{return x < 0;}
 	static bool IsNegative(float x)				{return IsNegativeZero(x) || IsNegativeInfinity(x) || x < 0.0;}
 	static bool IsNegative(double x)			{return IsNegativeZero(x) || IsNegativeInfinity(x) || x < 0.0;}
-	
+
 	static bool IsFinite(double x)				{return !IsNan(x) && !IsInfinity(x);}
 
 	static double Nan()
 	{
-		
-		
-		
-		
 
-		
-		
 		static const double nan = sqrt(-2.01);
-		
+
 		return nan;
 	}
 
@@ -505,19 +431,11 @@ public:
 		return x != x;
 	}
 
-
 	static bool IsNan(double x)
 	{
 		return x != x;
 	}
 
-	
-	
-	
-	
-	
-	
-	
 	static int Compare(float left, float right, float epsilon = 0.00001)
 	{
 		float result = left-right;
@@ -539,17 +457,17 @@ public:
 	{
 		return left-right;
 	}	
-	
+
 	static long long Compare(long long left, long long right)
 	{
 		return left-right;
 	}
-	
+
 	static int Compare(unsigned int left, unsigned int right)
 	{
 		return left-right;
 	}
-	
+
 	static long Compare(unsigned long left, unsigned long right)
 	{
 		return left-right;
@@ -559,12 +477,12 @@ public:
 	{
 		return left-right;
 	}
-	
+
 	static void * Compare(void * left, void * right)
 	{
 		return (void *)((long long)left-(long long)right);
 	}
-	
+
 	static bool Equals(float left, float right, float epsilon = 0.00001) {return Compare(left,right,epsilon)==0;}
 	static bool Equals(double left, double right, double epsilon = 0.00001) {return Compare(left,right,epsilon)==0;}
 	static bool Equals(int left, int right) {return Compare(left,right)==0;}
@@ -577,31 +495,24 @@ public:
 
 	static int Hash(float value) {return Hash((int)value);}
 	static int Hash(int value);
-	
-	
-	
-	
+
 	static int Hash(long value);
 
 	static int Hash(double value) 
 	{
-		
-		
+
 		return Hash(*(long long*)&value);
 	}
-	
-	
-	
+
 	static int Hash(void * value) {return Hash((long long)value);}
 	static int Hash(long long value)
 	{
 		return Hash((int)(value>>32)) ^ Hash((int)(value&0x00000000FFFFFFFF));
 	}
-	
 
 	static const char * Suffix(int number)
 	{
-		
+
 		if (number > 10 && number < 20) number = 0;
 		switch (number%10)
 		{
@@ -619,29 +530,25 @@ public:
 		return "";
 	}
 
-
 	static Superstring Binary(long long number)
 	{
 		Superstring string;
 		if (number == 0)
 			string << "0";
-		
+
 		while (number > 0)
 		{
 			bool bit = (number&0x00000001);
 			number >>= 1;
 			string << ((bit)?'1':'0');
 		}
-		
+
 		return string;
 	}
 
 	static Superstring Hex(long long number)
 	{
 		Superstring string;
-
-		
-		
 
 		if (number == 0)
 			string << "0";
@@ -651,27 +558,23 @@ public:
 			char hex = (number&0x0000000F);
 			number >>= 4;
 
-			
 			if (hex >=0 && hex <= 9)
 				string << (char)(hex+0x30);
 			else
 				string << (char)(hex+0x37);
 		}
-		
+
 		return string;
 	}
-	
+
 	static int ConvertToString(long long number, int radix, char * data, int size, bool padded=false);
 	static Superstring ConvertToString(long long number, int radix);
-	
+
 };
 
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 
 class Number: public Object, public Numbers
 {
@@ -686,47 +589,40 @@ public:
 	{
 
 		TYPE_NONE		=(0),
-		
-		
+
 		TYPE_CHAR		=(1)<<2,
 		TYPE_SHORT		=(1)<<3,
 		TYPE_INT		=(1)<<4,
 		TYPE_LONG		=(1)<<5,
 		TYPE_LONGLONG	=(1)<<6,
-		
+
 		TYPE_FLOAT		=(1)<<7,
 		TYPE_DOUBLE		=(1)<<8,
 
 		TYPE_INTEGER	= TYPE_CHAR|TYPE_SHORT|TYPE_INT|TYPE_LONG|TYPE_LONGLONG,
 		TYPE_REAL		= TYPE_FLOAT|TYPE_DOUBLE,
 
-		
 		TYPE_SIGNED		=(1)<<14,
 		TYPE_UNSIGNED	=(1)<<15,
 	};
 
 	union NumberStorage
 	{
-		
-		
 
-		
-		
 		NumberStorage():Integer(0) {}
 		NumberStorage(long long x):Integer(x) {}
 		NumberStorage(double x):Real(x) {}
-		
+
 		long long Integer;
 		double Real;
 	} Data;
-	
+
 	int Size;
 	Flags<16> Type;
 
-
 	Number():Data(),Size(sizeof(int)),Type(0)
 	{
-		
+
 	}
 
 	Number(const Number &number)
@@ -734,7 +630,7 @@ public:
 		Data = number.Data;
 		Type = number.Type;
 	}
-	
+
 	Number(unsigned char value):Data((long long)value),Size(sizeof(char)),Type(TYPE_UNSIGNED|TYPE_CHAR) {}
 	Number(char value):Data((long long)value),Size(sizeof(char)),Type(TYPE_SIGNED|TYPE_CHAR) {}	
 	Number(unsigned short value):Data((long long)value),Size(sizeof(short)),Type(TYPE_UNSIGNED|TYPE_SHORT){}
@@ -750,24 +646,17 @@ public:
 
 	int Hash()
 	{
-		
+
 		return Numbers::Hash(SignedLongLong());
 	}
 
 	long long Integer() {return SignedLongLong();}
 	double Real() {return Double();}
 
-
 	void Print(String & print);
 
 	signed long long SignedLongLong();
 	unsigned long long UnsignedLongLong();
-
-
-
-	
-	
-	
 
 	signed long SignedLong()		{return (signed long)SignedLongLong();}
 	unsigned long UnsignedLong()	{return (unsigned long)UnsignedLongLong();}		
@@ -777,7 +666,7 @@ public:
 
 	signed short SignedShort()		{return (signed short)SignedLongLong();}
 	unsigned short UnsignedShort()	{return (unsigned short)UnsignedLongLong();}		
-	
+
 	signed char SignedChar()		{return (signed char)SignedLongLong();}
 	unsigned char UnsignedChar()	{return (unsigned char)UnsignedLongLong();}			
 
@@ -788,11 +677,10 @@ public:
 		else
 		if (IsReal())
 			return (double)Data.Real;
-	
+
 		Raise(new TypeError());
 		return 0.0;
 	}
-
 
 	float Float()
 	{
@@ -801,31 +689,22 @@ public:
 		else
 		if (IsReal())
 			return (float)Data.Real;
-		
+
 		Raise(new TypeError());
 		return 0.0;
 	}
 
-
-	
-
-
-	
-	
-
 	bool IsInteger()	{return Type.Is(TYPE_INTEGER);}	
 	bool IsSigned()		{return Type.Is(TYPE_SIGNED);}
 	bool IsUnsigned()	{return Type.Is(TYPE_UNSIGNED);}
-	
+
 	bool IsReal()		{return Type.Is(TYPE_REAL);}
 	bool IsFloat()		{return Type.Is(TYPE_FLOAT);}
 	bool IsDouble()		{return Type.Is(TYPE_DOUBLE);}
 
 	int Sign()			
 	{
-		
-		
-		
+
 		if (IsInteger())
 		{
 			if (IsSigned() && Data.Integer < 0) return -1;
@@ -844,7 +723,7 @@ public:
 	bool IsNegative()	{return Sign() < 0;}
 	bool IsPositive()	{return Sign() > 0;}
 	bool IsZero()		{return Sign() == 0;}
-	
+
 	bool IsLongLong()	{return Type.Is(TYPE_LONGLONG);}
 	bool IsLong()		{return Type.Is(TYPE_LONG);}
 	bool IsInt()		{return Type.Is(TYPE_INT);}
@@ -860,12 +739,9 @@ public:
 	using Numbers::IsNegativeZero;
 	using Numbers::IsFinite;
 
-
 	bool IsNan()
 	{
-		
-		
-		
+
 		switch ((Type.Bits&(TYPE_INTEGER|TYPE_REAL)))
 		{
 		case TYPE_FLOAT:
@@ -876,7 +752,6 @@ public:
 		}		
 	}
 
-	
 	bool IsInfinity()
 	{
 		return IsPositiveInfinity() || IsNegativeInfinity();
@@ -894,7 +769,6 @@ public:
 		}		
 	}
 
-
 	bool IsNegativeInfinity()
 	{
 		switch ((Type.Bits&(TYPE_INTEGER|TYPE_REAL)))
@@ -906,15 +780,6 @@ public:
 		default: return false;
 		}		
 	}
-
-	
-	
-	
-	
-
-	
-	
-	
 
 	bool IsPositiveZero()
 	{
@@ -945,42 +810,10 @@ public:
 		return !IsNan() && !IsInfinity();
 	}
 
-	
-
 	using Numbers::Compare;
 	int Compare(Object * object,int comparitor);
 
 	using Numbers::Equals;
-
-	
-	
-	
-
-	
-	
-
-
-	
-	
-
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-
 
 	Number & operator = (signed long long x) {return operator = (Number(x));}
 	Number & operator = (unsigned long long x) {return operator = (Number(x));}
@@ -998,7 +831,6 @@ public:
 	Number & operator = (const Number & number) {return operator = ((Number&)number);}
 	Number & operator = (Number & number);
 
-	
 	bool operator == (  signed long long x) {return operator == (Number(x));}
 	bool operator == (unsigned long long x) {return operator == (Number(x));}
 	bool operator == (  signed long x) {return operator == (Number(x));}
@@ -1015,8 +847,6 @@ public:
 	bool operator == (const Number & number) {return operator == (((Number&)number));}
 	bool operator == (Number & number);
 
-
-
 	bool operator <= (  signed long long x) {return operator <= (Number(x));}
 	bool operator <= (unsigned long long x) {return operator <= (Number(x));}
 	bool operator <= (  signed long x) {return operator <= (Number(x));}
@@ -1032,7 +862,6 @@ public:
 	bool operator <= (double x) {return operator <= (Number(x));}
 	bool operator <= (const Number & number) {return operator <= ((Number&)number);}
 	bool operator <= (Number & number);
-	
 
 	bool operator < (  signed long long x) {return operator < (Number(x));}
 	bool operator < (unsigned long long x) {return operator < (Number(x));}
@@ -1065,7 +894,6 @@ public:
 	bool operator >= (double x) {return operator >= (Number(x));}
 	bool operator >= (const Number & number) {return operator >= ((Number&)number);}
 	bool operator >= (Number & number);
-
 
 	bool operator > (  signed long long x) {return operator > (Number(x));}
 	bool operator > (unsigned long long x) {return operator > (Number(x));}
@@ -1115,7 +943,6 @@ public:
 	Number & operator -= (const Number & number) {return operator -= ((Number&)number);}
 	Number & operator -= (Number & number);
 
-
 	Number operator + (  signed long long x) {return operator + (Number(x));}
 	Number operator + (unsigned long long x) {return operator + (Number(x));}
 	Number operator + (  signed long x) {return operator + (Number(x));}
@@ -1131,7 +958,6 @@ public:
 	Number operator + (double x) {return operator + (Number(x));}
 	Number operator + (const Number & number) {return operator + ((Number&)number);}
 	Number operator + (Number & number);
-
 
 	Number & operator += (  signed long long x) {return operator += (Number(x));}
 	Number & operator += (unsigned long long x) {return operator += (Number(x));}
@@ -1149,7 +975,6 @@ public:
 	Number & operator += (const Number & number) {return operator += ((Number&)number);}
 	Number & operator += (Number & number);
 
-
 	Number operator / (  signed long long x) {return operator / (Number(x));}
 	Number operator / (unsigned long long x) {return operator / (Number(x));}
 	Number operator / (  signed long x) {return operator / (Number(x));}
@@ -1165,7 +990,6 @@ public:
 	Number operator / (double x) {return operator / (Number(x));}
 	Number operator / (const Number & number) {return operator / ((Number&)number);}
 	Number operator / (Number & number);
-
 
 	Number & operator /= (  signed long long x) {return operator /= (Number(x));}
 	Number & operator /= (unsigned long long x) {return operator /= (Number(x));}
@@ -1183,7 +1007,6 @@ public:
 	Number & operator /= (const Number & number) {return operator /= ((Number&)number);}
 	Number & operator /= (Number & number);
 
-
 	Number operator * (  signed long long x) {return operator * (Number(x));}
 	Number operator * (unsigned long long x) {return operator * (Number(x));}
 	Number operator * (  signed long x) {return operator * (Number(x));}
@@ -1200,7 +1023,6 @@ public:
 	Number operator * (const Number & number) {return operator * ((Number&)number);}
 	Number operator * (Number & number);
 
-
 	Number & operator *= (  signed long long x) {return operator *= (Number(x));}
 	Number & operator *= (unsigned long long x) {return operator *= (Number(x));}
 	Number & operator *= (  signed long x) {return operator *= (Number(x));}
@@ -1216,14 +1038,6 @@ public:
 	Number & operator *= (double x) {return operator *= (Number(x));}
 	Number & operator *= (const Number & number) {return operator *= ((Number&)number);}
 	Number & operator *= (Number & number);
-
-	
-	
-
-	
-	
-	
-	
 
 	operator char () {return SignedChar();}
 	operator   signed char () {return SignedChar();}
@@ -1254,10 +1068,6 @@ public:
 	friend bool operator  == (float x, Number & number) {return x == number.Float();}
 	friend bool operator  == (double x, Number & number) {return x == number.Double();}
 
-	
-	
-	
-	
 	Superstring Suffixed()
 	{
 		return Suffixed(*this);
@@ -1286,14 +1096,6 @@ class Magnitude
 {
 public:
 
-	
-	
-	
-	
-	
-	
-	
-
 	static int Abs(int x)				{return (x >= 0) ? x : -x;}
 	static int Max(int x, int y)		{return Abs(x) > Abs(y) ? x : y;}
 	static int Min(int x, int y)		{return Abs(x) < Abs(y) ? x : y;}
@@ -1303,8 +1105,6 @@ public:
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 
 class Frequency : public Array<Number>
 {
@@ -1332,9 +1132,7 @@ public:
 	int Count;
 	Number Max;
 
-	
 };
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1360,6 +1158,4 @@ public:
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 

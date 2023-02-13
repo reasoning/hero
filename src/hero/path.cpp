@@ -22,20 +22,21 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "hero/path.h"
 
-#include <assert.h>
-#include <ctype.h>
-#include <math.h>
-#include <stdio.h>
 #include <string.h>
+#include <ctype.h>
+#include <assert.h>
+#include <stdio.h>
+#include <math.h>		
 
 #ifdef HERO_PLATFORM_POSIX
-    #include <unistd.h>
+	#include <unistd.h>
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -48,44 +49,62 @@ SOFTWARE.
 
 Identity Path::Instance;
 
-Path::Path(const Path& segment) : Segment((Segment&)segment)
+Path::Path(const Path & segment):
+	Segment((Segment&)segment)
 {
+
 }
 
-Path::Path(const Substring& str) : Segment(str)
+Path::Path(const Substring & str):
+	Segment(str)
 {
+
 }
 
-Path::Path(char* data, int size) : Segment(data, size)
+Path::Path(char * data, int size):
+	Segment(data,size)
 {
+
 }
 
-Path::Path(const char* data) : Segment(data)
+Path::Path(const char * data):
+	Segment(data)
 {
+
 }
 
-Path::Path(char c) : Segment(c)
+Path::Path(char c):
+	Segment(c)
 {
+
 }
 
-Path::Path(int i) : Segment(i)
+Path::Path(int i):
+	Segment(i)
 {
+
 }
 
-Path::Path(float f) : Segment(f)
+Path::Path(float f):
+	Segment(f)
 {
+
 }
 
-Path::Path(double d) : Segment(d)
+Path::Path(double d):
+	Segment(d)
 {
+
 }
 
 Path::Path()
 {
+
 }
 
 Path::~Path()
 {
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

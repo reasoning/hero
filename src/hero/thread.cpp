@@ -27,67 +27,74 @@ SOFTWARE.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #include "hero/thread.h"
 #include "hero/atomic.h"
-#include "hero/error.h"
 #include "hero/string.h"
-#include "hero/sync.h"
 #include "hero/timer.h"
+#include "hero/sync.h"
+#include "hero/error.h"
 
 #ifdef HERO_PLATFORM_POSIX
-    #include <sched.h>
+#include <sched.h>
 
-    #ifndef __wasm__
+#ifndef __wasm__
 
-        #include <assert.h>
-        #include <pthread.h>
-        #include <unistd.h>
-        #include <xmmintrin.h>
+#include <xmmintrin.h>
+#include <unistd.h>
+#include <assert.h>
+#include <pthread.h>
 
-    #endif
+#endif 
 
 #endif
 
 #ifdef HERO_PLATFORM_POSIX
 
-    #pragma clang diagnostic push
-    #pragma clang diagnostic ignored "-Wsign-conversion"
-    #pragma clang diagnostic ignored "-Wunused-variable"
-    #pragma clang diagnostic ignored "-Wunused-parameter"
-    #pragma clang diagnostic ignored "-Wsign-conversion"
-    #pragma clang diagnostic ignored "-Wreturn-stack-address"
-    #pragma clang diagnostic ignored "-Wint-to-void-pointer-cast"
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsign-conversion"
+#pragma clang diagnostic ignored "-Wunused-variable"
+#pragma clang diagnostic ignored "-Wunused-parameter"
+#pragma clang diagnostic ignored "-Wsign-conversion"
+#pragma clang diagnostic ignored "-Wreturn-stack-address"
+#pragma clang diagnostic ignored "-Wint-to-void-pointer-cast"
 
 #endif
 
 #ifdef HERO_PLATFORM_WINDOWS
-    #include <process.h>
+#include <process.h>
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace Hero
-{
+namespace Hero {
 
 Thread::Thread(class Runnable* runnable, void* context)
-    : Runnable(runnable), Context(context), Handle(0), Id(0)
-{
-}
+    : Runnable(runnable)
+    , Context(context)
+    , Handle(0)
+    , Id(0)
+{}
 
 Thread::Thread(class Runnable& runnable, void* context)
-    : Runnable(&runnable), Context(context), Handle(0), Id(0)
-{
-}
+    : Runnable(&runnable)
+    , Context(context)
+    , Handle(0)
+    , Id(0)
+{}
 
 Thread::Thread(const Thread& thread)
-    : Runnable(thread.Runnable), Context(thread.Context), Handle(thread.Handle), Id(thread.Id)
-{
-}
+    : Runnable(thread.Runnable)
+    , Context(thread.Context)
+    , Handle(thread.Handle)
+    , Id(thread.Id)
+{}
 
 Thread::Thread()
-    : Runnable(0), Context(0), Handle(0), Id(0)
-{
-}
+    : Runnable(0)
+    , Context(0)
+    , Handle(0)
+    , Id(0)
+{}
 
 Thread::~Thread() {}
 
@@ -102,139 +109,144 @@ Thread& Thread::operator=(const Thread& thread)
 
 void Thread::Sleep(unsigned int milliseconds)
 {
-#ifdef HERO_PLATFORM_POSIX
+	#ifdef HERO_PLATFORM_POSIX
 
-    #ifdef HERO_PLATFORM_APPLE
+		#ifdef HERO_PLATFORM_APPLE
 
-    struct timespec ts;
-    ts.tv_sec = milliseconds / Timer::MillisecondsPerSecond;
-    ts.tv_nsec = (milliseconds - (ts.tv_sec * Timer::MillisecondsPerSecond)) / Timer::NanosecondsPerMillisecond;
-    nanosleep(&ts, 0);
+		struct timespec ts;
+		ts.tv_sec = milliseconds/Timer::MillisecondsPerSecond;
+		ts.tv_nsec = (milliseconds-(ts.tv_sec*Timer::MillisecondsPerSecond))/Timer::NanosecondsPerMillisecond;
+		nanosleep(&ts,0);
 
-    #else
+		#else
 
-    if ((milliseconds * Timer::MicrosecondsPerMillisecond) >= Timer::MicrosecondsPerSecond)
-    {
-        sleep((milliseconds + (Timer::MillisecondsPerSecond - 1)) / 1000);
-    }
-    else
-    {
-        usleep(milliseconds * Timer::MicrosecondsPerMillisecond);
-    }
+		if ((milliseconds*Timer::MicrosecondsPerMillisecond) >= Timer::MicrosecondsPerSecond)
+		{
 
-    #endif
+			sleep((milliseconds+(Timer::MillisecondsPerSecond-1)) / 1000);
+		}
+		else
+		{
 
-#endif
-#ifdef HERO_PLATFORM_WINDOWS
-    ::Sleep(milliseconds);
-#endif
+			usleep(milliseconds*Timer::MicrosecondsPerMillisecond);
+		}
+
+		#endif
+
+	#endif
+	#ifdef HERO_PLATFORM_WINDOWS
+ 		::Sleep(milliseconds);
+	#endif
 }
 
 void Thread::Yield(unsigned int spin)
 {
-    Assert(spin < (Timer::NanosecondsPerSecond * 10));
 
-#ifdef HERO_PLATFORM_POSIX
+	Assert(spin < (Timer::NanosecondsPerSecond * 10));
 
-    if (spin < Timer::NanosecondsPerMicrosecond)
-    {
-    #ifdef HERO_PLATFORM_CLANG
-        _mm_pause();
-    #else
-        sched_yield();
-    #endif
-    }
-    else if (spin < Timer::NanosecondsPerMillisecond)
-    {
-        sched_yield();
-    }
-    else
-    {
-        unsigned long micro = spin / Timer::NanosecondsPerMicrosecond;
-        usleep(micro);
-    }
+	#ifdef HERO_PLATFORM_POSIX
 
-#endif
+	if (spin < Timer::NanosecondsPerMicrosecond)
+	{
+		#ifdef HERO_PLATFORM_CLANG
+		_mm_pause();
+		#else
+		sched_yield();
+		#endif
+	}
+	else
+	if (spin < Timer::NanosecondsPerMillisecond)
+	{
+		sched_yield();
+	}
+	else	
+	{
 
-#ifdef HERO_PLATFORM_WINDOWS
+		unsigned long micro = spin/Timer::NanosecondsPerMicrosecond;
+		usleep(micro);
+	}
 
-    if (spin < Timer::NanosecondsPerMicrosecond)
-    {
-        YieldProcessor();
-    }
-    else if (spin < Timer::NanosecondsPerMillisecond)
-    {
-        SwitchToThread();
-    }
-    else
-    {
-        Sleep(spin / Timer::NanosecondsPerMillisecond);
-    }
+	#endif
 
-#endif
+	#ifdef HERO_PLATFORM_WINDOWS
+
+	if (spin < Timer::NanosecondsPerMicrosecond)
+	{
+
+		YieldProcessor();
+	}
+	else
+	if (spin < Timer::NanosecondsPerMillisecond)
+	{
+
+		SwitchToThread();
+	}
+	else	
+	{
+
+		Sleep(spin/Timer::NanosecondsPerMillisecond);
+	}
+
+	#endif
 }
 
 void Thread::Pause()
 {
-#ifdef HERO_PLATFORM_POSIX
-    sched_yield();
-#endif
-#ifdef HERO_PLATFORM_WINDOWS
-    SleepEx(0, 0);
-#endif
+	#ifdef HERO_PLATFORM_POSIX
+		sched_yield();
+	#endif
+	#ifdef HERO_PLATFORM_WINDOWS
+		SleepEx(0,0);
+	#endif
 }
 
 unsigned long Thread::Identify()
 {
-#ifdef HERO_PLATFORM_POSIX
+	#ifdef HERO_PLATFORM_POSIX
 
-    return (unsigned long)pthread_self();
+		return (unsigned long)pthread_self();
 
-#endif
-#ifdef HERO_PLATFORM_WINDOWS
+	#endif
+	#ifdef HERO_PLATFORM_WINDOWS
 
-    return (unsigned long)GetCurrentThreadId();
-#endif
+        return (unsigned long)GetCurrentThreadId();
+	#endif
 }
 
-void Thread::Name(const Substring& name)
+void Thread::Name(const Substring & name)
 {
-#ifdef HERO_PLATFORM_WINDOWS
+	#ifdef HERO_PLATFORM_WINDOWS
 
-    const DWORD MS_VC_EXCEPTION = 0x406D1388;
-    #pragma pack(push, 8)
+	const DWORD MS_VC_EXCEPTION = 0x406D1388;
+	#pragma pack(push,8)
+	typedef struct tagTHREADNAME_INFO
+	{
+		DWORD dwType; 
+		LPCSTR szName; 
+		DWORD dwThreadID; 
+		DWORD dwFlags; 
+	} THREADNAME_INFO;
+	#pragma pack(pop)
+		THREADNAME_INFO info;
+		info.dwType = 0x1000;
+		info.szName = name.Data;
+		info.dwThreadID = Id;
+		info.dwFlags = 0;
+	#pragma warning(push)
+	#pragma warning(disable: 6320 6322)
+		__try
+		{
+			RaiseException(MS_VC_EXCEPTION, 0, sizeof(info) / sizeof(ULONG_PTR), (ULONG_PTR*)&info);
+		}
+		__except (EXCEPTION_CONTINUE_EXECUTION){ }
+	#pragma warning(pop)
+	#endif
 
-    typedef struct tagTHREADNAME_INFO
-    {
-        DWORD dwType;
-        LPCSTR szName;
-        DWORD dwThreadID;
-        DWORD dwFlags;
-    } THREADNAME_INFO;
+	#ifdef HERO_PLATFORM_LINUX
+	pthread_setname_np(Id,name.Data);
+	#endif
 
-    #pragma pack(pop)
-    THREADNAME_INFO info;
-    info.dwType = 0x1000;
-    info.szName = name.Data;
-    info.dwThreadID = Id;
-    info.dwFlags = 0;
-    #pragma warning(push)
-    #pragma warning(disable : 6320 6322)
-    __try
-    {
-        RaiseException(MS_VC_EXCEPTION, 0, sizeof(info) / sizeof(ULONG_PTR), (ULONG_PTR*)&info);
-    }
-    __except (EXCEPTION_CONTINUE_EXECUTION)
-    {
-    }
-    #pragma warning(pop)
-#endif
-
-#ifdef HERO_PLATFORM_LINUX
-    pthread_setname_np(Id, name.Data);
-#endif
 }
-
 Thread Thread::Start(class Runnable* runnable, void* context)
 {
     Thread thread(runnable, context);
@@ -244,243 +256,257 @@ Thread Thread::Start(class Runnable* runnable, void* context)
 
 void Thread::Start()
 {
-    unsigned long id = 0;
-    void* handle = Handle;
 
-    if ((long long)handle > 0)
-        return;
+	unsigned long id=0;
+	void * handle = Handle;
 
-    Id = 0;
-    Handle = 0;
+	if ((long long)handle > 0)
+		return;
 
-    Thread* thread = new Thread(*this);
+	Id = 0;
+	Handle = 0;	
 
-#ifdef HERO_PLATFORM_WINDOWS
+	Thread * thread = new Thread(*this);
 
-    #ifdef HERO_PLATFORM_WINDOWS
-    unsigned int t = (unsigned int)id;
-    handle = (void*)_beginthreadex(0, 0, Spawn, thread, 0, &t);
-    id = t;
-    #else
-    handle = (void*)_beginthreadex(0, 0, Spawn, thread, 0, &id);
-    #endif
+	#ifdef HERO_PLATFORM_WINDOWS
 
-    if (handle == 0)
-    {
-        Raise("Thread::Start - Could not create thread.\n");
-    }
+	#ifdef HERO_PLATFORM_WINDOWS
+	unsigned int t = (unsigned int)id;
+	handle = (void *) _beginthreadex(0,0,Spawn,thread,0,&t);
+	id = t;
+	#else
+	handle = (void *) _beginthreadex(0,0,Spawn,thread,0,&id);
+	#endif
 
-    if ((long long)Atomic::Cas((volatile void**)&Handle, 0, handle) != 0)
-    {
-        CloseHandle((void*)handle);
-    }
+	if (handle == 0)
+	{
+		Raise("Thread::Start - Could not create thread.\n");
+	}
 
-#endif
+    if ((long long)Atomic::Cas((volatile void **)&Handle,0,handle) != 0)	
+	{
 
-#ifdef HERO_PLATFORM_POSIX
+		CloseHandle((void *)handle);
 
-    pthread_attr_t attributes;
-    pthread_attr_init(&attributes);
+	}
 
-    pthread_attr_setdetachstate(&attributes, PTHREAD_CREATE_JOINABLE);
+	#endif
 
-    #ifdef HERO_PLATFORM_LINUX
+	#ifdef HERO_PLATFORM_POSIX
 
-    pthread_t t;
-    handle = (void*)pthread_create(&t, 0, Spawn, thread);
-    id = t;
-    Print("Thread::Start - pthread_t: %08lX, id: %ld\n", t, id);
-    #else
-    handle = (void*)pthread_create((pthread_t*)((void*)&id), &attributes, Spawn, thread);
+	pthread_attr_t attributes;
+	pthread_attr_init(&attributes);	
 
-    #endif
+	pthread_attr_setdetachstate(&attributes,PTHREAD_CREATE_JOINABLE);
 
-    if (handle == 0)
-    {
-    #ifdef HERO_PLATFORM_I386
-        Atomic::Cas((volatile int*)&Handle, 0, 1);
-    #else
-        Atomic::Cas((volatile long long*)&Handle, 0, 1);
-    #endif
-    }
-    else
-    {
-        Raise("Thread::Start - Could not create thread.\n");
-    }
+	#ifdef HERO_PLATFORM_LINUX
 
-    pthread_attr_destroy(&attributes);
+	pthread_t t;
+	handle = (void *) pthread_create (&t,0,Spawn,thread);
+	id = t;
+	Print("Thread::Start - pthread_t: %08lX, id: %ld\n",t,id);
+	#else
+	handle = (void *) pthread_create ((pthread_t *)((void *)&id),&attributes,Spawn,thread);
 
-#endif
+	#endif
 
-    Id = id;
+	if (handle == 0)
+	{
+
+        #ifdef HERO_PLATFORM_I386
+		Atomic::Cas((volatile int *)&Handle,0,1);	
+        #else
+        Atomic::Cas((volatile long long *)&Handle,0,1);	
+        #endif
+
+	}
+	else
+	{
+		Raise("Thread::Start - Could not create thread.\n");
+	}
+
+	pthread_attr_destroy(&attributes);
+
+	#endif
+
+	Id = id;
 }
 
 void Thread::Stop()
 {
-    if (Thread::Identify() != Id)
-        return;
 
-#ifdef HERO_PLATFORM_WINDOWS
+	if (Thread::Identify() != Id)
+		return;
 
-    void* handle = Handle;
-    if ((long long)Atomic::Cas((volatile void**)&Handle, handle, (void*)-1) > 0)
-    {
-        _endthreadex(0);
-        CloseHandle((void*)handle);
-    }
-#endif
+	#ifdef HERO_PLATFORM_WINDOWS
 
-#ifdef HERO_PLATFORM_POSIX
+	void * handle = Handle;
+	if ((long long)Atomic::Cas((volatile void **)&Handle,handle,(void*)-1) > 0)
+	{
+		_endthreadex(0);
+		CloseHandle((void *)handle);
+	}
+	#endif
 
-    void* handle = Handle;
-    if ((long long)Atomic::Cas((volatile void**)&Handle, handle, (void*)-1) > 0)
-    {
-        pthread_cancel((pthread_t)Id);
-    }
+	#ifdef HERO_PLATFORM_POSIX
 
-#endif
+	void * handle = Handle;
+	if ((long long)Atomic::Cas((volatile void **)&Handle,handle,(void*)-1) > 0)
+	{
+		pthread_cancel((pthread_t)Id);
+	}
+
+	#endif
+
 }
 
 void Thread::Kill()
 {
-#ifdef HERO_PLATFORM_WINDOWS
 
-    void* handle = Handle;
-    if ((long long)Atomic::Cas((volatile void**)&Handle, handle, (void*)-1) > 0)
-    {
-        unsigned long exit = 0;
-        GetExitCodeThread((void*)handle, &exit);
-        TerminateThread((void*)handle, exit);
-        CloseHandle((void*)handle);
-    }
+	#ifdef HERO_PLATFORM_WINDOWS
 
-#endif
+	void * handle = Handle;
+	if ((long long)Atomic::Cas((volatile void **)&Handle,handle,(void*)-1) > 0)
+	{
+		unsigned long exit=0;
+		GetExitCodeThread((void *)handle,&exit);
+		TerminateThread((void *)handle,exit);
+		CloseHandle((void *)handle);
+	}
 
-#ifdef HERO_PLATFORM_POSIX
+	#endif
 
-    void* handle = Handle;
-    if ((long long)Atomic::Cas((volatile void**)&Handle, handle, (void*)-1) > 0)
-    {
-        pthread_cancel((pthread_t)Id);
-    }
-#endif
+	#ifdef HERO_PLATFORM_POSIX
+
+	void * handle = Handle;
+	if ((long long)Atomic::Cas((volatile void **)&Handle,handle,(void*)-1) > 0)
+	{	
+		pthread_cancel((pthread_t)Id);
+	}
+	#endif
 }
 
 void Thread::Join()
 {
-    void* handle = Handle;
 
-    if ((long long)handle <= 0)
-        return;
+	void * handle = Handle;
 
-#ifdef HERO_PLATFORM_WINDOWS
+	if ((long long)handle <= 0)
+		return;
 
-    if ((long long)Atomic::Cas((volatile void**)&Handle, handle, (void*)-1) > 0)
-    {
-        WaitForSingleObject((void*)handle, INFINITE);
-        CloseHandle((void*)handle);
-    }
+	#ifdef HERO_PLATFORM_WINDOWS
 
-#endif
+	if ((long long)Atomic::Cas((volatile void **)&Handle,handle,(void*)-1) > 0)
+	{
+		WaitForSingleObject((void *)handle,INFINITE);
+		CloseHandle((void *)handle);	
+	}
 
-#ifdef HERO_PLATFORM_POSIX
+	#endif
 
-    if ((long long)Atomic::Cas((volatile void**)&Handle, handle, (void*)-1) > 0)
-    {
-        Print("Thread::Join - Joining thread %ld...\n", Id);
-        Print("Thread::Join - Handle of thread %ld is %ld\n", Id, (void*)Handle);
+	#ifdef HERO_PLATFORM_POSIX
 
-        int error = pthread_join((pthread_t)Id, 0);
-        if (error)
-        {
-            Print("Thread::Join - Could not join thread %ld, %s\n", Id, strerror(error));
-        }
-        else
-        {
-            Print("Thread::Join - Joined thread %ld\n", Id);
-        }
-    }
+	if ((long long)Atomic::Cas((volatile void **)&Handle,handle,(void*)-1)  > 0)
+	{
+		Print("Thread::Join - Joining thread %ld...\n",Id);
+		Print("Thread::Join - Handle of thread %ld is %ld\n",Id,(void *)Handle);	
 
-#endif
+		int error = pthread_join((pthread_t)Id,0);
+		if (error)
+		{			
+			Print("Thread::Join - Could not join thread %ld, %s\n",Id,strerror(error));
+		}			
+		else
+		{
+			Print("Thread::Join - Joined thread %ld\n",Id);
+		}
+	}
+
+	#endif
 }
 
 #ifdef HERO_PLATFORM_WINDOWS
-unsigned int Thread::Spawn(void* spawn)
+unsigned int Thread::Spawn(void * spawn)
 {
-    Thread* thread = (Thread*)spawn;
 
-    if (!thread->Handle)
-    {
-        void* process = (void*)GetCurrentProcess();
-        void* pseudo = (void*)GetCurrentThread();
-        void* handle = 0;
-        DuplicateHandle((void*)process, (void*)pseudo, (void*)process, (void**)&handle, 0, false, DUPLICATE_SAME_ACCESS);
+	Thread * thread = (Thread*)spawn;
 
-        if ((long long)Atomic::Cas((volatile void**)&thread->Handle, 0, handle) > 0)
-        {
-            CloseHandle((void*)handle);
-        }
-    }
+	if (!thread->Handle)
+	{
 
-    thread->Id = GetCurrentThreadId();
+		void * process = (void *) GetCurrentProcess();
+		void * pseudo = (void *) GetCurrentThread();
+		void * handle = 0;
+		DuplicateHandle((void*)process,(void*)pseudo,(void*)process,(void**)&handle,0,false,DUPLICATE_SAME_ACCESS);
 
-    if (thread->Runnable)
-        thread->Runnable->Run(thread);
+		if ((long long)Atomic::Cas((volatile void **)&thread->Handle,0,handle) > 0)
+		{
+			CloseHandle((void*)handle);
+		}
+	}
 
-    void* handle = thread->Handle;
-    if ((long long)Atomic::Cas((volatile void**)&thread->Handle, handle, (void*)-1) > 0)
-    {
-        CloseHandle((void*)handle);
-    }
+	thread->Id = GetCurrentThreadId();
 
-    unsigned long id = thread->Id;
-    ThreadLocalCleanup::Singleton().Delete(id);
+	if (thread->Runnable)
+		thread->Runnable->Run(thread);
 
-    delete thread;
+	void * handle = thread->Handle;
+	if ((long long)Atomic::Cas((volatile void **)&thread->Handle,handle,(void*)-1) > 0)
+	{
+		CloseHandle((void *)handle);
+	}
 
-    return 0;
+	unsigned long id = thread->Id;	
+	ThreadLocalCleanup::Singleton().Delete(id);
+
+	delete thread;
+
+	return 0;
 }
 #endif
 
 #ifdef HERO_PLATFORM_POSIX
-void* Thread::Spawn(void* spawn)
+void * Thread::Spawn(void * spawn)
 {
-    Thread* thread = (Thread*)spawn;
 
-    Atomic::Cas((volatile void**)&thread->Handle, (void*)0, (void*)1);
+	Thread * thread = (Thread*)spawn;
 
-    thread->Id = (unsigned long)pthread_self();
+	Atomic::Cas((volatile void **)&thread->Handle,(void*)0,(void*)1);
 
-    if (thread->Runnable)
-        thread->Runnable->Run(thread);
+	thread->Id = (unsigned long)pthread_self();
 
-    void* handle = thread->Handle;
-    if ((long long)Atomic::Cas((volatile void**)&thread->Handle, handle, (void*)-1) > 0)
-    {
-        int error = pthread_detach((pthread_t)thread->Id);
-    }
+	if (thread->Runnable)
+		thread->Runnable->Run(thread);
 
-    Print("Thread::Spawn - Exiting thread %d\n", thread->Id);
+	void * handle = thread->Handle;
+	if ((long long)Atomic::Cas((volatile void **)&thread->Handle,handle,(void*)-1)  > 0)
+	{
 
-    unsigned long id = thread->Id;
-    ThreadLocalCleanup::Singleton().Delete(id);
+		int error = pthread_detach((pthread_t)thread->Id);
 
-    delete thread;
+	}
 
-    return 0;
+	Print("Thread::Spawn - Exiting thread %d\n",thread->Id);
+
+	unsigned long id = thread->Id;	
+	ThreadLocalCleanup::Singleton().Delete(id);
+
+	delete thread;
+
+	return 0;
 }
 #endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////
-} // namespace Hero
+} 
 
 #ifdef __wasm__
 
-    #ifdef HERO_PLATFORM_POSIX
+#ifdef HERO_PLATFORM_POSIX
 
-        #pragma clang diagnostic pop
-    #endif
+#pragma clang diagnostic pop
+#endif
 
 #endif

@@ -28,32 +28,32 @@ SOFTWARE.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void* CDECL operator new(size_t size)
+void * CDECL operator new (size_t size)
 {
     return malloc(size);
 }
 
-void* CDECL operator new[](size_t size)
+void * CDECL operator new [] (size_t size)
 {
     return malloc(size);
 }
 
-void CDECL operator delete(void* data)
+void CDECL operator delete (void *data)
 {
     if (data) free(data);
 }
 
-void CDECL operator delete[](void* data)
+void CDECL operator delete [] (void *data)
 {
     if (data) free(data);
 }
 
-void CDECL operator delete[](void* data, size_t)
+void CDECL operator delete [] (void *data, size_t)
 {
     if (data) free(data);
 }
 
-void CDECL operator delete(void* data, size_t)
+void CDECL operator delete (void *data, size_t)
 {
     if (data) free(data);
 }
@@ -64,7 +64,7 @@ void CDECL operator delete(void* data, size_t)
 
 double pow(double x, double y)
 {
-    return __builtin_pow(x, y);
+    return __builtin_pow(x,y);
 }
 
 double sqrt(double x)

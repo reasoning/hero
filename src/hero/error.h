@@ -47,15 +47,10 @@ namespace Hero {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
-
 class Error : public Object
 {
 public:
 
-	
-	
 	enum ErrorType
 	{
 		TYPE_MESSAGE,
@@ -80,12 +75,12 @@ public:
 class ErrorMessage : public Error, public String
 {
 public:
-	
+
 	ErrorMessage(int type):Error(type) {}
 	ErrorMessage(const Substring & msg):Error(TYPE_MESSAGE),String(msg) {}
 	ErrorMessage(const char * msg):Error(TYPE_MESSAGE),String(msg) {}
 	ErrorMessage(char * data, int size):Error(TYPE_MESSAGE),String(data,size) {}
-	
+
 };
 
 class ErrorObject: public ErrorMessage
@@ -94,12 +89,11 @@ public:
 
 	String Id;
 	String Prefix;
-	
+
 	ErrorObject():ErrorMessage(TYPE_OBJECT) {}
 	ErrorObject(const Substring& id, const Substring& prefix=""):ErrorMessage(TYPE_OBJECT),Id(id),Prefix(prefix) {}
 	ErrorObject(const char * id, const char * prefix=""):ErrorMessage(TYPE_OBJECT),Id(id),Prefix(prefix) {}
 };
-
 
 void RaiseError(char * data, int size);
 void RaiseError(Error * error);
@@ -109,7 +103,6 @@ void RaiseError(const char * msg)
 {
 	RaiseError(new _Error_(msg));
 }
-
 
 class Raise
 {
@@ -133,7 +126,7 @@ public:
 	Raise(Error & error);
 	Raise(Error * error);
 	Raise(const Substring & error);
-	
+
 	Raise(char * data, int size);
 	Raise(const char * format, ...);
 
@@ -141,28 +134,14 @@ private:
 
 	void Construct(Error * error);
 
-	
-	
 };
-
-
 
 class Except {};
 class StackTrace {};
 
-
-
-
-
-
 class Level : Printable
 {
 public:
-	
-	
-	
-	
-	
 
 	Strong<class Error*> Error;
 	Strong<StackTrace*> Stack;
@@ -175,7 +154,7 @@ public:
 	Level(const Substring & error, int severity=0):Error(new ErrorMessage(error)),Severity(severity) {}
 	Level(const char * error, int severity=0):Error(new ErrorMessage(error)),Severity(severity) {}
 	Level(char * data, int size, int severity=0):Error(new ErrorMessage(data,size)),Severity(severity) {}
-	
+
 	Level():Severity(0)
 	{
 	}
@@ -187,30 +166,14 @@ public:
 	}
 };
 
-
-
-
-
-
 class Try : public Stack<Level>
 {
 public:
 
-	
 	Try();
-
-	
-	
-	
-	
-	
 
 	~Try();
 };
-
-
-
-
 
 class Catch : public Stack<Level>
 {
@@ -224,17 +187,9 @@ public:
 	}
 };
 
-
-
 class Unwind : public ThreadLocal<Stack<Try*>>
 {
 public:
-	
-	
-	
-	
-	
-	
 
 	Unwind()
 	{
@@ -243,21 +198,13 @@ public:
 
 	~Unwind()
 	{
-		
-		
-		
 
 	}
 
-	
 	using Result = typename Stack<Try*>::Result;
-	
-	
-	
-	
 
 	Result Push(typename Template<Try*>::ConstReference kind) {return  Get().Push(kind);}	
-	
+
 	bool Pop(typename Template<Try*>::ConstReference kind) {return  Get().Pop(kind);}
 	bool Pop(typename Template<Try*>::Reference kind) {return  Get().Pop(kind);}
 	bool Pop() {return Get().Pop();}
@@ -271,24 +218,19 @@ public:
 
 	Try*& operator[] (int index) {return  Get()[index];}
 
-
 	int Length() {return  Get().Length();}
-
 
 	Result Remove(typename Template<Try*>::ConstReference kind) {return  Get().Remove(kind);}	
 	Result Remove(typename Template<Try*>::Reference kind, int index) {return  Get().Remove(kind,index);}		
 	Result RemoveAt(int index) {return  Get().RemoveAt(index);}	
-	
 
 	static Unwind & Singleton();
 
 };
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 class BaseError : public ErrorObject 
 {
@@ -308,7 +250,6 @@ public: \
 	Type(const char * msg):BaseError(#Type,"Error") {Construct(msg);} \
 	Type(char * data, int size):BaseError(#Type,"Error") {Construct(data,size);} \
 };
-
 
 ERROR_GENERATOR(AssertError)
 
@@ -354,14 +295,11 @@ ERROR_GENERATOR(SyncError)
 ERROR_GENERATOR(FlagError)
 ERROR_GENERATOR(StateError)
 
-
 class Token;
 
 class ParserError : public BaseError
 { 
 public: 
-
-	
 
 	class ParserErrorToken : public String
 	{
@@ -376,7 +314,7 @@ public:
 		ParserErrorToken():Position(0),Offset(0),Line(0),Column(0) {};
 		ParserErrorToken(const class Token & token);
 	};
-	
+
 	ParserErrorToken Token;
 
 	ParserError(const ParserErrorToken & token=ParserErrorToken()):
@@ -384,7 +322,7 @@ public:
 	{
 
 	}	
-		
+
 	ParserError(const Substring & msg, const ParserErrorToken & token=ParserErrorToken())
 		:BaseError("ParserError","Error"),Token(token) 
 	{
@@ -404,13 +342,9 @@ public:
 	}
 };
 
-
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 #define Verify(value) (new Try(), value)
 
@@ -421,18 +355,15 @@ inline bool Verified()
 	{
 		Unwind::Result res = unwind.Peek();
 
-		
 		Try * t = unwind[res.Index];
 		Catch c;
 		delete t;
 
-		
 		return !c;
 	}
 
 	return false;
 }
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

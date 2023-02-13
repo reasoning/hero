@@ -24,180 +24,190 @@ SOFTWARE.
 
 #include "export.h"
 
+#include "hero/string.h"
+#include "hero/parser.h"
 #include "hero/file.h"
 #include "hero/folder.h"
-#include "hero/parser.h"
-#include "hero/string.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool CodeParser::ParseCode(const String& string, const String& path)
+bool CodeParser::ParseCode(const String & string, const String & path)
 {
-    if (!Handler) return false;
+	if (!Handler) return false;
 
-    Assign(string);
+	Assign(string);
 
-    CodeToken comment;
+	CodeToken comment;
 
-    while (!Eof())
-    {
-        SkipWhitespace();
+	while (!Eof())
+	{
 
-        if (Is("//"))
-        {
-            Mark(comment);
-            comment.Offset = Scanner->Token.Offset;
-            while (!Eof() && !IsNewline())
-            {
-                Next();
-            }
+		SkipWhitespace();
 
-            Trap(comment);
+		if (Is("//"))
+		{
+			Mark(comment);	
+			comment.Offset = Scanner->Token.Offset;
+			while (!Eof() && !IsNewline())
+			{
+				Next();
+			}
 
-            if (!comment.StartsWith("////////////////////////////////////////"))
-                Handler->HandleComment(comment, path);
-        }
-        else if (Is("/*"))
-        {
-            Mark(comment);
-            comment.Offset = Scanner->Token.Offset;
-            Next();
-            while (!Eof(2) && !Is("*/"))
-            {
-                Next();
-            }
+			Trap(comment);
 
-            if (!Eof(2) && Skip("*/"))
-            {
-                Trap(comment);
-                Handler->HandleComment(comment, path);
-            }
-        }
-        else if (Is("\""))
-        {
-            CodeToken literal;
-            Mark(literal);
-            literal.Offset = Scanner->Token.Offset;
+			if (!comment.StartsWith("////////////////////////////////////////"))
+				Handler->HandleComment(comment,path);			
+		}
+		else
+		if (Is("/*"))
+		{
+			Mark(comment);
+			comment.Offset = Scanner->Token.Offset;
+			Next();
+			while (!Eof(2) && !Is("*/"))
+			{
+				Next();
+			}
 
-            Next();
-            while (!Eof() && !Is("\""))
-            {
-                if (Is("\\"))
-                    Skip(2);
-                else
-                    Next();
-            }
-            Next();
-            Trap(literal);
-        }
-        else
-        {
-            Next();
-        }
-    }
+			if (!Eof(2) && Skip("*/"))
+			{
+				Trap(comment);
+				Handler->HandleComment(comment,path);			
+			}
+		}
+		else
+		if (Is("\""))
+		{
+			CodeToken literal;
+			Mark(literal);
+			literal.Offset = Scanner->Token.Offset;
 
-    return false;
+			Next();
+			while(!Eof() && !Is("\""))
+			{
+				if (Is("\\"))
+					Skip(2);
+				else
+					Next();					
+			}
+			Next();
+			Trap(literal);
+
+		}			
+		else
+		{
+			Next();
+		}
+	}
+
+	return false;	
 }
 
 void CodeReader::Write()
 {
-    Iterand<Tokens> files = Files.Forward();
-    while (files)
-    {
-        StringStream code;
+	Iterand<Tokens> files = Files.Forward();
+	while (files)
+	{
+		StringStream code;
 
-        FileStream file(Files.Keys[files.Index]);
+		FileStream file(Files.Keys[files.Index]);
 
-        file.Open(File::OPTIONS_OPEN_BINARY_READ);
+		file.Open(File::OPTIONS_OPEN_BINARY_READ);
 
-        file.Seek(0);
+		file.Seek(0);	
 
-        files().Sort(CodeTokenCompare());
+		files().Sort(CodeTokenCompare());
 
-        {
-            int offset = 0;
-            Iterand<CodeToken> tokens = files().Forward();
-            while (tokens != 0)
-            {
-                CodeToken token = tokens();
-                if (token.Offset < offset)
-                {
-                    AssertBreak();
-                }
+		{
 
-                offset = token.Offset;
-                ++tokens;
-            }
-        }
+			int offset=0;
+			Iterand<CodeToken> tokens = files().Forward();
+			while (tokens != 0)
+			{
+				CodeToken token = tokens();
+				if (token.Offset < offset)
+				{
+					AssertBreak();
+				}
 
-        int offset = 0;
+				offset = token.Offset;
+				++tokens;
+			}
 
-        Iterand<CodeToken> tokens = files().Forward();
-        while (tokens != 0)
-        {
-            CodeToken token = tokens();
-            if (token.Offset - offset < 0)
-            {
-                AssertBreak();
-                ++tokens;
-                continue;
-            }
+		}
 
-            if (token.Offset - offset > 0)
-                offset += file.Read((Stream&)code, token.Offset - offset);
+		int offset=0;
 
-            if (!Definitions.Select(tokens()))
-            {
-                offset = file.Seek(tokens().Size, 0);
-            }
+		Iterand<CodeToken> tokens = files().Forward();
+		while (tokens != 0)
+		{
 
-            ++tokens;
-        }
+			CodeToken token = tokens();
+			if (token.Offset-offset < 0)
+			{
+				AssertBreak();
+				++tokens;
+				continue;
+			}
 
-        file.Read((Stream&)code);
+			if (token.Offset-offset > 0)
+				offset += file.Read((Stream&)code,token.Offset-offset);
 
-        code.Seek(0);
+			if (!Definitions.Select(tokens()))
+			{
 
-        Regex regex("(\\n\\s*\\n)+");
-        code.Replace(regex, "\n\n");
+				offset = file.Seek(tokens().Size,0);
+			}
 
-        file.Close();
+			++tokens;
+		}
 
-        file.Replace("src/", "exp/");
-        file.Open(File::OPTIONS_CREATE_BINARY_MUTABLE);
-        file.Write((Stream&)code);
-        file.Close();
+		file.Read((Stream&)code);
 
-        ++files;
-    }
+		code.Seek(0);
+
+		Regex regex("(\\n\\s*\\n)+");		
+		code.Replace(regex,"\n\n");
+
+		file.Close();
+
+		file.Replace("src/","exp/");
+		file.Open(File::OPTIONS_CREATE_BINARY_MUTABLE);
+		file.Write((Stream&)code);
+		file.Close();
+
+		++files;
+	}
+
 }
 
 void CodeReader::Copyright()
 {
-    String copyright;
-    File("COPYRIGHT").Read(copyright);
-    copyright.Prepend("/*\n");
-    copyright.Append("\n*/\n");
+	String copyright;
+	File("COPYRIGHT").Read(copyright);
+	copyright.Prepend("/*\n");
+	copyright.Append("\n*/\n");
 
-    Iterand<Tokens> files = Files.Forward();
-    while (files)
-    {
-        StringStream code;
-        FileStream file(Files.Keys[files.Index]);
-        file.Replace("src/", "exp/");
+	Iterand<Tokens> files = Files.Forward();
+	while (files)
+	{
+		StringStream code;
+		FileStream file(Files.Keys[files.Index]);
+		file.Replace("src/","exp/");
 
-        file.Read((Stream&)code);
-        file.Close();
-        file.Open(File::OPTIONS_OPEN_BINARY_MUTABLE);
-        file.Write(copyright);
-        code.Seek(0);
-        file.Write((Stream&)code);
-        file.Close();
+		file.Read((Stream&)code);
+		file.Close();
+		file.Open(File::OPTIONS_OPEN_BINARY_MUTABLE);
+		file.Write(copyright);
+		code.Seek(0);
+		file.Write((Stream&)code);
+		file.Close();
 
-        ++files;
-    }
+		++files;
+	}
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

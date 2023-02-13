@@ -23,13 +23,9 @@ SOFTWARE.
 */
 #pragma once
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
 
 #include "hero/string.h"
 #include "hero/object.h"
@@ -38,7 +34,6 @@ SOFTWARE.
 #include "hero/binary.h"
 
 #include "hero/structure.h"
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -54,13 +49,9 @@ namespace Hero {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
 class Handler
 {
 public:
-
-	
-	
 
 	const static int TypeBoundary	= (1)<<2;
 	const static int TypeReserved	= 2;
@@ -68,63 +59,38 @@ public:
 
 	static const char * Descriptions[3];
 
-	
-	
-	
-	
-	
-	
-
 	enum HandlerTypes
 	{
 		HANDLER_ERROR		=(0),
 		HANDLER_FAILURE		=(1),
 		HANDLER_WARNING		=(1)<<1,
-			
-		
-		
-		
-		
-		
-		
+
 	};
 
-	
 	Flags<32>	Type;
 
 	Handler();
-	
-	
+
 	~Handler();
-	
+
 	inline bool IsFailure()	{return Type.Is(HANDLER_FAILURE);};
 	inline bool IsError()	{return Type.Is(HANDLER_ERROR);};
 	inline bool IsWarning()	{return Type.Is(HANDLER_WARNING);};
-	
-	
+
 	inline const char * Description(unsigned int type){return Descriptions[type&0x03];};
 
-	
-	
-	
-
-	
 	void Error(const char *message,...);
 	void Failure(const char *message,...);
 	void Warning(const char *message,...);
 
-	
 	void Throw(const unsigned int type,const char * message,...);
-	
-	
+
 	virtual void Catch(const unsigned int type,const char * message,va_list args);
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 
 class Token : public String
 {
@@ -149,7 +115,6 @@ public:
 		}
 	}
 
-
 	Token(char * data, int size):Position(0),Offset(0),Line(0),Column(0)
 	{
 		Data = data;
@@ -172,15 +137,6 @@ public:
 
 	void Reduce()
 	{
-		
-		
-
-		
-		
-		
-		
-		
-		
 
 		int trim = Offset;
 		Left(-trim);
@@ -209,17 +165,14 @@ public:
 		return *this;
 	}
 };
-	
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 class Scanner
 {
 public:
-
-	
 
 	class Token Token;
 
@@ -257,12 +210,9 @@ public:
 	virtual int Line()=0;
 };
 
-
 class StringScanner : public Scanner
 {
 public:
-
-	
 
 	StringScanner(const char * data):Scanner((char*)data,String::Length(data))
 	{
@@ -271,7 +221,7 @@ public:
 	StringScanner(char * data, int size):Scanner(data,size)
 	{
 	}
-	
+
 	StringScanner(const Substring & sequence):Scanner(sequence.Data,sequence.Size)
 	{
 	}
@@ -330,13 +280,9 @@ public:
 		token = Token; return true;
 	}
 
-	
-	
-	
-	
 	bool Accept()
 	{
-		
+
 		if (Token.Data[Token.Offset] == Characters::CarriageReturn || Token.Data[Token.Offset] == Characters::LineFeed )
 		{
 			++Token.Line;
@@ -362,8 +308,6 @@ public:
 
 		return true;
 	}
-	
-
 
 	bool Next() 
 	{
@@ -391,14 +335,13 @@ public:
 	int Line() {return Token.Line;}
 };
 
-
 class StreamScanner : public Scanner
 {
 public:
 
 	class Stream * Stream;
 	ArraySet<class Token *> Tokens;
-	
+
 	StreamScanner(class Stream & stream):Stream(&stream)
 	{
 	}
@@ -408,20 +351,16 @@ public:
 	}
 
 	StreamScanner():Stream(0) {}
-	
+
 	~StreamScanner()
 	{
 	}
-	
+
 	int Seek(int position, int origin = -1)				
 	{
-		
-		
-		
-		
 
 		Token.Release();
-		
+
 		if (Stream->IsAbsolute())
 			Token.Position = Stream->Seek(position,origin);
 
@@ -457,17 +396,15 @@ public:
 	bool Next(int n);
 
 	bool Abort() {Token.Offset = Token.Size+1;return true;}
-	
+
 	int Position() {return Token.Position+Token.Offset;}
 	int Column() {return Token.Column;}
 	int Line() {return Token.Line;}
 };
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 class Parser
 {
@@ -475,7 +412,6 @@ public:
 
 	class Scanner * Scanner;
 	class Token	Token;
-
 
 	Parser(class Scanner * scanner);
 	Parser(class Scanner & scanner);
@@ -490,22 +426,15 @@ public:
 	int Column() {return Scanner->Column();}
 	int Line() {return Scanner->Line();}
 
-	
-	
-	
-	
-
 	char * At() {return Scanner->At();}
 	char * At(int size)	{return Scanner->At(size);}
 	char * At(int n, int size) {return Scanner->At(n,size);}
 
 	bool Abort()			{return Scanner->Abort();}
 	bool Next()				{return Scanner->Next();}
-	
-	
+
 	bool Accept()		{return Scanner->Accept();}
 
-	
 	bool Load(class Token & token) {return Scanner->Load(token);}
 	bool Store(class Token & token) {return Scanner->Store(token);}
 	class Token State() {return Scanner->Token;}
@@ -536,10 +465,6 @@ public:
 	bool IsLowercase(int n)			{return (*Scanner)(n,1) && Characters::IsLowercase(*At(n,1));}
 	bool IsNewline(int n)			{return (*Scanner)(n,1) && Characters::IsNewline(*At(n,1));}
 
-	
-	
-	
-	
 	bool IsWhitespace()		{return IsWhitespace(0);}
 	bool IsAlphanumeric()	{return IsAlphanumeric(0);}
 	bool IsAlpha()			{return IsAlpha(0);}
@@ -559,11 +484,6 @@ public:
 	bool IsLowercase()		{return IsLowercase(0);}
 	bool IsNewline()		{return IsNewline(0);}
 
-	
-
-	
-	
-	
 	bool Eof()						
 	{ 
 		return !(*Scanner)(0,1);
@@ -574,25 +494,11 @@ public:
 		return !(*Scanner)(n,1);
 	}
 
-
-	
-	
-	
-
-	
-	
-	
-	
-
 	bool Is(char data) {return (*Scanner)() && Characters::Equals(*At(),data);}
 	bool Is(const Substring & data) {return Is(data.Data,data.Size);}
 	bool Is(const char *data) {return Is((char*)data,String::Length(data));}	
 	bool Is(char *data, int size)
 	{
-		
-		
-		
-
 
 		return (*Scanner)(size) && Characters::Equals(At(size),data,size);
 	}
@@ -619,11 +525,6 @@ public:
 	{	
 		return (*Scanner)(n,size) && Characters::EqualsCaseless(At(n,size),data,size);
 	}
-	
-	
-	
-	
-	
 
 	bool IsAny(const Substring & tokens) {return IsAny(tokens.Data,tokens.Size);}
 	bool IsAny(const char *tokens) {return IsAny((char*)tokens, Substring::Length(tokens));}
@@ -650,7 +551,6 @@ public:
 		return false;
 	}
 
-
 	bool IsAnyCaseless(const Substring & tokens) {return IsAnyCaseless(tokens.Data,tokens.Size);}
 	bool IsAnyCaseless(const char *tokens) {return IsAnyCaseless((char*)tokens, Substring::Length(tokens));}
 	bool IsAnyCaseless(char *tokens, int length)	
@@ -662,7 +562,6 @@ public:
 		}
 		return false;
 	}
-
 
 	bool IsAnyCaseless(const int n, const Substring & tokens) {return IsAnyCaseless(n,tokens.Data,tokens.Size);}
 	bool IsAnyCaseless(const int n, const char *tokens) {return IsAnyCaseless(n,(char*)tokens, Substring::Length(tokens));}
@@ -692,27 +591,25 @@ public:
 	bool SkipAny(const Substring & tokens) {return SkipAny(tokens.Data,tokens.Size);}
 	bool SkipAny(const char * tokens) {return SkipAny((char*)tokens,String::Length(tokens));}
 	bool SkipAny(char * tokens, int length);
-	
+
 	bool Skip(const Substring & sequence) {return Skip(sequence.Data,sequence.Size);}
 	bool Skip(const char *data) {return Skip((char*)data,String::Length(data));}	
 	bool Skip(char *data, int size) {return Is(data,size) && Skip(size);}	
 	bool Skip(const char data) {return Is(data) && Skip(1);}
 
 	bool Skip(const int n) {return Scanner->Next(n);}
-	
 
 	bool SkipLine();
 	bool SkipNewline();
 	bool SkipWord();
-	
+
 	bool SkipInteger();
 	bool SkipInteger(long long & value, int radix=10);
 	bool SkipReal();
 	bool SkipReal(double & value);
 	bool SkipBoolean();
 	bool SkipBoolean(bool & value);
-	
-		
+
 	bool SkipHex();
 	bool SkipOctal();
 	bool SkipDecimal();
@@ -723,12 +620,12 @@ public:
 	bool SkipPunctuation();
 	bool SkipWhitespace();
 	bool SkipHyphenation();
-	
+
 	bool SkipUntil(const Substring & sequence) {return SkipUntil(sequence.Data,sequence.Size);}
 	bool SkipUntil(const char *data) {return SkipUntil((char*)data,String::Length(data));}	
 	bool SkipUntil(char *data, int size);
 	bool SkipUntil(const char data) {return SkipUntil((char*)&data,1);}
-	
+
 	bool SkipUntilAny(const Substring tokens[], int length);
 	bool SkipUntilAny(const Substring & tokens) {return SkipUntilAny(tokens.Data,tokens.Size);}
 	bool SkipUntilAny(char token) {return SkipUntilAny((char*)&token,1);}
@@ -745,13 +642,10 @@ public:
 	bool ParseUntil(char *data, int size);
 	bool ParseUntil(const char data) {return ParseUntil((char*)&data,1);}
 
-	
-	
 	bool ParseUntil(const Callback<bool> & callback);
-	
-	
+
 	bool ParseUntil(const Callback<bool,Parser> & callback);
-	
+
 	bool ParseUntilAny(const Substring tokens[], int length);
 	bool ParseUntilAny(const Substring & tokens) {return ParseUntilAny(tokens.Data,tokens.Size);}
 	bool ParseUntilAny(char token) {return ParseUntilAny((char*)&token,1);}
@@ -771,7 +665,7 @@ public:
 		}
 		return false;
 	}	
-	
+
 	bool Parse(const char data) 
 	{
 		if (Is(data))
@@ -783,10 +677,6 @@ public:
 		}
 		return false;
 	}
-	
-	
-	
-	
 
 	bool Parse(const int n) {return (*Scanner)(n,1) && Mark() && Scanner->Next(n) && Trap();}
 	bool ParseLine();
@@ -799,7 +689,7 @@ public:
 	bool ParseReal(double & value);
 	bool ParseBoolean();
 	bool ParseBoolean(bool & value);
-	
+
 	bool ParseHex();
 	bool ParseOctal();
 	bool ParseDecimal();
@@ -813,15 +703,8 @@ public:
 
 	bool ParseHyphenation();
 
-	
-		
-	
-	
-	
-
 	bool ParseLiteral();
 	bool ParseString() {return ParseQuotation();}
-
 
 	bool ParseInner(char open, char close, char eof=0, int depth=0);
 	bool ParseInner(const Substring &open, const Substring &close, const Substring &eof, int depth=0);
@@ -831,9 +714,6 @@ public:
 	bool ParseOuter(const char *open, const char *close, const char *eof, int depth=0);
 	bool ParseOuter(const Substring &open, const Substring &close, const Substring &eof, int depth=0);
 
-	
-	
-
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -842,7 +722,7 @@ public:
 class StringParser : public Parser
 {
 public:
-	
+
 	class StringScanner StringScanner;
 
 	StringParser(const char * data):StringScanner(data),Parser(StringScanner)
@@ -863,8 +743,7 @@ public:
 
 	void Assign(char *data, int size) 
 	{
-		
-		
+
 		StringScanner.Token.Release();
 		StringScanner.Token.Assign(data,size);
 	}
@@ -872,7 +751,6 @@ public:
 	void Assign(const char *start, const char * end) {Assign((char*)start,(end-start+1));};
 	void Assign(const Substring & sequence) {Assign(sequence.Data,sequence.Size);};
 };
-
 
 class StreamParser : public Parser
 {
@@ -900,101 +778,73 @@ class BinaryParser;
 class BinaryScanner : public StreamScanner
 {
 public:
-	
-	
+
 	class BinaryParser * BinaryParser;
 
-	
-	
-	
 	BinaryScanner(class BinaryParser * parser, class Stream & stream):StreamScanner(&stream),BinaryParser(parser)
-	
+
 	{
 	}
 
 	BinaryScanner(class BinaryParser * parser, class Stream * stream):StreamScanner(stream),BinaryParser(parser)
-	
+
 	{
 	}
 
 	BinaryScanner():BinaryParser(0) {}
-	
+
 	~BinaryScanner()
 	{
 	}
-	
+
 	int Seek(int position, int origin = -1);
-			
+
 	bool Accept()
 	{
 		if (Token.Offset > 0 && Token.Offset > Token.Size) return false;
 
-		
 		return Next();
 	}
 
 	bool Accept(int n)
 	{
 		if (Token.Offset > 0 && Token.Offset >= Token.Size) return false;
-		
-		
+
 		while(n-- > 0)
 		{
 			if (!Next()) return false;
 		}
-		
+
 		return true;
 	}
-	
+
 	using StreamScanner::Next;
 	bool Next(int n);
-	
-	
+
 };
-
-
-
-
-
-
-
-
-
-
-
-
 
 class BinaryParser : public Parser, public Stream
 {
 public:
 
-	
-	
 	class BinaryStream BinaryStream;
 	class BinaryScanner BinaryScanner;
-	
-	
-	
 
 	BinaryParser(Stream & stream):BinaryStream(stream),BinaryScanner(this,BinaryStream),Parser(BinaryScanner)
-	
+
 	{
 	}
 
 	BinaryParser(Stream * stream):BinaryStream(stream),BinaryScanner(this,BinaryStream),Parser(BinaryScanner)
-	
+
 	{
 	}
-	
+
 	BinaryParser() {}
 	~BinaryParser() {}
-	
-	
-	
-	
+
 	int Position() {return BinaryScanner.Position();}	
-	
-	
+
 	using Parser::Is;
 	bool Is(bool & data)						{return Is((char*) &data,1);}
 	bool Is(char & data)						{return Is((char*) &data,sizeof(char));}
@@ -1027,13 +877,6 @@ public:
 	bool Parse(double & data)					{return Parse((char*) &data,sizeof(double));}
 	bool Parse(void * & data)					{return Parse((char*) &data,sizeof(void*));}	
 
-
-
-	
-	
-	
-	
-	
 	int Seek(int position, int origin)
 	{
 		Token.Release();
@@ -1041,31 +884,24 @@ public:
 		return seek;
 	}
 
-
 	bool IsReadable()					{return BinaryStream.IsReadable();}
 	bool IsWriteable()					{return BinaryStream.IsWriteable();}
-	
-	
-		
-		
-	
+
 	int Read(char * data, int size)
 	{
-		
-		
+
 		Token.Release();
-		
+
 		while (size-- > 0)
 		{
 			char * byte = At();
 			*data++ = *byte;
 			Next();
 		}
-		
-		
+
 		return Token.Size;
 	}
-	
+
 	int Read(bool & data)						{return Read((char*) &data,1);}
 	int Read(char & data)						{return Read((char*) &data,sizeof(char));}
 	int Read(unsigned char & data)				{return Read((char*) &data,sizeof(unsigned char));}
@@ -1101,37 +937,26 @@ public:
 	unsigned short Read16()						{unsigned short bits;Read16(bits);return bits;}
 	unsigned int Read32()						{unsigned int bits;Read32(bits);return bits;}
 	unsigned long long Read64()					{unsigned long long bits;Read64(bits);return bits;}
-	
-	
+
 	int ReadNull8(int amount)					{unsigned char data=0;int size=0;while(amount-- > 0) size += Read8(data);return size;}
 	int ReadNull16(int amount)					{unsigned short data=0;int size=0;while(amount-- > 0) size += Read16(data);return size;}
 	int ReadNull32(int amount)					{unsigned int data=0;int size=0;while(amount-- > 0) size += Read32(data);return size;}
 	int ReadNull64(int amount)					{unsigned long long data=0;int size=0;while(amount-- > 0) size += Read64(data);return size;}
-	
-	
 
-	
-	
 	using Stream::Write;
 	int Write(char * data , int size)	
 	{
 		int write = BinaryStream.Write(data,size);					
-		
-		
+
 		((Stream*)this)->Position += write;
-		
-		
-		
-		
+
 		Token.Release();
 		BinaryScanner.Token.Release();
 		BinaryScanner.Token.Position = ((Stream*)this)->Position;
-		
-		
+
 		return write;
 	}
-	
-	
+
 	int Write(const bool & data)				{return Write((char&)data);}
 	int Write(const char & data)				{return Write((char *) &data,sizeof(char));}
 	int Write(const unsigned char & data)		{return Write((char *) &data,sizeof(unsigned char));}
@@ -1162,13 +987,12 @@ public:
 	#endif
 	int Write64(const long long & bits)				{return Write((char*)&bits,8);}
 	int Write64(const unsigned long long & bits)	{return Write((char*)&bits,8);}
-	
+
 	int WriteNull8(int amount)					{unsigned char data=0;int size=0;while(amount-- > 0) size += Write8(data);return size;}
 	int WriteNull16(int amount)					{unsigned short data=0;int size=0;while(amount-- > 0) size += Write16(data);return size;}
 	int WriteNull32(int amount)					{unsigned int data=0;int size=0;while(amount-- > 0) size += Write32(data);return size;}
 	int WriteNull64(int amount)					{unsigned long long data=0;int size=0;while(amount-- > 0) size += Write64(data);return size;}
-	
-	
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1185,11 +1009,7 @@ public:
 
 } 
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
 
