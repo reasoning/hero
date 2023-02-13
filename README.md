@@ -66,15 +66,6 @@ Time operations using high frequency `Timer` class, convert between any date/tim
 - `Interval`
 - `Timer`
 
-### Encoding
-Freely encode and decode data from streams, chainable operations on codecs you define.  Read utf8, calculate checksum, and write base64 in one operation.
-- `Encoder`, `Decoder`
-- `Code`, `Codec`, `CodecStream`
-- `Ascii`, `Hex`, `Octal`
-- `Base64`
-- `Unicode`
-- `Utf8`, `Utf16`, `Utf32`
-
 ### Callbacks
 
 Near zero cost callbacks, no heap allocation for non functor or lambda types, an actual generic interface `Callback<void,int,int>` can point to an object, a function, a lambda, a functor, or an object delayed this.
@@ -95,6 +86,14 @@ List, create, delete, read and write files and folders.
 A full set of streaming objects, with integration into other types in the type system.
 - `Reader, Writer, Stream, StreamBuffer, StreamFilter, FileStream, StringStream, FormattingStream`
 - `StreamParser` so that the `Parser` framework reads directly from any stream
+
+### Encoding
+Freely encode and decode data from streams, chainable operations on codecs you define.  Read utf8, calculate checksum, and write base64 in one operation.
+- `Encoder`, `Decoder`
+- `Code`, `Codec`, `CodecStream`
+- `Ascii`, `Hex`, `Octal`, `Base64`
+- `Unicode`
+- `Utf8`, `Utf16`, `Utf32`
 
 ### Reference Counting & Generics
 - `Weak<>, Strong<>`, and `Auto<>` pointers that can point to handles or pointers with full lifecycle management and owned vs shared semantics.
