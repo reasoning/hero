@@ -43,7 +43,7 @@ Builds like butter.
 - `Binary`, and `Bits` for handling binary data.
 - `String` formatting with `Stream`, `Formatter`, and Perl style `Pack/Unpack` for streams.
 - Polymorphic string views by default with `Substring`
-- `Stackstring` and `Superstring` for small string optimisation and forced move semantics
+- `Stackstring` and `Superstring` for small string optimisation and forced move
 - Unlock incredibly powerful in-place data processing using nested blocks with `Path`, and `Segment`.
 - Argument and option parsing with `Args, Options, Section`, and `Configuration` for config files.
 - Regular expression support integrated into `String` with `Regex`
@@ -65,6 +65,15 @@ Time operations using high frequency `Timer` class, convert between any date/tim
 - `Time, Date, Year, Month, Day, Calendar, Epoch`
 - `Interval`
 - `Timer`
+
+### Encoding
+Freely encode and decode data from streams, chainable operations on codecs you define.  Read utf8, calculate checksum, and write base64 in one operation.
+- `Encoder`, `Decoder`
+- `Code`, `Codec`, `CodecStream`
+- `Ascii`, `Hex`, `Octal`
+- `Base64`
+- `Unicode`
+- `Utf8`, `Utf16`, `Utf32`
 
 ### Callbacks
 
