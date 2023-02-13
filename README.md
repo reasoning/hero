@@ -43,6 +43,7 @@ Builds like butter.
 - `Binary`, and `Bits` for handling binary data.
 - `String` formatting with `Stream`, `Formatter`, and Perl style `Pack/Unpack` for streams.
 - Polymorphic string views by default with `Substring`
+- `Stackstring` and `Superstring` for small string optimisation and forced move semantics
 - Unlock incredibly powerful in-place data processing using nested blocks with `Path`, and `Segment`.
 - Argument and option parsing with `Args, Options, Section`, and `Configuration` for config files.
 - Regular expression support integrated into `String` with `Regex`
