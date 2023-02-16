@@ -1072,9 +1072,9 @@ Fixed Ryu::DoubleToFixed(double value, FixedSchema & schema)
 		String str;
 
 		str = Binary::BitsToString(bits,Binary::ENDIAN_LITTLE);
-		OutputConsole("IN=%s\n",str.Print());		
+		Raise("IN=%s\n",str.Print());		
 
-		OutputConsole(" S=%s E=%d M=%lld\n",(sign)?"-":"+",e2,m2);
+		Raise(" S=%s E=%d M=%lld\n",(sign)?"-":"+",e2,m2);
 	}
 	#endif
 
@@ -1109,11 +1109,11 @@ Fixed Ryu::DoubleToFixed(double value, FixedSchema & schema)
 
 		e10 += sp.Size - 1;
 
-		OutputConsole("E =%d\n",e10);
-		OutputConsole("d+=%s\n",sp.Print());
-		OutputConsole("d =%s\n",sv.Print());
-		OutputConsole("d-=%s\n",sm.Print());
-		OutputConsole("e2=%d\n",e2);
+		Raise("E =%d\n",e10);
+		Raise("d+=%s\n",sp.Print());
+		Raise("d =%s\n",sv.Print());
+		Raise("d-=%s\n",sm.Print());
+		Raise("e2=%d\n",e2);
 
 	}
 	#endif
@@ -1135,17 +1135,17 @@ Fixed Ryu::DoubleToFixed(double value, FixedSchema & schema)
 
 		#ifdef RYU_DEBUG
 		{
-			OutputConsole("%lld * 2^%d\n",mv,e2);
-			OutputConsole("V+=%lld\n", dp);
-			OutputConsole("V =%lld\n", dv);
-			OutputConsole("V-=%lld\n", dm);
+			Raise("%lld * 2^%d\n",mv,e2);
+			Raise("V+=%lld\n", dp);
+			Raise("V =%lld\n", dv);
+			Raise("V-=%lld\n", dm);
 
 			long long exact = Unsigned(POW5_INV[q])
 				.Multiply(mv)
 				.BitShiftRight(-e2 + q + k)
 				.SignedLongLong();
 
-			OutputConsole("%lld %d\n",exact,POW5_INV[q].BitLength());
+			Raise("%lld %d\n",exact,POW5_INV[q].BitLength());
 
 			if (dv != exact) 
 			{
@@ -1181,7 +1181,7 @@ Fixed Ryu::DoubleToFixed(double value, FixedSchema & schema)
 
 		#ifdef RYU_DEBUG
 		{
-			OutputConsole("%lld 5^%d  / 10^%d",mv,(-e2),q);
+			Raise("%lld 5^%d  / 10^%d",mv,(-e2),q);
 		}
 		#endif
 
@@ -1202,14 +1202,14 @@ Fixed Ryu::DoubleToFixed(double value, FixedSchema & schema)
 
 	#ifdef RYU_DEBUG
 	{
-		OutputConsole("d+=%lld\n", dp);
-		OutputConsole("d =%lld\n", dv);
-		OutputConsole("d-=%lld\n", dm);
-		OutputConsole("e10=%d\n", e10);
-		OutputConsole("d-10=%d\n", dmIsTrailingZeros);
-		OutputConsole("d   =%d\n", dvIsTrailingZeros);
-		OutputConsole("Accept upper=%d\n", acceptBounds);
-		OutputConsole("Accept lower=%d\n", acceptBounds);
+		Raise("d+=%lld\n", dp);
+		Raise("d =%lld\n", dv);
+		Raise("d-=%lld\n", dm);
+		Raise("e10=%d\n", e10);
+		Raise("d-10=%d\n", dmIsTrailingZeros);
+		Raise("d   =%d\n", dvIsTrailingZeros);
+		Raise("Accept upper=%d\n", acceptBounds);
+		Raise("Accept lower=%d\n", acceptBounds);
 	}	
 	#endif
 
@@ -1275,13 +1275,13 @@ Fixed Ryu::DoubleToFixed(double value, FixedSchema & schema)
 
 	#ifdef RYU_DEBUG
 	{
-		OutputConsole("LAST_REMOVED_DIGIT=%d\n", lastRemovedDigit);
-		OutputConsole("VP=%lld\n", dp);
-		OutputConsole("VR=%lld\n", dv);
-		OutputConsole("VM=%lld\n", dm);
-		OutputConsole("M=%lld\n", m10);
-		OutputConsole("MLEN=%d\n", mlen);
-		OutputConsole("EXP=%d\n", e10);
+		Raise("LAST_REMOVED_DIGIT=%d\n", lastRemovedDigit);
+		Raise("VP=%lld\n", dp);
+		Raise("VR=%lld\n", dv);
+		Raise("VM=%lld\n", dm);
+		Raise("M=%lld\n", m10);
+		Raise("MLEN=%d\n", mlen);
+		Raise("EXP=%d\n", e10);
 	}
 	#endif
 
@@ -1900,12 +1900,12 @@ Fixed Fixed::ConvertRealToFixed(long long bits, FixedSchema & schema)
     bool scientificNotation = (e10 < -3) || (e10 >= 7);
 
     #ifdef RYU_DEBUG
-		OutputConsole("IN=%s", Binary::BitsToString(bits).Print());
-		OutputConsole("   S=%d E=%d M=%ld\n",(sign ? "-" : "+"),e2,m2);
-		OutputConsole("E =%d\n",e10);
-		OutputConsole("V+=%s\n",vp.Str().Print());
-		OutputConsole("V =%s\n",vr.Str().Print());
-		OutputConsole("V-=%s\n",vm.Str().Print());
+		Raise("IN=%s", Binary::BitsToString(bits).Print());
+		Raise("   S=%d E=%d M=%ld\n",(sign ? "-" : "+"),e2,m2);
+		Raise("E =%d\n",e10);
+		Raise("V+=%s\n",vp.Str().Print());
+		Raise("V =%s\n",vr.Str().Print());
+		Raise("V-=%s\n",vm.Str().Print());
     #endif
 
     if (!acceptBounds) 
@@ -1953,13 +1953,13 @@ Fixed Fixed::ConvertRealToFixed(long long bits, FixedSchema & schema)
     Signed m10 = ((vr.Compare(vm) > 0)?((lastRemovedDigit >= 5)?vr+1:vr):vp).Magnitude;
 
     #ifdef RYU_DEBUG
-      OutputConsole("LRD=%d\n", lastRemovedDigit);
-      OutputConsole("VP=%s\n", vp.Str().Print());
-      OutputConsole("VR=%s\n", vr.Str().Print());
-      OutputConsole("VM=%s\n", vm.Str().Print());
-      OutputConsole("M=%s\n", m10.Str().Print());
-      OutputConsole("MLEN=%d\n", mlen);
-      OutputConsole("EXP=%d\n", e10);
+      Raise("LRD=%d\n", lastRemovedDigit);
+      Raise("VP=%s\n", vp.Str().Print());
+      Raise("VR=%s\n", vr.Str().Print());
+      Raise("VM=%s\n", vm.Str().Print());
+      Raise("M=%s\n", m10.Str().Print());
+      Raise("MLEN=%d\n", mlen);
+      Raise("EXP=%d\n", e10);
     #endif
 
 	for (int m=1;m<mlen;++m) 

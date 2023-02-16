@@ -932,8 +932,8 @@ public:
 
     String(const char * data):Allocated(0)			{Construct((char *)data,Substring::Length(data));}    
     String(char * data, int size):Allocated(0)		{Construct(data,size);}    
-    String(const String & str):Allocated(0)			{Construct((char*)str.Data,str.Size);}
-    String(const Substring & str):Allocated(0)      {Construct((char*)str.Data,str.Size);}
+    String(const String & str):Allocated(0)			{Construct(str);}
+    String(const Substring & str):Allocated(0)      {Construct(str);}
     String(const Superstring & str):Allocated(0)	{Construct(str);}
 
     #ifdef HERO_USING_STD
@@ -999,7 +999,7 @@ public:
     }
 
 	String & Construct(const Superstring & str);
-	String & Construct(const Substring &str)		{return Construct(str.Data,str.Size);}
+	String & Construct(const Substring &str);
 	String & Construct(const char * data)			{return Construct((char*)data,Length(data));}
 	String & Construct(char * data, int size);
 
@@ -1397,6 +1397,17 @@ public:
 
 class Superstring : public String
 {
+public:
+
+	static Identity Instance;
+	virtual Identity& Identify() {return Instance;};
+
+	virtual bool InstanceOf(Identity &identity)
+	{
+
+		return Instance == identity || Substring::InstanceOf(identity);
+	}
+
 public:
 
 	Superstring(const Superstring & left, const Superstring & right)

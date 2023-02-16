@@ -127,7 +127,7 @@ int main(int argc, char * argv[])
     int found = array.Find([](int x) {return x > 2;});
     PrintLn("%d",found);
 
-    if (true)
+    if (false)
     {    	 
         Timer timer;
 

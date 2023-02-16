@@ -1929,9 +1929,18 @@ String & String::Construct()
 	return *this;
 }
 
-String & String::Construct(const Superstring & superstring)
+String & String::Construct(const Superstring & str)
 {
-	return Attach((String&)superstring);	
+	return Attach((String&)str);	
+}
+
+String & String::Construct(const Substring &str)
+{
+
+	if (((Substring&)str).Identify() == Superstring::Instance)
+		return Attach((String&)str);	
+	else
+		return Construct(str.Data,str.Size);
 }
 
 String & String::Construct(char * data, int size)
@@ -3025,6 +3034,8 @@ int String::Read(std::istream & stream, int amount)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Identity Superstring::Instance;
 
 Superstring Superstring::Partial(const Superstring & superstring)
 {

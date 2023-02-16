@@ -103,8 +103,11 @@ Freely encode and decode data from streams, chainable operations on codecs you d
 
 ### Multithreading
 
+Scoped guards for all the usual suspects, light weight recursing locking and copyable thread 
+primitives with race condition free joins.
+
 - `Thread/Fibre` for light weight multithreading with lambdas and `Callback<>`
-- `SpinLock, ReadWriteLock` (a recursive `SpinLock`)
+- `Mutex`,`SpinLock, ReadWriteLock` (a recursive `SpinLock`)
 - `ThreadLocal<>` for thread local storage, including global cleanup
 - `Event` notification, `Condition` variables, `Critical` sections and `Hazard` pointers.
 - `Atomic` operations and `Barrier`'s.

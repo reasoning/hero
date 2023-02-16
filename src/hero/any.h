@@ -32,6 +32,7 @@ SOFTWARE.
 #include "hero/platform.h"
 #include "hero/generic.h"
 #include "hero/traits.h"
+#include "hero/string.h"
 
 #pragma warning(disable:4522)
 
@@ -213,6 +214,18 @@ struct PolicySelector
 	typedef typename Traits::If< Traits::IsClass<_Kind_>::Value, AnyPolicyNew<_Kind_>, AnyPolicyPlace<_Kind_> >::Type Type;		
 };
 
+template<>
+struct PolicySelector<char[]> 
+{
+	typedef AnyPolicyNew<String> Type;
+};
+
+template<>
+struct PolicySelector<const char*> 
+{
+	typedef AnyPolicyNew<String> Type;
+};
+
 template<typename _Kind_>
 struct PolicySelector<_Kind_ *> 
 {
@@ -282,6 +295,16 @@ public:
 		Base->Set((void*)&kind,&Kind);
 		return *this;
 
+	}
+
+	Any & Assign(const char * value)
+	{
+
+		Superstring kind(value);
+		Reset();		
+		Base = AnyPolicy::Policy<String>();
+		Base->Set((void*)&kind,&Kind);
+		return *this;		
 	}
 
 	Any & Assign(const Any & any)
