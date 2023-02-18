@@ -127,6 +127,16 @@ int main(int argc, char * argv[])
     int found = array.Find([](int x) {return x > 2;});
     PrintLn("%d",found);
 
+    PrintLn("Range:");
+    {
+        Iterator<int> it = array.Iterate(0,3);
+        for(it.Forward();it.Has();it.Move())
+        {
+            PrintLn("%d",it());
+        }
+
+    }
+
     {
         Iterator<int> it = array.Iterate();
         for(it.Forward();it.Has();it.Move())
@@ -144,7 +154,7 @@ int main(int argc, char * argv[])
         }
     }
 
-    if (false)
+    if (true)
     {    	 
         Timer timer;
 
@@ -166,7 +176,19 @@ int main(int argc, char * argv[])
 
         any = "any";
 
-        String str = any.Cast<String>();
+        String str;
+
+        str = any.Cast<String>();
+        PrintArgLn(str);
+
+	    char buf[256] = {};
+        any = buf;
+        str = any.Cast<String>();
+        PrintArgLn(str);
+
+	    char x[4] = {'a','b','c','d'};
+        any = x;
+        str = any.Cast<String>();
         PrintArgLn(str);
 
         any = Fixed("2e-30");

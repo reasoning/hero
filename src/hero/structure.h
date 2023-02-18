@@ -443,11 +443,6 @@ public:
 	class Iterand<_Kind_> Iterand;
 	class Range Range;
 
-	Iterator(Iterator<_Kind_> & iterator) 
-	{
-		Iterand = iterator.Iterand;
-	}
-
 	Iterator(Iterable<_Kind_> & iterable) 
 	{
 		Iterand.Iterable = &iterable;
@@ -458,6 +453,12 @@ public:
 		Iterand.Iterable = &iterable;
 		Range.First = from;
 		Range.Last = to;
+	}
+
+	Iterator(const Iterator<_Kind_> & iterator) 
+	{
+		Iterand = iterator.Iterand;
+		Range = iterator.Range;
 	}
 
 	Iterator(const Hero::Iterand<_Kind_> & iterand) 
@@ -475,7 +476,7 @@ public:
 
 	void Iterate(Iterator<_Kind_> & iterator)
 	{
-		(*this) = iterator.Iterand;
+		(*this) = iterator;
 	}
 
 	void Iterate(Iterable<_Kind_> & iterable)
@@ -530,6 +531,7 @@ public:
 	Iterator<_Kind_> & operator = (const Iterator<_Kind_> & iterator)
 	{
 		Iterand = iterator.Iterand;
+		Range = iterator.Range;
 
 		return *this;
 	}
@@ -548,9 +550,15 @@ public:
 			iterand.Iterable = Iterand.Iterable;
 
 		if (Iterand.Iterable) 
+		{
 			iterand = Iterand.Iterable->Forward();
+			if (!Range.IsEmpty())
+				iterand.Index = Range.First;
+		}
 		else
+		{
 			iterand = Hero::Iterand<_Kind_>();
+		}
 	}
 
 	void Reverse(class Iterand<_Kind_> & iterand) 
@@ -559,9 +567,15 @@ public:
 			iterand.Iterable = Iterand.Iterable;
 
 		if (Iterand.Iterable) 
+		{
 			iterand = Iterand.Iterable->Reverse();
+			if (!Range.IsEmpty())
+				iterand.Index = Range.Last-1;
+		}
 		else
+		{
 			iterand = Hero::Iterand<_Kind_>();
+		}
 	}
 
 	void Move(class Iterand<_Kind_> & iterand)
@@ -583,7 +597,7 @@ public:
 			Forward(iterand);
 		}
 
-		if (Iterand.Iterable && Range.IsEmpty() || Iterand.Index < Range.Last) 
+		if (Iterand.Iterable && Range.IsEmpty() || (Iterand.Index < Range.Last-1 && Iterand.Index >= Range.First))  
 			Iterand.Iterable->Move(iterand,amount);
 		else
 
