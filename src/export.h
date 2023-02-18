@@ -114,6 +114,7 @@ public:
 		int offset=0;
 
 		Iterand<CodeToken> tokens = tok.Forward();
+
 		while (tokens != 0)
 		{
 
@@ -127,6 +128,7 @@ public:
 		}
 
 		tok.Insert(token,tok.Index(CodeTokenCompare(token)));	
+
 	}
 
 	void HandleDefinition(const CodeToken & token, const String & path, const String & name)

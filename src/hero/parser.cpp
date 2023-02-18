@@ -125,23 +125,23 @@ char * StreamScanner::At(int n, int size)
 {
 	if (Token.Offset > 0 && Token.Offset >= Token.Size) return 0;
 
-	n+=size;
-	if (Token.Data == 0 || Token.Offset+n > Token.Size)
+	if (Token.Data == 0 || Token.Offset+n+size > Token.Size)
 	{
-		n -= Token.Size-Token.Offset;
-		Token.Reserve(n);			
+		int amount = n+size - (Token.Size-Token.Offset);
+		Token.Reserve(amount);			
 
-		int read = Stream->Read(Token.Data+Token.Size,n);
+		int read = Stream->Read(Token.Data+Token.Size,amount);
 		Token.Size += read;
 		Token.Term();
-		if (read < n)
+		if (read < amount)
 		{			
 			Token.Offset = Token.Size;
 			return 0;
 		}
+
 	}
 
-    return Token.Data+Token.Offset+n-size;
+    return Token.Data+Token.Offset+n;
 }
 
 bool StreamScanner::Mark(class Token & token) 
@@ -598,6 +598,9 @@ bool Parser::SkipInteger()
 	else
 	if (Is('0') && IsCaseless(1,'x') && IsHex(2))
 		return SkipHex();
+	else
+	if (IsNumeric())
+		return SkipDecimal();
 
 	return false;
 }
@@ -634,6 +637,9 @@ bool Parser::ParseInteger(long long & value, int radix)
 bool Parser::SkipReal()
 {
 
+	class Token state;
+	Store(state);
+
 	bool numeric = false;
 
 	if (IsAny("+-"))
@@ -663,6 +669,9 @@ bool Parser::SkipReal()
 		while (!Eof() && IsNumeric())
 			Next();
 	}
+
+	if (!numeric)
+		Load(state);
 
 	return numeric;
 }

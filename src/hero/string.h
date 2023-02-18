@@ -2247,26 +2247,26 @@ namespace {
 
 using namespace Hero;
 
-inline void PrintArgFormat(String&) {}
+inline void PrintArgFormatStr(String&) {}
 
 template <typename _Kind_> 
-void PrintArgFormat(String& str, _Kind_ arg)
+void PrintArgFormatStr(String& str, _Kind_ arg)
 {
     str.Append(arg);
 }
 
 template <typename _Kind_, typename... _Args_> 
-void PrintArgFormat(String & str, _Kind_ arg, _Args_... args)
+void PrintArgFormatStr(String & str, _Kind_ arg, _Args_... args)
 {
     str.Append(arg);
-    PrintArgFormat(str, args...);
+    PrintArgFormatStr(str, args...);
 }
 
 template <typename... Args> 
 String PrintArgFormat(Args... args)
 {
     String str;
-    PrintArgFormat(str,args...);
+    PrintArgFormatStr(str,args...);
 
     return String().Move(str);
 }

@@ -39,8 +39,21 @@ bool CodeParser::ParseCode(const String & string, const String & path)
 
 	Assign(string);
 
-	CodeToken comment;
+	char bom[] = {0xEF,0xBB,0xBF};
 
+	if (!Eof() && Is(bom,3))
+	{
+		CodeToken whitespace;
+		Mark(whitespace);
+		whitespace.Offset = Scanner->Token.Offset;
+		Skip(3);
+		Trap(whitespace);
+
+		Handler->HandleWhitespace(whitespace,path);
+
+	}
+
+	CodeToken comment;
 	while (!Eof())
 	{
 

@@ -127,7 +127,13 @@ int main(int argc, char * argv[])
     int found = array.Find([](int x) {return x > 2;});
     PrintLn("%d",found);
 
-    if (false)
+    Iterator<int> it = array.Iterate();
+    for(it.Forward();it.Has();it.Move())
+    {
+        PrintLn("%d",it());
+    }
+
+    if (true)
     {    	 
         Timer timer;
 
@@ -150,11 +156,20 @@ int main(int argc, char * argv[])
         any = "any";
 
         String str = any.Cast<String>();
+        PrintArgLn(str);
+
+        any = Fixed("2e-30");
+        PrintArgLn(any.Cast<Fixed>().Str());
+
+        any = 10;
+        int a = any.Cast<int>();
+        PrintLn("%d",a);
     }
 
-    if (false)
+    if (true)
     {
-        Args args(argc,argv);
+
+        Args args("cmdline test/numbers.txt");
         if (args.Length() < 2 || !File::Exists(args[1]))
             return 0;
 
@@ -163,7 +178,7 @@ int main(int argc, char * argv[])
         while (!parser.Eof())
         {
             if (parser.ParseInteger())
-                PrintLn("%s",parser.Token);
+                PrintLn("%s",parser.Token.Print());
             else
                 parser.SkipLine();
         }    

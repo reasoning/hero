@@ -94,6 +94,8 @@ struct Range
 	int Last;
 
 	Range(int first=0,int last=0):First(first),Last(last){}
+
+	bool IsEmpty() {return First == Last;}
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -325,7 +327,7 @@ public:
 
 	}
 
-	Iterand(class Iterable<_Kind_> & iterable, int option, int index=0):
+	Iterand(class Iterable<_Kind_> & iterable, int option=0, int index=0):
 		Iterable(&iterable),Option(option),Index(index) 
 	{
 
@@ -439,26 +441,54 @@ class Iterator
 public:
 
 	class Iterand<_Kind_> Iterand;
+	class Range Range;
 
-	Iterator(const Iterator<_Kind_> & iterator):Iterand(iterator.Iterand) {}
-	Iterator(Iterable<_Kind_> & iterable) {Iterate(iterable);}
-	Iterator(const class Iterand<_Kind_> & iterand) {Iterate(iterand);}
-	Iterator(const class Iterand<_Kind_> & from, const class Iterand<_Kind_> & to) {Iterate(from,to);}
+	Iterator(Iterator<_Kind_> & iterator) 
+	{
+		Iterand = iterator.Iterand;
+	}
+
+	Iterator(Iterable<_Kind_> & iterable) 
+	{
+		Iterand.Iterable = &iterable;
+	}
+
+	Iterator(Iterable<_Kind_> & iterable, int from, int to) 
+	{
+		Iterand.Iterable = &iterable;
+		Range.First = from;
+		Range.Last = to;
+	}
+
+	Iterator(const Hero::Iterand<_Kind_> & iterand) 
+	{
+		Iterate(iterand);
+	}
+
+	Iterator(const Hero::Iterand<_Kind_> & from, const Hero::Iterand<_Kind_> & to) 
+	{
+		Iterate(from,to);
+	}
 
 	Iterator() {}
 	~Iterator() {}
+
+	void Iterate(Iterator<_Kind_> & iterator)
+	{
+		(*this) = iterator.Iterand;
+	}
 
 	void Iterate(Iterable<_Kind_> & iterable)
 	{
 		(*this) = iterable.Iterate();
 	}
 
-	void Iterate(Iterable<_Kind_> & iterable, int from, int to)
+	void Iterate(const Iterable<_Kind_> & iterable, int from, int to)
 	{
 		(*this) = iterable.Iterate(from,to);
 	}
 
-	void Iterate(Iterable<_Kind_> & iterable, const class Iterand<_Kind_> & from, const class Iterand<_Kind_> & to)
+	void Iterate(const Iterable<_Kind_> & iterable, const Hero::Iterand<_Kind_> & from, const Hero::Iterand<_Kind_> & to)
 	{
 		(*this) = iterable.Iterate(from,to);
 	}
@@ -475,12 +505,12 @@ public:
 		}
 	}
 
-	void Iterate(const class Iterand<_Kind_> & iterand)
+	void Iterate(const Hero::Iterand<_Kind_> & iterand)
 	{
 		Iterand = iterand;
 	}
 
-	void Iterate(const class Iterand<_Kind_> & from, const class Iterand<_Kind_> & to)
+	void Iterate(const Hero::Iterand<_Kind_> & from, const Hero::Iterand<_Kind_> & to)
 	{
 		if (Iterand.Iterable)
 		{
@@ -504,7 +534,7 @@ public:
 		return *this;
 	}
 
-	Iterator<_Kind_> & operator = (const class Iterand<_Kind_> & iterand)
+	Iterator<_Kind_> & operator = (const Hero::Iterand<_Kind_> & iterand)
 	{
 
 		Iterand = iterand;
@@ -553,7 +583,7 @@ public:
 			Forward(iterand);
 		}
 
-		if (Iterand.Iterable)
+		if (Iterand.Iterable && Range.IsEmpty() || Iterand.Index < Range.Last) 
 			Iterand.Iterable->Move(iterand,amount);
 		else
 
@@ -677,12 +707,18 @@ Iterator<_Kind_> Iterable<_Kind_>::Iterate()
 template<typename _Kind_>
 Iterator<_Kind_> Iterable<_Kind_>::Iterate(int from, int to) 
 {
-	return Iterator<_Kind_>();
+	return Iterator<_Kind_>(*this,from,to);
 }
 
 template<typename _Kind_>
 Iterator<_Kind_> Iterable<_Kind_>::Iterate(Iterand<_Kind_> & from, Iterand<_Kind_> & to) 
 {
+	Assert(from.Iterable == this && from.Iterable == to.Iterable);
+	if (from.Iterable == this && from.Iterable == to.Iterable)
+	{
+		return Iterator<_Kind_>(*this,from.Index,to.Index);
+	}
+
 	return Iterator<_Kind_>();
 }
 
