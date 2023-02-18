@@ -127,13 +127,24 @@ int main(int argc, char * argv[])
     int found = array.Find([](int x) {return x > 2;});
     PrintLn("%d",found);
 
-    Iterator<int> it = array.Iterate();
-    for(it.Forward();it.Has();it.Move())
     {
-        PrintLn("%d",it());
+        Iterator<int> it = array.Iterate();
+        for(it.Forward();it.Has();it.Move())
+        {
+            PrintLn("%d",it());
+        }
     }
 
-    if (true)
+    {
+        Iterand<int> it = array.Forward();
+        while(it)
+        {
+            PrintLn("%d",it());
+            ++it;
+        }
+    }
+
+    if (false)
     {    	 
         Timer timer;
 
