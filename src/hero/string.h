@@ -54,6 +54,7 @@ SOFTWARE.
 
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 
 #ifdef HERO_USING_STD
 #include <sstream>
@@ -475,6 +476,7 @@ public:
 	static Identity Instance;
 	virtual Identity& Identify() {return Instance;};
 
+	using Object::InstanceOf;
 	virtual bool InstanceOf(Identity &identity)	
 	{
 		return Identify() == identity;
@@ -578,6 +580,9 @@ public:
 
 	Bytes & operator = (const Bytes & bytes);
 
+	using Printable::Print;
+	void Print(String & string);
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -591,6 +596,7 @@ public:
 	static Identity Instance;
 	virtual Identity& Identify() {return Instance;};
 
+	using Bytes::InstanceOf;
 	virtual bool InstanceOf(Identity &identity)
 	{
 
@@ -634,7 +640,7 @@ public:
 
     #ifdef HERO_USING_STD
     Substring(const std::string & str):
-        Data((char*)str.data()),Size((int)str.size())
+		Bytes((char*)str.data(),(int)str.size())
     {}
     #endif
 
@@ -682,8 +688,8 @@ public:
     }
 
 	int Hash();	
-	int Compare(Object *object, int comparitor=COMPARE_GENERAL);
-	bool Equals(Object * object, int comparitor=COMPARE_GENERAL);
+	int Compare(Object *object, int comparitor=Comparable::COMPARE_GENERAL);
+	bool Equals(Object * object, int comparitor=Comparable::COMPARE_GENERAL);
 
 	using Bytes::Print;
 	void Print(String & string);
@@ -2335,13 +2341,13 @@ class PrintStream
     ~PrintStream()
     {
 
-        ::Print(Stream.str());
+        ::PrintArg(Stream.str());
     }
 
     template <typename T> PrintStream& operator<<(const T& any)
     {
 
-        ::Print(any);
+        ::PrintArg(any);
         return *this;
     }
 

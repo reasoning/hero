@@ -118,7 +118,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class Object : public Kind, public Printable, public Comparable 
+class Object : public Kind, public Printable
 {
 public:
 
@@ -144,9 +144,9 @@ public:
 	using Printable::Print;
 	void Print(String & string);
 
-	virtual bool Equals(Object *object, int comparitor=COMPARE_GENERAL);
+	virtual bool Equals(Object *object, int comparitor=Comparable::COMPARE_GENERAL);
 
-	virtual int Compare(Object *object, int comparitor=COMPARE_GENERAL);	
+	virtual int Compare(Object *object, int comparitor=Comparable::COMPARE_GENERAL);	
 
 	virtual int Hash();
 };

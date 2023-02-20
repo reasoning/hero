@@ -485,7 +485,7 @@ public:
 		#endif
 		#ifdef HERO_PLATFORM_WINDOWS
 
-		return (unsigned int)__lzcnt((int32_t)bit) + 1;
+		return (unsigned int)__lzcnt((int)bit) + 1;
 		#endif
 
 		#else
@@ -508,7 +508,7 @@ public:
 
 		#ifdef HERO_PLATFORM_WINDOWS
 
-		return (unsigned long long)__lzcnt64((int64_t)bit) + 1;
+		return (unsigned long long)__lzcnt64((long long)bit) + 1;
 		#endif				
 
 		#else

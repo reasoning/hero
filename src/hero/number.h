@@ -42,6 +42,7 @@ SOFTWARE.
 #endif
 
 #include <math.h>
+#include <stdlib.h>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -191,8 +192,8 @@ public:
 
 	static int Abs(int x)					{return abs(x);}
 	static long long Abs(long long x)		{return abs(x);}
-	static float Abs(float x)				{return abs(x);}
-	static double Abs(double x)				{return abs(x);}
+	static float Abs(float x)				{return fabs(x);}
+	static double Abs(double x)				{return fabs(x);}
 
 	static float Ceil(float x)				{return ceil(x);}
 	static double Ceil(double x)			{return ceil(x);}

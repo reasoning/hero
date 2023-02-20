@@ -35,9 +35,12 @@ SOFTWARE.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#ifdef HERO_USING_STD
 #include <iomanip>
 #include <ostream>
 #include <vector>
+#include <array>
+#endif
 
 #include "hero/assert.h"
 
@@ -282,44 +285,44 @@ template <typename T, size_t S> inline std::ostream& operator<<(std::ostream& os
 
 using namespace Hero;
 
-inline void StreamWrite(Stream & s, const uint8_t& value)
+inline void StreamWrite(Stream & s, const unsigned char& value)
 {
-    s.Write((char*)&value,sizeof(uint8_t));
+    s.Write((char*)&value,sizeof(unsigned char));
 }
 
-inline void StreamWrite(Stream & s, const uint16_t& value)
+inline void StreamWrite(Stream & s, const unsigned short& value)
 {
-    s.Write((char*)&value,sizeof(uint16_t));
+    s.Write((char*)&value,sizeof(unsigned short));
 }
 
-inline void StreamWrite(Stream & s, const uint32_t& value)
+inline void StreamWrite(Stream & s, const unsigned int& value)
 {
-    s.Write((char*)&value,sizeof(uint32_t));
+    s.Write((char*)&value,sizeof(unsigned int));
 }
 
-inline void StreamWrite(Stream & s, const uint64_t& value)
+inline void StreamWrite(Stream & s, const unsigned long long& value)
 {
-    s.Write((char*)&value,sizeof(uint64_t));
+    s.Write((char*)&value,sizeof(unsigned long long));
 }
 
-inline void StreamRead(Stream & s, uint8_t& value)
+inline void StreamRead(Stream & s, unsigned char& value)
 {
-    s.Read((char*)&value,sizeof(uint8_t));
+    s.Read((char*)&value,sizeof(unsigned char));
 }
 
-inline void StreamRead(Stream & s, uint16_t& value)
+inline void StreamRead(Stream & s, unsigned short& value)
 {
-    s.Read((char*)&value,sizeof(uint16_t));
+    s.Read((char*)&value,sizeof(unsigned short));
 }
 
-inline void StreamRead(Stream & s, uint32_t& value)
+inline void StreamRead(Stream & s, unsigned int& value)
 {
-    s.Read((char*)&value,sizeof(uint32_t));
+    s.Read((char*)&value,sizeof(unsigned int));
 }
 
-inline void StreamRead(Stream & s, uint64_t& value)
+inline void StreamRead(Stream & s, unsigned long long& value)
 {
-    s.Read((char*)&value,sizeof(uint64_t));
+    s.Read((char*)&value,sizeof(unsigned long long));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

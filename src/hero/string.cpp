@@ -1540,6 +1540,11 @@ Bytes & Bytes::operator = (const Bytes & bytes)
 	return *this;
 }
 
+void Bytes::Print(class String & string)
+{
+	string.Append(Data,Size);
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1829,7 +1834,8 @@ bool Substring::Equals(Object * object,int comparitor)
 
 		switch(comparitor)
 		{
-		case COMPARE_GENERAL:case COMPARE_PRECISE:
+		case Comparable::COMPARE_GENERAL:
+		case Comparable::COMPARE_PRECISE:
 			return Characters::Equals(Data,Size,str->Data,str->Size,!comparitor);
 		default:
 			return false;
@@ -1844,7 +1850,7 @@ bool Substring::Equals(Object * object,int comparitor)
 
 void Substring::Print(class String & string)
 {
-	string << *this;
+	string.Append(Data,Size);
 }
 
 Substring Substring::Slice(int from)

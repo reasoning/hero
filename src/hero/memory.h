@@ -31,8 +31,11 @@ SOFTWARE.
 #include "hero/sync.h"
 
 #include <memory.h>
-#include <memory>
 #include <stdlib.h>
+
+#ifdef HERO_USING_STD
+#include <memory>
+#endif
 
 #ifdef HERO_USING_TRACY
 #include <tracy/Tracy.hpp>

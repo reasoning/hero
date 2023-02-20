@@ -1136,7 +1136,7 @@ struct ThreadLocalCleanupTuple : public Object
 	{		
 	}
 
-	int Compare(Object * object, int comparitor=COMPARE_GENERAL)
+	int Compare(Object * object, int comparitor=Comparable::COMPARE_GENERAL)
 	{
 		ThreadLocalCleanupTuple * tuple = (ThreadLocalCleanupTuple*)object;	
 		return Index-tuple->Index;

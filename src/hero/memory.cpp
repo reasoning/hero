@@ -529,8 +529,8 @@ MemoryStorage* MemoryPool::Get(int size)
 
     if (size < 4)
         size = 4;
-    int power = Binary::NextPowerOfTwo((uint32_t)size - 1);
-    int index = Binary::BitIndex((uint32_t)power) - 2;
+    int power = Binary::NextPowerOfTwo((unsigned int)size - 1);
+    int index = Binary::BitIndex((unsigned int)power) - 2;
 
     Assert(power > Capacity[Power - 1] || (index >= 0 && index <= Power - 1));
     Assert(power > Capacity[Power - 1] || Capacity[index] == power);
@@ -604,8 +604,8 @@ bool MemoryPool::Put(MemoryStorage* storage)
 
     int size = storage->Bytes;
     Assert(size >= 4);
-    int power = Binary::NextPowerOfTwo((uint32_t)size - 1);
-    int index = Binary::BitIndex((uint32_t)power) - 2;
+    int power = Binary::NextPowerOfTwo((unsigned int)size - 1);
+    int index = Binary::BitIndex((unsigned int)power) - 2;
 
     Assert(power > Capacity[Power - 1] || (index >= 0 && index <= Power - 1));
     Assert(power > Capacity[Power - 1] || Capacity[index] == power);
