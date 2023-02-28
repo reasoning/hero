@@ -30,6 +30,7 @@ add_compile_options(-fPIC)
 #add_compile_options(-fno-threadsafe-statics -fno-exceptions -fno-rtti -fno-builtin)
 add_compile_options(-fno-exceptions -fno-rtti)
 
+#add_link_options(-nodefaultlibs -lc)
 
 #set(MODULE_NAME ${CMAKE_CURRENT_PROJECT})
 set(MODULE_NAME ${CMAKE_PROJECT_NAME})
