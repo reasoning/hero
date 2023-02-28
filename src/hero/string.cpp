@@ -104,13 +104,15 @@ const int Characters::Lower[] = {
 	224,225,226,227,228,229,230,231,232,233,234,235,236,237,238,239,
 	240,241,242,243,244,245,246,247,248,249,250,251,252,253,254,255};
 
-bool Characters::Equals(char * left, int leftSize, char * right, int rightSize, bool caseless) {
+bool Characters::Equals(char * left, int leftSize, char * right, int rightSize, bool caseless) 
+{
 	if (leftSize != rightSize) return false;
 	if (left == right) return true;
 	return Compare(left,leftSize,right,rightSize,caseless)==0;    
 }
 
-bool Characters::Equals(char * left, char * right, int size, bool caseless) {
+bool Characters::Equals(char * left, char * right, int size, bool caseless) 
+{
 
 	Assert(size >= 0);
 
@@ -119,14 +121,17 @@ bool Characters::Equals(char * left, char * right, int size, bool caseless) {
 	if (left == right || size == 0) return true;
 	if (Characters::Normalise(left[size-1],caseless) != Characters::Normalise(right[size-1],caseless)) return false;
 
-	for (int index=(size>>2);index>0;--index) {
-		if (*(int*)left != *(int*)right) {
+	for (int index=(size>>2);index>0;--index) 
+	{
+		if (*(int*)left != *(int*)right) 
+		{
 			if (Characters::Normalise(*left++,caseless)!=Characters::Normalise(*right++,caseless)) return false;
 			if (Characters::Normalise(*left++,caseless)!=Characters::Normalise(*right++,caseless)) return false;
 			if (Characters::Normalise(*left++,caseless)!=Characters::Normalise(*right++,caseless)) return false;
 			if (Characters::Normalise(*left++,caseless)!=Characters::Normalise(*right++,caseless)) return false;
 		}
-		else {
+		else 
+		{
 			left+=4;
 			right+=4;
 		}
@@ -140,7 +145,8 @@ bool Characters::Equals(char * left, char * right, int size, bool caseless) {
 	return true;
 }
 
-int Characters::Compare(char * left, int leftSize, char * right, int rightSize, bool caseless) {
+int Characters::Compare(char * left, int leftSize, char * right, int rightSize, bool caseless) 
+{
 	int res = Compare(left,right,(leftSize<rightSize)?leftSize:rightSize,caseless);
 	return (res)?res:leftSize-rightSize;
 }
@@ -151,8 +157,10 @@ int Characters::Compare(char * left, char * right, int size, bool caseless)
 	Assert(size >= 0);
 
     int res;
-	for (int index = (size>>2);index>0;--index) {
-		if (*(int*)left != *(int*)right) {
+	for (int index = (size>>2);index>0;--index) 
+	{
+		if (*(int*)left != *(int*)right) 
+		{
 			res = Characters::Normalise(*left++,caseless)-Characters::Normalise(*right++,caseless);
 			if (res) return res;
 
@@ -165,7 +173,8 @@ int Characters::Compare(char * left, char * right, int size, bool caseless)
 			res = Characters::Normalise(*left++,caseless)-Characters::Normalise(*right++,caseless);
 			if (res) return res;
 		}
-		else {
+		else 
+		{
 			left    +=4;
 			right   +=4;
 		}
@@ -185,7 +194,8 @@ char * Characters::LFind(char * left, int leftSize, char * right, int rightSize,
 	if (right == 0 || rightSize < 1 || rightSize > leftSize) return 0;
 
 	int limit = leftSize-rightSize;
-	for(int n=0;n <= limit;++n) {
+	for(int n=0;n <= limit;++n) 
+	{
 		if (Characters::Normalise(left[n],caseless) == Characters::Normalise(right[0],caseless) && 
             Characters::Normalise(left[n+rightSize-1],caseless) == Characters::Normalise(right[rightSize-1],caseless))
 			if (Equals((left+n),right,rightSize,caseless)) return (char *) (left+n);
@@ -200,7 +210,8 @@ char * Characters::RFind(char * left, int leftSize, char * right, int rightSize,
 		return 0;
 
 	int limit = leftSize-rightSize;
-	for(int n=limit;n >= 0;--n) {
+	for(int n=limit;n >= 0;--n) 
+	{
 		if (Characters::Normalise(left[n],caseless) == Characters::Normalise(right[0],caseless) && 
             Characters::Normalise(left[n+rightSize-1],caseless) == Characters::Normalise(right[rightSize-1],caseless))
 			if (Equals((left+n),right,rightSize,caseless)) return (char *) (left+n);

@@ -39,14 +39,11 @@ SOFTWARE.
 #include "hero/types.h"
 
 #if defined (HERO_PLATFORM_LINUX) || defined(HERO_PLATFORM_MINGW)
-
 #ifdef HERO_USING_STD
 #include <new>
 
 #endif
-
 #else
-
 #include <new.h>
 
 #endif

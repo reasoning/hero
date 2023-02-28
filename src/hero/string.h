@@ -603,6 +603,16 @@ public:
 		return Instance == identity || Bytes::Instance == identity;
 	}
 
+	static int Compare(const Substring& lhs, const Substring & rhs, bool caseless=false)
+	{
+		return ((Substring&)lhs).Compare(rhs,caseless);
+	}
+
+	static bool Equals(const Substring& lhs, const Substring & rhs, bool caseless=false)
+	{
+		return ((Substring&)lhs).Equals(rhs,caseless);
+	}
+
 public:
 
     Substring() {}
@@ -732,7 +742,7 @@ public:
 	bool Integer(long long & value,int radix=10)	{return Characters::Integer(value,radix,Data,Size);}
 	bool Real(double & value)						{return Characters::Real(value,Data,Size);}
 
-    bool Equals(Substring & str, bool caseless=false) {return Equals(str.Data,str.Size,caseless);}
+    bool Equals(const Substring & str, bool caseless=false) {return Equals(str.Data,str.Size,caseless);}
     bool Equals(const char * data, bool caseless=false) {return Equals((char*)data,Length(data),caseless);}
     bool Equals(const char c, bool caseless=false) {return Equals((char*)&c,1,caseless);}
     bool Equals(char * data, int size, bool caseless=false) 
@@ -741,7 +751,7 @@ public:
 		return (caseless)?Characters::EqualsCaseless(Data,Size,data,size):Characters::Equals(Data,Size,data,size);
     }
 
-    int Compare(Substring & str, bool caseless=false) {return Compare(str.Data,str.Size,caseless);}
+    int Compare(const Substring & str, bool caseless=false) {return Compare(str.Data,str.Size,caseless);}
     int Compare(const char * data, bool caseless=false) {return Compare((char*)data,Length(data),caseless);}
     int Compare(const char c, bool caseless=false) {return Compare((char*)&c,1,caseless);}
     int Compare(char * data, int size, bool caseless=false) 
@@ -767,7 +777,7 @@ public:
 	bool operator >= (const Substring & str) {return Compare((Substring &)str) >= 0;}
 	bool operator >= (const char * data) {return Compare(data) >= 0;}   
 
-    friend bool operator == (Substring & lhs, Substring & rhs) {
+    friend bool operator == (const Substring & lhs, const Substring & rhs) {
         if (lhs.Size != rhs.Size) return false;
         return Characters::Equals(lhs.Data,lhs.Size,rhs.Data,rhs.Size);
     }
