@@ -88,16 +88,6 @@ namespace Hero {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct Range
-{
-	int First;
-	int Last;
-
-	Range(int first=0,int last=0):First(first),Last(last){}
-
-	bool IsEmpty() {return First == Last;}
-};
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -298,6 +288,15 @@ public:
 
 	Iterand<_Kind_> Forward();
 	Iterand<_Kind_> Reverse();
+
+	template<typename _Functor_>
+	Iterable<_Kind_> & Foreach(_Functor_ && func)
+	{
+		for (int i=0;i<Length();++i)
+			func(i,At(i));
+
+		return *this;
+	}
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -429,6 +428,35 @@ public:
 	typename Hero::Template<_Kind_>::Reference operator * () {return (*this)();}
 	typename Hero::Template<_Kind_>::Pointer operator -> () {return & (*this)();}
 
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+struct Range : public Iterable<int>
+{
+	int First;
+	int Last;
+
+	int Index;
+
+	Range(int first=0,int last=0):First(first),Last(last),Index(0){}
+
+	bool IsEmpty() {return First == Last;}
+
+	virtual int & At(int index)
+	{
+		Assert(index < Length());
+		Index = First+index;
+		return Index;
+	}
+
+	virtual int Length() 
+	{
+		Assert(Last >= First);
+		return Last-First;
+	}
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -670,6 +698,20 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename _Kind_>
+inline Iterand<_Kind_> begin(const Iterable<_Kind_> & iterable)
+{
+	return ((Iterable<_Kind_>&)iterable).Forward();
+}
+
+template<typename _Kind_>
+inline Iterand<_Kind_> end(const Iterable<_Kind_> & iterable)
+{
+	Iterand<_Kind_> it = ((Iterable<_Kind_>&)iterable).Forward();
+	it.Index = ((Iterable<_Kind_>&)iterable).Length();
+	return it;
+}
+
+template<typename _Kind_>
 int Iterable<_Kind_>::Move(Iterand<_Kind_> & iterand, int amount)
 {
 	if (amount > 0)
@@ -857,16 +899,11 @@ public:
 		return to;
 	}
 
-	static _Kind_ * Set(_Kind_ * to,typename Template<_Kind_>::ConstReference kind, int size)
+	static _Kind_ * Set(_Kind_ * to, typename Template<_Kind_>::ConstReference kind, int size)
 	{
 		Assert(size >= 0);
 		if (size < 0) return 0;
 
-		if (PointerOrPrimitive::Value)
-		{
-			memset(to,((typename Template<_Kind_>::Reference)kind),sizeof(_Kind_)*size);
-		}
-		else
 		{
 
 			int loop = (size+7)/8;
@@ -1211,6 +1248,13 @@ public:
 		}
 	}
 
+	Array(int size, typename Template<_Kind_>::ConstReference kind):Data(0),Size(0),Allocated(0)
+	{
+		Reserve(size);
+		Array<_Kind_>::Set(Data,kind,size);
+		Size = size;
+	}
+
 	Array(int allocated):Data(0),Size(0),Allocated(0)
 	{
 		Array<_Kind_>::Allocate(Data,allocated);
@@ -1541,14 +1585,14 @@ public:
 	template <typename _Compare_>
 	int Index(_Compare_ && compare, bool functor, int seek=1)
 	{
-		return Array<_Kind_>::Index(Data,Size,compare,seek);
+		return Array<_Kind_>::Index(Data,Size,(_Compare_&&)compare,seek);
 	}
 
 	template<typename _Equals_>
 	int Find(_Equals_ && equals, int seek=1,
 		typename Traits::Enable<!Traits::PointerOrPrimitive<typename Template<_Equals_>::Value>::Value>::Type ** = 0)
 	{
-		return Find((seek<0)?-1:0,equals,seek);
+		return Find((seek<0)?-1:0,(_Equals_&&)equals,seek);
 	}	
 
 	int Find(typename Template<_Kind_>::Reference kind, int seek=1)
@@ -1575,7 +1619,7 @@ public:
 	int Find(int from, _Equals_ && equals, int seek=1,
 		typename Traits::Enable<!Traits::PointerOrPrimitive<typename Template<_Equals_>::Value>::Value>::Type ** = 0)
 	{
-		return Array<_Kind_>::Find(Data,Size,from,equals,seek);
+		return Array<_Kind_>::Find(Data,Size,from,(_Equals_ &&)equals,seek);
 	}
 
 	Result Remove(typename Template<_Kind_>::ConstReference kind)
@@ -1779,6 +1823,13 @@ public:
 			Append((*it));
 			++it;
 		}
+	}
+
+	Vector(int size, typename Template<_Kind_>::ConstReference kind):Data(0),Size(0),Allocated(0)
+	{
+		Reserve(size);
+		Array<_Kind_>::Set(Data,kind,size);
+		Size = size;
 	}
 
 	Vector(int allocated):Data(0),Size(0),Allocated(0)
@@ -2150,7 +2201,7 @@ public:
 	template <typename _Compare_>
 	int Index(_Compare_ && compare, bool functor, int seek=1)
 	{
-		return Array<_Kind_>::Index(Data,Size,compare,seek);	
+		return Array<_Kind_>::Index(Data,Size,(_Compare_&&)compare,seek);	
 	}
 
 	template<typename _Equals_>
@@ -2185,7 +2236,7 @@ public:
 	int Find(int from, _Equals_ && equals, int seek=1,
 		typename Traits::Enable<!Traits::PointerOrPrimitive<typename Template<_Equals_>::Value>::Value>::Type ** = 0)
 	{
-		return Array<_Kind_>::Find(Data,Size,from,equals,seek);
+		return Array<_Kind_>::Find(Data,Size,from,(_Equals_&&)equals,seek);
 	}
 
 	Result Remove(typename Template<_Kind_>::ConstReference kind)
@@ -3594,6 +3645,20 @@ public:
 		Idx.Compare = Callback<int,int,int>(&Idxer,&ArrayIndexer::Compare);
 	}
 
+	ArraySet(Constructor<_Kind_> && init):
+		Cmp(Comparable::COMPARE_GENERAL),Idxer(*this)
+	{		
+		Idx.Compare = Callback<int,int,int>(&Idxer,&ArrayIndexer::Compare);
+
+		Values.Reserve((int)init.size());
+		typename Constructor<_Kind_>::iterator it = init.begin();
+		while(it != init.end()) 
+		{
+			Insert((*it));
+			++it;
+		}
+	}
+
 	ArraySet(const ArraySet & set):
 		Cmp(Comparable::COMPARE_GENERAL),Idxer(*this)
 	{
@@ -3899,8 +3964,24 @@ public:
 		Idx.Compare = Callback<int,int,int>(&Idxer,&ArrayIndexer::Compare);
 	}
 
+	ArrayMap(Constructor<Mapped<_Key_,_Value_>> && init):
+		Cmp(Comparable::COMPARE_GENERAL),Idxer(*this)
+	{
+		Idx.Compare = Callback<int,int,int>(&Idxer,&ArrayIndexer::Compare);
+
+		Keys.Reserve((int)init.size());
+		Values.Reserve((int)init.size());
+		typename Constructor<Mapped<_Key_,_Value_>>::iterator it = init.begin();
+		while(it != init.end()) 
+		{
+			Mapped<_Key_,_Value_> & mapped = (Mapped<_Key_,_Value_>&)(*it);
+			Insert(mapped.Key(),mapped.Value());
+			++it;
+		}
+	}
+
 	ArrayMap(const ArrayMap& map):
-		Idxer(Values)
+		Cmp(Comparable::COMPARE_GENERAL),Idxer(Values)
 	{
 		Copy(map);
 	}

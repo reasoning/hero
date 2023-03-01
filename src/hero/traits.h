@@ -522,7 +522,7 @@ template<typename _Kind_>
 struct Intrinsic
 {
 
-	enum Enum {Value = (IsType<char,_Kind_>::Value || IsType<unsigned char,_Kind_>::Value ||
+	enum Enum {Value = (IsType<char,_Kind_>::Value || IsType<unsigned char,_Kind_>::Value || IsType<signed char,_Kind_>::Value ||
 						IsType<short,_Kind_>::Value || IsType<unsigned short,_Kind_>::Value ||
 						IsType<int,_Kind_>::Value || IsType<unsigned int,_Kind_>::Value ||
 						IsType<long,_Kind_>::Value || IsType<unsigned long,_Kind_>::Value ||

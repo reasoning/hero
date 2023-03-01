@@ -117,6 +117,8 @@ struct Cast
 		{
 			_From_ From;
 			_To_ To;
+
+			~PrimitiveCast() {}
 		};
 
 		PrimitiveCast cast = {from};
