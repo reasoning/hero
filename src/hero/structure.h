@@ -434,8 +434,10 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct Range : public Iterable<int>
+class Range : public Iterable<int>
 {
+public:
+
 	int First;
 	int Last;
 
@@ -445,14 +447,14 @@ struct Range : public Iterable<int>
 
 	bool IsEmpty() {return First == Last;}
 
-	virtual int & At(int index)
+	virtual int & At(int index) final
 	{
 		Assert(index < Length());
 		Index = First+index;
 		return Index;
 	}
 
-	virtual int Length() 
+	virtual int Length() final
 	{
 		Assert(Last >= First);
 		return Last-First;
@@ -468,8 +470,8 @@ class Iterator
 {
 public:
 
-	class Iterand<_Kind_> Iterand;
-	class Range Range;
+	Hero::Iterand<_Kind_> Iterand;
+	Hero::Range Range;
 
 	Iterator(Iterable<_Kind_> & iterable) 
 	{
@@ -801,7 +803,7 @@ public:
 	};
 
 	template<class _Array_, size_t _N_>
-	static int Length(_Array_ (&)[_N_]) {return _N_;}
+	static constexpr int Length(_Array_ (&)[_N_]) {return _N_;}
 
 	static void Allocate(_Kind_ *& data, int allocated)
 	{
@@ -1396,9 +1398,9 @@ public:
 		}
 	}
 
-	int Length() {return Size;}		
+	int Length() final {return Size;}		
 
-	_Kind_ & At(int index)
+	_Kind_ & At(int index) final
 	{
 
 		Indices::Normalise(index,Size);
@@ -2000,9 +2002,9 @@ public:
 		}
 	}	
 
-	int Length() {return Size;}
+	int Length() final {return Size;}
 
-	_Kind_ & At(int index)
+	_Kind_ & At(int index) final
 	{
 		if (Indices::Normalise(index,Size))
 			return Data[index];
@@ -2424,9 +2426,9 @@ public:
 		return *this;
 	}		
 
-	int Length() {return Count;}
+	int Length() final {return Count;}
 
-	_Kind_ & At(int index)
+	_Kind_ & At(int index) final
 	{		
 		if (Indices::Normalise(index,Count))
 		{
@@ -3760,7 +3762,7 @@ public:
 
 	int Length() {return Values.Size;}
 
-	_Kind_ & At(int index) 
+	_Kind_ & At(int index) final
 	{
 		Indices::Normalise(index,Values.Size);
 
@@ -4070,9 +4072,9 @@ public:
 		}
 	}	
 
-	int Length() {return Values.Size;}
+	int Length() final {return Values.Size;}
 
-	_Value_ & At(int index) 
+	_Value_ & At(int index) final
 	{
 		Indices::Normalise(index,Values.Size);
 
@@ -5052,9 +5054,9 @@ public:
 		}
 	}	
 
-	int Length() {return Values.Size;}
+	int Length() final {return Values.Size;}
 
-	_Kind_ & At(int index) 
+	_Kind_ & At(int index) final
 	{
 		Indices::Normalise(index,Values.Size);
 
@@ -5496,9 +5498,9 @@ public:
 		}
 	}	
 
-	int Length() {return Values.Size;}
+	int Length() final {return Values.Size;}
 
-	_Value_ & At(int index) 
+	_Value_ & At(int index) final
 	{
 		Indices::Normalise(index,Values.Size);
 

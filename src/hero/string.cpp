@@ -1946,6 +1946,11 @@ String & String::Construct()
 	return *this;
 }
 
+String & String::Construct(String && str)
+{	
+	return Move(str);
+}
+
 String & String::Construct(const Superstring & str)
 {
 	return Attach((String&)str);	
@@ -2002,6 +2007,11 @@ String & String::Construct(char * data, int size)
 	return Term();
 }
 
+String & String::Construct(short i)
+{
+	return Construct((long long)i);
+}
+
 String & String::Construct(int i)
 {
 	return Construct((long long)i);
@@ -2009,7 +2019,7 @@ String & String::Construct(int i)
 
 String & String::Construct(long long ll)
 {
-	String string;
+	Superstring string;
 	string.Allocate(32);
 	#ifdef HERO_PLATFORM_WINDOWS
 	string.Format("%I64d",ll);
@@ -2023,7 +2033,7 @@ String & String::Construct(long long ll)
 
 String & String::Construct(double d)
 {
-	String string;
+	Superstring string;
 	string.Allocate(512);
 	string.Format("%f",d);
 	return Construct(string);
@@ -2032,7 +2042,7 @@ String & String::Construct(double d)
 
 String & String::Construct(float f)
 {
-	String string;
+	Superstring string;
 	string.Allocate(64);
 	string.Format("%g",f);
 	return Construct(string);

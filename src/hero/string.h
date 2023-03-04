@@ -547,7 +547,7 @@ public:
 	int IndexAt(char * data)
 	{
 
-		return (data && data >= Data && data < Data+Size)?data-Data:-1;
+		return (data && data >= Data && data < Data+Size)?(int)(data-Data):-1;
 	}
 
     virtual Bytes & Clear() 
@@ -973,6 +973,7 @@ public:
     }
 
     String(char c):Allocated(0)                     {Construct(c);}
+	String(signed char c):Allocated(0)				{Construct(c);}
 	String(unsigned char c):Allocated(0)			{Construct(c);}
 	String(short s):Allocated(0)					{Construct(s);}
 	String(unsigned short s):Allocated(0)			{Construct(s);}
@@ -1014,6 +1015,7 @@ public:
         return Assign(data,size,allocated);    
     }
 
+	String & Construct(String && str);
 	String & Construct(const Superstring & str);
 	String & Construct(const Substring &str);
 	String & Construct(const char * data)			{return Construct((char*)data,Length(data));}
@@ -1047,8 +1049,8 @@ public:
 	String & operator = (const Substring & str)		{Construct(str);return *this;}
 	String & operator = (const String & str)		{Construct(str);return *this;}	
 	String & operator = (const char * data)			{Construct(data);return *this;}
-	String & operator = (signed char c)				{Construct(c);return *this;}
-	String & operator = (unsigned char c)			{Construct(c);return *this;}
+	String & operator = (char c)					{Construct(c);return *this;}
+
 	String & operator = (int i)						{Construct(i);return *this;}
 	String & operator = (unsigned int i)			{Construct(i);return *this;}
 	String & operator = (long l)					{Construct(l);return *this;}
