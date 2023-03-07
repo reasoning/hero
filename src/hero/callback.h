@@ -356,6 +356,7 @@ public:
         ZoneScoped;
 		#endif
 
+        Assert(Thunk != 0);
         return Thunk((Calls&)Func,That,(_Args_&&)(args)...);
 
 	}	
@@ -368,6 +369,7 @@ public:
         ZoneScoped;
 		#endif
 
+        Assert(Thunk != 0);
         return Thunk((Calls&)Func,that,(_Args_&&)(args)...);
 
 	}

@@ -88,16 +88,6 @@ namespace Hero {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct Range
-{
-	int First;
-	int Last;
-
-	Range(int first=0,int last=0):First(first),Last(last){}
-
-	bool IsEmpty() {return First == Last;}
-};
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -298,6 +288,15 @@ public:
 
 	Iterand<_Kind_> Forward();
 	Iterand<_Kind_> Reverse();
+
+	template<typename _Functor_>
+	Iterable<_Kind_> & Foreach(_Functor_ && func)
+	{
+		for (int i=0;i<Length();++i)
+			func(i,At(i));
+
+		return *this;
+	}
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -435,13 +434,44 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+class Range : public Iterable<int>
+{
+public:
+
+	int First;
+	int Last;
+
+	int Index;
+
+	Range(int first=0,int last=0):First(first),Last(last),Index(0){}
+
+	bool IsEmpty() {return First == Last;}
+
+	virtual int & At(int index) final
+	{
+		Assert(index < Length());
+		Index = First+index;
+		return Index;
+	}
+
+	virtual int Length() final
+	{
+		Assert(Last >= First);
+		return Last-First;
+	}
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 template <typename _Kind_>
 class Iterator
 {
 public:
 
-	class Iterand<_Kind_> Iterand;
-	class Range Range;
+	Hero::Iterand<_Kind_> Iterand;
+	Hero::Range Range;
 
 	Iterator(Iterable<_Kind_> & iterable) 
 	{
@@ -670,6 +700,20 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename _Kind_>
+inline Iterand<_Kind_> begin(const Iterable<_Kind_> & iterable)
+{
+	return ((Iterable<_Kind_>&)iterable).Forward();
+}
+
+template<typename _Kind_>
+inline Iterand<_Kind_> end(const Iterable<_Kind_> & iterable)
+{
+	Iterand<_Kind_> it = ((Iterable<_Kind_>&)iterable).Forward();
+	it.Index = ((Iterable<_Kind_>&)iterable).Length();
+	return it;
+}
+
+template<typename _Kind_>
 int Iterable<_Kind_>::Move(Iterand<_Kind_> & iterand, int amount)
 {
 	if (amount > 0)
@@ -740,6 +784,10 @@ Iterator<_Kind_> Iterable<_Kind_>::Iterate(Iterand<_Kind_> & from, Iterand<_Kind
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+template<class _Array_, size_t _N_>
+
+constexpr int ArrayLength(_Array_ (&)[_N_]) {return _N_;}
+
 template<typename _Kind_, int _Factor_=175>
 class Array : public Iterable<_Kind_>
 {
@@ -753,6 +801,9 @@ public:
 	{
 		enum {Value = Traits::Or<Traits::Pointer<_Kind_>::Value,Traits::Intrinsic<_Kind_>::Value>::Value};		
 	};
+
+	template<class _Array_, size_t _N_>
+	static constexpr int Length(_Array_ (&)[_N_]) {return _N_;}
 
 	static void Allocate(_Kind_ *& data, int allocated)
 	{
@@ -803,6 +854,17 @@ public:
 		}	
 	}
 
+	static void Swap(_Kind_ * data, int i,int j)
+	{
+
+		if (i != j)
+		{
+			_Kind_ kind = (_Kind_&&)data[i];
+			data[i] = data[j];
+			data[j] = (_Kind_&&)kind;
+		}
+	}
+
 	static _Kind_ * Copy(_Kind_ * to, _Kind_ * from, int size)
 	{
 
@@ -839,16 +901,11 @@ public:
 		return to;
 	}
 
-	static _Kind_ * Set(_Kind_ * to,typename Template<_Kind_>::ConstReference kind, int size)
+	static _Kind_ * Set(_Kind_ * to, typename Template<_Kind_>::ConstReference kind, int size)
 	{
 		Assert(size >= 0);
 		if (size < 0) return 0;
 
-		if (PointerOrPrimitive::Value)
-		{
-			memset(to,((typename Template<_Kind_>::Reference)kind),sizeof(_Kind_)*size);
-		}
-		else
 		{
 
 			int loop = (size+7)/8;
@@ -942,7 +999,7 @@ public:
 
 		while (first <= last)
 		{
-			result = compare(data+middle);
+			result = compare(data[middle]);
 			if (result == 0 && seek == 0) break;
 
 			if (seek == 0)
@@ -979,6 +1036,122 @@ public:
 		}	
 
 		return middle;		
+	}
+
+	template<typename _Equals_>
+	static int Find(_Kind_ * data, int size, _Equals_ && equals, int seek=1)
+	{
+		return Find(data,size,(seek<0)?-1:0,equals,seek);
+	}
+
+	template<typename _Equals_>
+	static int Find(_Kind_ * data, int size, int from, _Equals_ && equals, int seek=1)
+	{
+
+		if (data == 0 || size == 0 || !Indices::Normalise(from,size))
+			return -1;
+
+		if (seek == 0)
+		{
+			if (equals(data[from]) == 0)
+				return from;
+		}
+		else
+		{
+			int index=from-seek;
+			while((index+=seek) < size && index >= 0)
+			{
+				if (equals(data[index]))
+					return index;
+			}
+		}
+
+		return -1;
+	}
+
+	static void Sort(_Kind_ * data, int size)
+	{
+		struct Compare
+		{
+			int operator () (typename Template<_Kind_>::ConstReference lhs, typename Template<_Kind_>::ConstReference rhs)
+			{
+				return Comparer<_Kind_>::Compare(lhs,rhs);
+			}
+		};
+
+		Compare compare;
+
+		return Sort(data,size,compare);
+
+	}
+
+	template<typename _Compare_>
+	static void Sort(_Kind_ * data, int size, _Compare_ && compare)
+	{
+		return Sort(data,size,0,size-1,compare);
+	}
+
+	template<typename _Compare_>
+	static void Sort(_Kind_ * data, int size, int first, int last, _Compare_ && compare)
+	{
+		if (!Indices::Normalise(first,size) || !Indices::Normalise(last,size))
+			return;
+
+		if (last < first) return;
+
+		Array<Range> stack;
+		stack.Allocate(last-first);
+		stack.Insert(Range(first,last));
+
+		while (stack.Size > 0)
+		{
+
+			Range range = stack.At(stack.Size-1);
+			stack.Remove(range,stack.Size-1);
+
+			first = range.First;
+			last = range.Last;
+
+			if (first < last)
+			{
+
+				int left = first+1;
+				int right = last;
+
+				while(right >= left)
+				{
+					while (left < last && compare(data[left],data[first]) < 0)
+						++left;
+
+					while (right > first && compare(data[right],data[first]) > 0)
+						--right;
+
+					if (left >= right) break;
+
+					Swap(data,left,right);
+				}
+
+				if (right == first && left == first+1)
+					left = first;
+
+				Swap(data,first,right);
+
+				stack.Append(Range(first,right-1));
+				stack.Append(Range(left+1,last));
+
+			}
+
+		}
+	}	
+
+	static void Shuffle(_Kind_ * data, int size, int seed=1)
+	{
+		if (size > 2)
+		{
+			srand((unsigned int)seed);
+			for (int i=size-1;i>0;--i)
+				Swap(data,i,rand()%i);
+		}
 	}
 
 public:
@@ -1075,6 +1248,13 @@ public:
 			Append((*it));
 			++it;
 		}
+	}
+
+	Array(int size, typename Template<_Kind_>::ConstReference kind):Data(0),Size(0),Allocated(0)
+	{
+		Reserve(size);
+		Array<_Kind_>::Set(Data,kind,size);
+		Size = size;
 	}
 
 	Array(int allocated):Data(0),Size(0),Allocated(0)
@@ -1218,9 +1398,9 @@ public:
 		}
 	}
 
-	int Length() {return Size;}		
+	int Length() final {return Size;}		
 
-	_Kind_ & At(int index)
+	_Kind_ & At(int index) final
 	{
 
 		Indices::Normalise(index,Size);
@@ -1407,57 +1587,14 @@ public:
 	template <typename _Compare_>
 	int Index(_Compare_ && compare, bool functor, int seek=1)
 	{
-
-		int first	= 0;
-		int last	= this->Size-1;
-		int middle	= first + (int)((last-first+1)>>1);
-		int result	= 0;
-
-		while (first <= last)
-		{
-			result = compare(Data[middle]);
-			if (result == 0 && seek == 0) break;
-
-			if (seek == 0)
-			{
-				if (result < 0)
-					last = middle-1;
-				else
-					first = middle+1;
-			}
-			else
-			if (seek > 0)
-			{
-
-				if (result >= 0)
-					first = middle+1;
-				else
-					last = middle-1;
-			}
-			else
-			if (seek < 0)
-			{
-
-				if (result <= 0)
-					last = middle-1;
-				else
-					first = middle+1;
-
-			}
-
-			middle = first + (int)((last-first+1)>>1);				
-
-			if (middle == this->Size && first <= last)
-				--middle;
-		}	
-
-		return middle;		
+		return Array<_Kind_>::Index(Data,Size,(_Compare_&&)compare,seek);
 	}
 
 	template<typename _Equals_>
-	int Find(_Equals_ && equals, int seek=1)
+	int Find(_Equals_ && equals, int seek=1,
+		typename Traits::Enable<!Traits::PointerOrPrimitive<typename Template<_Equals_>::Value>::Value>::Type ** = 0)
 	{
-		return Find((seek<0)?-1:0,equals,seek);
+		return Find((seek<0)?-1:0,(_Equals_&&)equals,seek);
 	}	
 
 	int Find(typename Template<_Kind_>::Reference kind, int seek=1)
@@ -1481,28 +1618,10 @@ public:
 	}    
 
 	template<typename _Equals_>
-	int Find(int from, _Equals_ && equals, int seek=1)
+	int Find(int from, _Equals_ && equals, int seek=1,
+		typename Traits::Enable<!Traits::PointerOrPrimitive<typename Template<_Equals_>::Value>::Value>::Type ** = 0)
 	{
-
-		if (IsEmpty() || !Indices::Normalise(from,Size))
-			return -1;
-
-		if (seek == 0)
-		{
-			if (equals(Data[from]) == 0)
-				return from;
-		}
-		else
-		{
-			int index=from-seek;
-			while((index+=seek) < Size && index >= 0)
-			{
-				if (equals(Data[index]))
-					return index;
-			}
-		}
-
-		return -1;
+		return Array<_Kind_>::Find(Data,Size,from,(_Equals_ &&)equals,seek);
 	}
 
 	Result Remove(typename Template<_Kind_>::ConstReference kind)
@@ -1574,82 +1693,24 @@ public:
 
 	void Swap(int i,int j)
 	{
-
-		if (i != j)
-		{
-			_Kind_ data = (_Kind_&&)Data[i];
-			Data[i] = Data[j];
-			Data[j] = (_Kind_&&)data;
-		}
+		Array<_Kind_>::Swap(Data,i,j);
 	}
 
 	void Shuffle(int seed=1)
 	{
-		if (Size > 2)
-		{
-			srand((unsigned int)seed);
-			for (int i=Size-1;i>0;--i)
-				Swap(i,rand()%i);
-		}
+		Array<_Kind_>::Shuffle(Data,Size,seed);
 	}
 
-	template<typename _Func_>
-	void Sort(_Func_ && compare)
+	template<typename _Compare_>
+	void Sort(_Compare_ && compare)
 	{
 		Sort(0,Size-1,compare);
 	}
 
-	void Sort(int first, int last, 
-		const Callback<int,typename Template<_Kind_>::ConstReference,typename Template<_Kind_>::ConstReference> & compare)
+	template<typename _Compare_>
+	void Sort(int first, int last,_Compare_ && compare)
 	{
-		if (!Indices::Normalise(first,Size) || !Indices::Normalise(last,Size))
-			return;
-
-		if (last < first) return;
-
-		Array<Range> stack;
-		stack.Allocate(last-first);
-		stack.Insert(Range(first,last));
-
-		while (stack.Size > 0)
-		{
-
-			Range range = stack.At(stack.Size-1);
-			stack.Remove(range,stack.Size-1);
-
-			first = range.First;
-			last = range.Last;
-
-			if (first < last)
-			{
-
-				int left = first+1;
-				int right = last;
-
-				while(right >= left)
-				{
-					while (left < last && compare(Data[left],Data[first]) < 0)
-						++left;
-
-					while (right > first && compare(Data[right],Data[first]) > 0)
-						--right;
-
-					if (left >= right) break;
-
-					Swap(left,right);
-				}
-
-				if (right == first && left == first+1)
-					continue;
-
-				Swap(first,right);
-
-				stack.Append(Range(first,right-1));
-				stack.Append(Range(left+1,last));
-
-			}
-
-		}
+		Array<_Kind_>::Sort(Data,Size,first,last,compare);
 	}					
 
 };
@@ -1764,6 +1825,13 @@ public:
 			Append((*it));
 			++it;
 		}
+	}
+
+	Vector(int size, typename Template<_Kind_>::ConstReference kind):Data(0),Size(0),Allocated(0)
+	{
+		Reserve(size);
+		Array<_Kind_>::Set(Data,kind,size);
+		Size = size;
 	}
 
 	Vector(int allocated):Data(0),Size(0),Allocated(0)
@@ -1934,9 +2002,9 @@ public:
 		}
 	}	
 
-	int Length() {return Size;}
+	int Length() final {return Size;}
 
-	_Kind_ & At(int index)
+	_Kind_ & At(int index) final
 	{
 		if (Indices::Normalise(index,Size))
 			return Data[index];
@@ -2135,48 +2203,7 @@ public:
 	template <typename _Compare_>
 	int Index(_Compare_ && compare, bool functor, int seek=1)
 	{
-
-		int first	= 0;
-		int last	= this->Size-1;
-		int middle	= first + (int)((last-first+1)>>1);
-		int result	= 0;
-
-		while (first <= last)
-		{
-			result = compare(Data[middle]);
-			if (result == 0 && seek == 0) break;
-
-			if (seek == 0)
-			{
-				if (result < 0)
-					last = middle-1;
-				else
-					first = middle+1;
-			}
-			else
-			if (seek > 0)
-			{
-
-				if (result >= 0)
-					first = middle+1;
-				else
-					last = middle-1;
-			}
-			else
-			if (seek < 0)
-			{
-
-				if (result <= 0)
-					last = middle-1;
-				else
-					first = middle+1;
-
-			}
-
-			middle = first + (int)((last-first+1)>>1);				
-		}	
-
-		return middle;		
+		return Array<_Kind_>::Index(Data,Size,(_Compare_&&)compare,seek);	
 	}
 
 	template<typename _Equals_>
@@ -2184,12 +2211,11 @@ public:
 		typename Traits::Enable<!Traits::PointerOrPrimitive<typename Template<_Equals_>::Value>::Value>::Type ** = 0)
 	{
 
-		return Find((seek>=0)?0:-1,equals,seek);		
+		return Find((seek<0)?-1:0,equals,seek);
 	}	
 
 	int Find(typename Template<_Kind_>::Reference kind, int seek=1)
 	{
-
 		return Find((seek<0)?-1:0,[&](_Kind_ & rhs) {return kind == rhs;},seek);
 	}
 
@@ -2212,26 +2238,7 @@ public:
 	int Find(int from, _Equals_ && equals, int seek=1,
 		typename Traits::Enable<!Traits::PointerOrPrimitive<typename Template<_Equals_>::Value>::Value>::Type ** = 0)
 	{
-		if (IsEmpty() || !Indices::Normalise(from,Size))
-			return -1;
-
-		if (seek == 0)
-		{
-			if (equals(Data[from]))
-				return from;
-		}
-		else
-		{
-			int index=from-seek;
-			while((index+=seek) < Size && index >= 0)
-			{
-
-				if (equals(Data[index]))
-					return index;
-			}
-		}
-
-		return -1;
+		return Array<_Kind_>::Find(Data,Size,from,(_Equals_&&)equals,seek);
 	}
 
 	Result Remove(typename Template<_Kind_>::ConstReference kind)
@@ -2300,80 +2307,25 @@ public:
 
 	void Swap(int i,int j)
 	{
-
-		if (i != j)
-		{
-			_Kind_ data = Data[i];
-			Data[i] = Data[j];
-			Data[j] = data;
-		}
+		Array<_Kind_>::Swap(Data,i,j);
 	}
 
 	void Shuffle(int seed=1)
 	{
-		if (Size > 2)
-		{
-			srand((unsigned int)seed);
-			for (int i=Size-1;i>0;--i)
-				Swap(i,rand()%i);
-		}
+		Array<_Kind_>::Shuffle(Data,Size,seed);
 	}
 
-	void Sort(const Callback<int,_Kind_,_Kind_> & compare)
+	template<typename _Compare_>
+	void Sort(_Compare_ && compare)
 	{
 		Sort(0,Size-1,compare);
 	}
 
-	void Sort(int first, int last, const Callback<int,_Kind_,_Kind_> & compare)
+	template<typename _Compare_>
+	void Sort(int first, int last,_Compare_ && compare)
 	{
-		if (!Indices::Normalise(first,Size) || !Indices::Normalise(last,Size))
-			return;
-
-		if (last < first) return;
-
-		Vector<Range> stack;
-		stack.Allocate(last-first);
-		stack.Insert(Range(first,last));
-
-		while (stack.Size > 0)
-		{
-
-			Range range = stack.At(stack.Size-1);
-			stack.Remove(range,stack.Size-1);
-
-			first = range.First;
-			last = range.Last;
-
-			if (first < last)
-			{
-
-				int left = first+1;
-				int right = last;
-
-				while(right >= left)
-				{
-					while (left < last && compare(Data[left],Data[first]) < 0)
-						++left;
-
-					while (right > first && compare(Data[right],Data[first]) > 0)
-						--right;
-
-					if (left >= right) break;
-
-					Swap(left,right);
-				}
-
-				if (right == first && left == first+1)
-					continue;
-
-				Swap(first,right);
-
-				stack.Append(Range(first,right-1));
-				stack.Append(Range(left+1,last));
-			}
-
-		}
-	}					
+		Array<_Kind_>::Sort(Data,Size,first,last,compare);
+	}	
 
 };	
 
@@ -2474,9 +2426,9 @@ public:
 		return *this;
 	}		
 
-	int Length() {return Count;}
+	int Length() final {return Count;}
 
-	_Kind_ & At(int index)
+	_Kind_ & At(int index) final
 	{		
 		if (Indices::Normalise(index,Count))
 		{
@@ -3695,6 +3647,20 @@ public:
 		Idx.Compare = Callback<int,int,int>(&Idxer,&ArrayIndexer::Compare);
 	}
 
+	ArraySet(Constructor<_Kind_> && init):
+		Cmp(Comparable::COMPARE_GENERAL),Idxer(*this)
+	{		
+		Idx.Compare = Callback<int,int,int>(&Idxer,&ArrayIndexer::Compare);
+
+		Values.Reserve((int)init.size());
+		typename Constructor<_Kind_>::iterator it = init.begin();
+		while(it != init.end()) 
+		{
+			Insert((*it));
+			++it;
+		}
+	}
+
 	ArraySet(const ArraySet & set):
 		Cmp(Comparable::COMPARE_GENERAL),Idxer(*this)
 	{
@@ -3796,7 +3762,7 @@ public:
 
 	int Length() {return Values.Size;}
 
-	_Kind_ & At(int index) 
+	_Kind_ & At(int index) final
 	{
 		Indices::Normalise(index,Values.Size);
 
@@ -4000,8 +3966,24 @@ public:
 		Idx.Compare = Callback<int,int,int>(&Idxer,&ArrayIndexer::Compare);
 	}
 
+	ArrayMap(Constructor<Mapped<_Key_,_Value_>> && init):
+		Cmp(Comparable::COMPARE_GENERAL),Idxer(*this)
+	{
+		Idx.Compare = Callback<int,int,int>(&Idxer,&ArrayIndexer::Compare);
+
+		Keys.Reserve((int)init.size());
+		Values.Reserve((int)init.size());
+		typename Constructor<Mapped<_Key_,_Value_>>::iterator it = init.begin();
+		while(it != init.end()) 
+		{
+			Mapped<_Key_,_Value_> & mapped = (Mapped<_Key_,_Value_>&)(*it);
+			Insert(mapped.Key(),mapped.Value());
+			++it;
+		}
+	}
+
 	ArrayMap(const ArrayMap& map):
-		Idxer(Values)
+		Cmp(Comparable::COMPARE_GENERAL),Idxer(Values)
 	{
 		Copy(map);
 	}
@@ -4090,9 +4072,9 @@ public:
 		}
 	}	
 
-	int Length() {return Values.Size;}
+	int Length() final {return Values.Size;}
 
-	_Value_ & At(int index) 
+	_Value_ & At(int index) final
 	{
 		Indices::Normalise(index,Values.Size);
 
@@ -5072,9 +5054,9 @@ public:
 		}
 	}	
 
-	int Length() {return Values.Size;}
+	int Length() final {return Values.Size;}
 
-	_Kind_ & At(int index) 
+	_Kind_ & At(int index) final
 	{
 		Indices::Normalise(index,Values.Size);
 
@@ -5516,9 +5498,9 @@ public:
 		}
 	}	
 
-	int Length() {return Values.Size;}
+	int Length() final {return Values.Size;}
 
-	_Value_ & At(int index) 
+	_Value_ & At(int index) final
 	{
 		Indices::Normalise(index,Values.Size);
 

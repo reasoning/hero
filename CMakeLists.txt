@@ -44,15 +44,7 @@ add_library(
 )       
 target_include_directories(${MODULE_NAME}_objects PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src )
 
-# CLang format source files 
-# This requires clang-format to be installed on the system...
-#list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-#include(ClangFormat)
-#clangformat_setup(${SRC_FILES})
-#target_clangformat_setup(${MODULE_NAME}_objects)
 
-# Reformat from project root using
-# cmake --build build --target clangformat
 
 # Static library (libhero.a)
 add_library(libhero STATIC $<TARGET_OBJECTS:${MODULE_NAME}_objects>)

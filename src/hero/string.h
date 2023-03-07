@@ -547,7 +547,7 @@ public:
 	int IndexAt(char * data)
 	{
 
-		return (data && data >= Data && data < Data+Size)?data-Data:-1;
+		return (data && data >= Data && data < Data+Size)?(int)(data-Data):-1;
 	}
 
     virtual Bytes & Clear() 
@@ -601,6 +601,16 @@ public:
 	{
 
 		return Instance == identity || Bytes::Instance == identity;
+	}
+
+	static int Compare(const Substring& lhs, const Substring & rhs, bool caseless=false)
+	{
+		return ((Substring&)lhs).Compare(rhs,caseless);
+	}
+
+	static bool Equals(const Substring& lhs, const Substring & rhs, bool caseless=false)
+	{
+		return ((Substring&)lhs).Equals(rhs,caseless);
 	}
 
 public:
@@ -732,7 +742,7 @@ public:
 	bool Integer(long long & value,int radix=10)	{return Characters::Integer(value,radix,Data,Size);}
 	bool Real(double & value)						{return Characters::Real(value,Data,Size);}
 
-    bool Equals(Substring & str, bool caseless=false) {return Equals(str.Data,str.Size,caseless);}
+    bool Equals(const Substring & str, bool caseless=false) {return Equals(str.Data,str.Size,caseless);}
     bool Equals(const char * data, bool caseless=false) {return Equals((char*)data,Length(data),caseless);}
     bool Equals(const char c, bool caseless=false) {return Equals((char*)&c,1,caseless);}
     bool Equals(char * data, int size, bool caseless=false) 
@@ -741,7 +751,7 @@ public:
 		return (caseless)?Characters::EqualsCaseless(Data,Size,data,size):Characters::Equals(Data,Size,data,size);
     }
 
-    int Compare(Substring & str, bool caseless=false) {return Compare(str.Data,str.Size,caseless);}
+    int Compare(const Substring & str, bool caseless=false) {return Compare(str.Data,str.Size,caseless);}
     int Compare(const char * data, bool caseless=false) {return Compare((char*)data,Length(data),caseless);}
     int Compare(const char c, bool caseless=false) {return Compare((char*)&c,1,caseless);}
     int Compare(char * data, int size, bool caseless=false) 
@@ -767,7 +777,7 @@ public:
 	bool operator >= (const Substring & str) {return Compare((Substring &)str) >= 0;}
 	bool operator >= (const char * data) {return Compare(data) >= 0;}   
 
-    friend bool operator == (Substring & lhs, Substring & rhs) {
+    friend bool operator == (const Substring & lhs, const Substring & rhs) {
         if (lhs.Size != rhs.Size) return false;
         return Characters::Equals(lhs.Data,lhs.Size,rhs.Data,rhs.Size);
     }
@@ -963,6 +973,7 @@ public:
     }
 
     String(char c):Allocated(0)                     {Construct(c);}
+	String(signed char c):Allocated(0)				{Construct(c);}
 	String(unsigned char c):Allocated(0)			{Construct(c);}
 	String(short s):Allocated(0)					{Construct(s);}
 	String(unsigned short s):Allocated(0)			{Construct(s);}
@@ -1004,6 +1015,7 @@ public:
         return Assign(data,size,allocated);    
     }
 
+	String & Construct(String && str);
 	String & Construct(const Superstring & str);
 	String & Construct(const Substring &str);
 	String & Construct(const char * data)			{return Construct((char*)data,Length(data));}
@@ -1037,8 +1049,8 @@ public:
 	String & operator = (const Substring & str)		{Construct(str);return *this;}
 	String & operator = (const String & str)		{Construct(str);return *this;}	
 	String & operator = (const char * data)			{Construct(data);return *this;}
-	String & operator = (signed char c)				{Construct(c);return *this;}
-	String & operator = (unsigned char c)			{Construct(c);return *this;}
+	String & operator = (char c)					{Construct(c);return *this;}
+
 	String & operator = (int i)						{Construct(i);return *this;}
 	String & operator = (unsigned int i)			{Construct(i);return *this;}
 	String & operator = (long l)					{Construct(l);return *this;}
