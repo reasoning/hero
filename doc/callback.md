@@ -2,7 +2,7 @@
 
 `Callback<>` is a generic function pointer.  Unlike std::function it represents functions in a "this" pointer independent way.  You can create a callback to a member function and optionally supply a this during creation, but then change the this when calling.
 
-The std::function requires separate definitions to do this, thus makes it hard (like most things in the standard library to write non templated generic code).
+The std::function requires separate definitions to do this, thus makes it hard (like most things in the standard library) to write non templated generic code.
 
 `Callback<>` accepts functors (struct's with overloaded operator ()) and lambdas.  For these two types it allocates a small struct to behave like the "this" pointer and facilicate type erasure. 
 
@@ -194,9 +194,9 @@ struct Enable<true, _Type_>
 };
 ```
 
-Normal function types can fit in the union, but lambda and functor need to allocate a struct (which we can point to using the existing this point).
+Normal function types can fit in the union, but lambda and functor need to allocate a struct (which we can point to using the existing this pointer).
 
-The struct is used to implement type erasure using a templated static function which captures the type and forwarding information for the arguments.
+The struct is used to implement type erasure using a templated static function which captures the type a    nd forwarding information for the arguments.
 
 ```cpp
 typedef Functor<_Functor_,_Return_,_Args_...> FunctorType;

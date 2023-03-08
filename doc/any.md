@@ -9,7 +9,7 @@ Any contains a simple policy based any class.
 
 You can set a type using the consstructor or the assignment operator.
 
-You can get a type using the Cast<> template method ansd specifying the
+You can get a type using the Cast<> template method and specifying the
 type.  The Cast method attempts to verify that the types are the same
 and will return a null value (zero memory but same type) as the type
 requested if this fails.  
@@ -29,7 +29,7 @@ if (!Null<String>::Equals(res))
 
 ```
 
-Here you can see any used with int ans several string types.
+Here you can see any used with int and several string types.
 
 ```cpp
 
