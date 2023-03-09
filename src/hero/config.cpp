@@ -40,10 +40,16 @@ namespace Hero {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+bool Options::Parse(char * data, int size)
+{
+	Append(data,size);
+	return Parse();
+}
+
 bool Options::Parse(int argc, char * argv[])
 {
 	for (int i=0;i<argc;++i)
-		(*this) << argv[i];
+		Append(argv[i]);
 	return Parse();
 }
 
@@ -58,7 +64,13 @@ bool Options::Parse()
 			parser.Next();
 			if (parser.Is("-"))
 				parser.Next();
-			if (parser.ParseWord())
+
+			parser.Mark();
+			while (!parser.Eof() && parser.IsAlphanumeric())
+				parser.Next();
+			parser.Trap();
+
+			if (parser.Token.Size > 0)
 			{
 				String opt = parser.Token;
 				Array<Substring> values;
@@ -81,6 +93,7 @@ bool Options::Parse()
 				if (!Match(opt,values))
 				{
 
+					Raise("Options::Parse: Unmatched option %s",opt.Print());
 				}
 
 			}
@@ -96,23 +109,25 @@ bool Options::Parse()
 	return true;
 }
 
-bool Options::Match(const String & opt, Array<Substring> & values)
+bool Options::Match(const Substring & opt, Array<Substring> & values)
 {
 	Iterand<Arg*> args = Args.Forward();
 	while (args)
 	{	
-		if (args()->Matches(opt))
+		if (args()->Match(opt))
 		{
 
 			Iterand<Substring> value = values.Forward();
 			while(value)
 			{
-				args()->Val.Append(value());		
+				args()->Values.Append(value());		
 				++value;
 			}
 
 			return true;
 		}
+
+		++args;
 	}
 
 	return false;

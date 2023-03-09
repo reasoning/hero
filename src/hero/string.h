@@ -511,9 +511,10 @@ public:
     int Size;
 
 	explicit Bytes():Data(0),Size(0) {}
-	explicit Bytes(const char *data):Data((char*)data),Size((int)Length(data)) {}
-	explicit Bytes(const Bytes & bytes):Data(bytes.Data),Size(bytes.Size) {}
+	explicit Bytes(const char *data):Data((char*)data),Size((int)Length(data)) {}	
 	explicit Bytes(char *data, int size):Data(data),Size(size) {}
+	explicit Bytes(const Bytes & bytes):Data(bytes.Data),Size(bytes.Size) {}
+	explicit Bytes(Bytes && bytes):Data(bytes.Data),Size(bytes.Size) {bytes.Data=0;bytes.Size=0;}
 
     int Length() const
     {
@@ -619,6 +620,7 @@ public:
     Substring(const char * data):Bytes((char*)data,Length(data)) {}
     Substring(char * data, int size):Bytes(data,size) {}        
     Substring(const Substring & str):Bytes(str.Data,str.Size) {}    
+	Substring(Substring && str):Bytes(str.Data,str.Size) {str.Data=0;str.Size=0;}    
 
 	Substring(const Substring & str, int from, int to)
 	{
@@ -634,14 +636,14 @@ public:
         Size = slice.Size;        
 	}
 
-	Substring (const char * data, int from, int to)
+	Substring(const char * data, int from, int to)
 	{
         Substring slice = Substring((char*)data, Substring::Length(data)).Slice(from,to);
         Data = slice.Data;
         Size = slice.Size;       
 	}
 
-	Substring (const char * data, int from)
+	Substring(const char * data, int from)
 	{
         Substring slice = Substring((char*)data, Substring::Length(data)).Slice(from);
         Data = slice.Data;
@@ -961,11 +963,11 @@ public:
 		Construct(data,size,allocated);
     }
 
-    String(String && str):Allocated(0)         
+    String(String && str):Allocated(0)		
     {
-        Data = str.Data;
-        Size = str.Size;
-        Allocated = str.Allocated;
+		Data = str.Data;
+		Size = str.Size;
+		Allocated = str.Allocated;
 
         str.Data = 0;
         str.Size = 0;

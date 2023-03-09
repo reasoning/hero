@@ -49,9 +49,9 @@ public:
 
 	String Key;
 
-	Array<String> Opt;
+	Array<String> Opts;
 
-	Array<String> Val;
+	Array<String> Values;
 
 	enum Bound
 	{
@@ -85,7 +85,7 @@ public:
 
 		bool Apply(Arg & arg)
 		{
-			if (arg.Val.Size > Index)
+			if (arg.Values.Size > Index)
 			{
 
 				switch(Type)
@@ -95,6 +95,7 @@ public:
 				case BIND_INT: *((int*)Ptr) = (int)arg.Integer(Index); break;
 				case BIND_LONGLONG: *((long long*)Ptr) = (long long)arg.Integer(Index); break;
 				case BIND_DOUBLE: *((double*)Ptr) = (double)arg.Real(Index); break;
+				case BIND_STRING: *((String*)Ptr) = arg.Str(Index); break;
 
 				case BIND_FUNC: arg.Func(); break;
 				}
@@ -107,6 +108,20 @@ public:
 	Binder Binding;
 	Callback<void> Func;
 
+	struct Base
+	{
+		Arg * Self;
+		int Index;		
+		Base(Arg * self,int index):Self(self),Index(index) {}
+	};
+
+	template<typename _Kind_>
+	struct Getter : Base
+	{
+		Getter(Arg * self, int index):Base(self,index) {}
+		String operator ()() {return Self->Str(Index);}
+	};
+
 	Arg(const String & key):Key(key)
 	{
 	}
@@ -116,7 +131,7 @@ public:
 	}
 
 	Arg(const Arg & arg):
-		Key(arg.Key),Opt(arg.Opt),Val(arg.Val),Binding(arg.Binding),Func(arg.Func)
+		Key(arg.Key),Opts(arg.Opts),Values(arg.Values),Binding(arg.Binding),Func(arg.Func)
 	{
 	}
 
@@ -130,15 +145,24 @@ public:
 
 		opt.Trim();
 		opt.LTrim("-");		
-		Opt.Append(opt);
+		Opts.Append(opt);
 		return true;
 	}
 
-	bool Matches(Substring opt)
+	bool Match(Substring opt)
 	{
 
 		opt.Trim();
 		opt.LTrim("-");		
+
+		Iterand<String> option = Opts.Forward();
+		while (option)
+		{
+
+			if (option().Is(opt,true))
+				return true;
+			++option;
+		}
 
 		return false;	
 	}
@@ -155,44 +179,123 @@ public:
 
 		struct Inserter
 		{
-			Arg * Self;
 			_Map_<_Key_,_Value_> & Map;
-			int Index;
-			Inserter(Arg * self, _Map_<_Key_,_Value_> & map, int index):Map(map),Index(index) {}
+			Getter<_Value_> Get;
+			Inserter(Arg * self, int index, _Map_<_Key_,_Value_> & map):
+				Get(self,index),Map(map) {}
+
 			void operator() ()
-			{
-				Map.Insert(Self->String(Index));
+			{	
+				Map.Insert(Get.Self->Key, Get());
+
 			}				
 		};
 
-		Binding = Binder(BIND_MAP,index);
+		Func = Callback<void>(Inserter(this,index,map));
+		Binding = Binder(BIND_FUNC,index);
+		return *this;
 	}
+
+	template<typename _Value_>
+	Arg & Bind(Callback<void,_Value_> & func, int index=0)
+	{
+
+		struct Inserter
+		{
+			Callback<void,_Value_> Func;
+			Getter<_Value_> Get;
+			Inserter(Arg * self, int index, Callback<void,_Value_> & func):
+				Get(self,index),Func(func) {}
+
+			void operator () ()
+			{				
+				Func(Get());				
+			}
+		};
+
+		Func = Callback<void>(Inserter(this,index,func));
+		Binding = Binder(BIND_FUNC,index);		
+		return *this;
+	}
+
+	template<typename _Value_>
+	Arg & Bind(Hero::Array<_Value_> & array, int index=0)
+	{
+		struct Inserter
+		{
+
+			Hero::Array<_Value_> & Array;
+			Getter<_Value_> Get;
+
+			Inserter(Arg * self, int index, Hero::Array<_Value_> & array):
+				Get(self,index),Array(array) {}
+
+			void operator () ()
+			{
+
+				Array.Reserve(Get.Index+1);
+				Array.Insert(Get(),Get.Index);
+			}
+		};
+
+		Func = Callback<void>(Inserter(this,index,array));
+		Binding = Binder(BIND_FUNC,index);	
+		return *this;
+	}	
 
 	bool Boolean(int index=0)
 	{
-		if (index >= Val.Size) return false;
-		return Val[index].Boolean();
+		if (index >= Values.Size) return false;
+		return Values[index].Boolean();
 	}
 
 	long long Integer(int index=0)
 	{
-		if (index >= Val.Size) return 0;
-		return Val[index].Integer();
+		if (index >= Values.Size) return 0;
+		return Values[index].Integer();
 	}	
 
 	double Real(int index=0)
 	{
-		if (index >= Val.Size) return 0.0;
-		return Val[index].Real();
+		if (index >= Values.Size) return 0.0;
+		return Values[index].Real();
 	}	
 
-	String String(int index=0)
+	String Str(int index=0)
 	{
-		if (index >= Val.Size) return "";
-		return Val[index];
+		if (index >= Values.Size) return "";
+		return Values[index];
 	}			
 
 };
+
+template<>
+struct Arg::Getter<bool> : Arg::Base
+{
+	Getter(Arg * self, int index):Base(self,index) {}
+	bool operator ()() {return (int)Self->Boolean(Index);}
+};	
+
+template<>
+struct Arg::Getter<int> : Arg::Base
+{
+	Getter(Arg * self, int index):Base(self,index) {}
+	int operator ()() {return (int)Self->Integer(Index);}
+};	
+
+template<>
+struct Arg::Getter<long long> : Arg::Base
+{
+	Getter(Arg * self, int index):Base(self,index) {}
+	long long operator ()() {return (long long)Self->Integer(Index);}
+};	
+
+template<>
+struct Arg::Getter<double> : Arg::Base
+{
+	Getter(Arg * self, int index):Base(self,index) {}
+	double operator ()() {return (double)Self->Real(Index);}
+};	
 
 class Options : public String
 {
@@ -211,7 +314,7 @@ public:
 		Args.Destroy();
 	}
 
-	Arg & Option(const String & key, const String & opt1)
+	Arg & Option(const Substring & key, const Substring & opt1)
 	{
 		Arg * arg = new Arg(key);
 		arg->Option(opt1);
@@ -219,7 +322,7 @@ public:
 		return *arg;
 	}
 
-	Arg & Option(const String & key, const String & opt1, const String & opt2)
+	Arg & Option(const Substring & key, const Substring & opt1, const Substring & opt2)
 	{
 		Arg * arg = new Arg(key);
 		arg->Option(opt1);
@@ -229,7 +332,7 @@ public:
 		return *arg;
 	}	
 
-	Arg & Option(const String & key, const String & opt1, const String & opt2, const String & opt3)
+	Arg & Option(const Substring & key, const Substring & opt1, const Substring & opt2, const Substring & opt3)
 	{
 		Arg * arg = new Arg(key);
 		arg->Option(opt1);
@@ -240,7 +343,7 @@ public:
 		return *arg;
 	}	
 
-	bool Contains(const String & key)
+	bool Contains(const Substring & key)
 	{
 		Iterand<Arg*> args = Args.Forward();
 		while (args)
@@ -253,7 +356,7 @@ public:
 		return false;
 	}
 
-	Arg & operator[] (const String & key)
+	Arg & operator[] (const Substring & key)
 	{
 		Iterand<Arg*> args = Args.Forward();
 		while (args)
@@ -266,6 +369,9 @@ public:
 		return Null;	
 	}
 
+	bool Parse(const char * data) {return Parse((char*)data,String::Length(data));}
+	bool Parse(const Substring & str) {return Parse(str.Data,str.Size);}
+	bool Parse(char * data, int size);
 	bool Parse(int argc, char * argv[]);
 	bool Parse();
 
@@ -281,7 +387,7 @@ public:
 		return true;		
 	}
 
-	bool Match(const String & opt, Array<Substring> & values);
+	bool Match(const Substring & opt, Array<Substring> & values);
 
 };
 
@@ -294,10 +400,10 @@ class Args : public Path
 public:
 
 	Args(){}
-	Args(const char * data){Construct(data);}
-	Args(char * data, int size){Construct(data,size);}
-	Args(const Substring & str){Construct(str);}
-	Args(int argc, char * argv[]){Construct(argc,argv);}
+	Args(const char * data) {Construct(data);}
+	Args(char * data, int size) {Construct(data,size);}
+	Args(const Substring & str) {Construct(str);}
+	Args(int argc, char * argv[]) {Construct(argc,argv);}
 
 	bool Construct(const Substring & str) {return Construct(str.Data,str.Size);}
 	bool Construct(const char * data) {return Construct((char*)data,String::Length(data));}

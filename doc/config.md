@@ -15,9 +15,9 @@ Each `Arg` can be bound to a variable whos value will be populated as arguments 
 
 `Properties` is just a wrapper for a `Multimap<String,String>` with some additonal helper methods like `Contains(...)`
 
-A `Section` has a `Name` and `Properties` and maps to a section within a `.ini` configuration file.
+A `Section` has a `Name` and `Properties` and maps to a section within a .ini configuration file.
 
-`Configuration` contains a list of `Section`'s and can load a `.ini` file, providing methods to query sections and properties.  It is a simple interface that returns pointers to `String` or `Section` or null if the query failed.
+`Configuration` contains a list of `Section`'s and can load a .ini file, providing methods to query sections and properties.  It is a simple interface that returns pointers to `String` or `Section` or null if the query failed.
 
 
 

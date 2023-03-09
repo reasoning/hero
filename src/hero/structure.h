@@ -2434,17 +2434,26 @@ public:
 		{
 
 			Assert(index < Count && index >= 0);
+			Entry * entry = 0;
 
-			Entry * entry = Last;
-			int offset = Count;
-			while (--offset > index)
+			if (index > (Count>>1))
 			{
-				entry = entry->Prev;
-				if (!entry)
-					return Null<_Kind_>::Value();
+				entry = Last;
+				int offset = Count;
+				while (entry && --offset > index)
+					entry = entry->Prev;
+			}
+			else
+			{
+				entry = First;
+				int offset = 0;
+				while (entry && offset++ < index)
+					entry = entry->Next;
 			}
 
-			if (entry->Kind)
+			Assert(!entry || entry->Kind);
+
+			if (entry && entry->Kind)
 				return *entry->Kind;
 		}
 
@@ -2500,30 +2509,41 @@ public:
 
 	Result Insert(Entry *& entry, int index)
 	{
-		Entry * prev = Last;
-		int offset = Count;
-		while (--offset > index)
-		{
-			prev = prev->Prev;
-			if (!prev)
-				return false;
-		}
+		Assert(index >= 0 && index <= Count);
 
+		Entry * prev = Last;
+
+		int offset = Count;
+		while (prev && --offset > index)
+			prev = prev->Prev;
+
+		if (Count == 0)
+		{
+			First = Last = entry;
+		}
+		else
 		if (prev)
 		{	
 			Entry * next = prev->Next;		
 			if (next)
 			{				
 				next->Prev = entry;
-				entry->Next = next;			
+				entry->Next = next;	
+			}
+			else
+			{
+				entry->Next = 0;
+				Last = entry;
 			}
 
 			prev->Next = entry;
-			entry->Prev = entry;
+			entry->Prev = prev;
 		}
 		else
 		{
-			First = Last = entry;
+			entry->Prev = 0;
+			entry->Next = First;
+			First = entry;
 		}
 
 		++Count;
