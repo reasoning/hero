@@ -1486,7 +1486,8 @@ public:
 	Array& Resize(int amount)
 	{
 
-		Allocate(amount);
+		if (amount > Allocated)
+			Allocate(amount);
 
 		if (amount > Size)
 			Size = amount;
@@ -2099,9 +2100,8 @@ public:
 	{
 
 		int allocated = (Data==Mem)?Vector::Default:Allocated;
-		int remaining = allocated-Size;
 
-		if (amount > remaining)
+		if (amount > allocated)
 			Allocate(amount);
 
 		if (amount > Size)
@@ -4106,24 +4106,30 @@ public:
 		return Null<_Value_>::Value();
 	}	
 
-	virtual _Value_ & Get(const _Key_ & key, int seek=0)
+	virtual _Value_ & Get(const _Key_ & key, int seek)
 	{
 		ArrayMapped & mapped = Idxer.Alias();
 		mapped.Key() = &((_Key_&)key);
 
 		int index = Idx.Select(-1,seek);
 		if (index != -1)
-			return Values[index];
+		{
+			if (seek == 0)
+				return Values[index];
+
+			if (seek > 0)
+				++index;
+		}
 
 		index = Keys.Size;
 		Values.Append(_Value_());
 		Keys.Append(key);
 
-		Idx.Insert(index);
+		Idx.Insert(index,seek);
 		return Values[index];	
 	}
 
-	virtual _Value_ & Get(_Key_ && key, int seek=0)
+	virtual _Value_ & Get(_Key_ && key, int seek)
 	{
 		#ifdef HERO_USING_TRACY
 		ZoneScopedS(16);
@@ -4134,30 +4140,63 @@ public:
 		int index = Idx.Select(Keys.Size-1,seek);
 		if (index != -1)
 		{
+			if (seek == 0)
+			{
 
-			Keys[Keys.Size-1] = _Key_();
+				Keys[Keys.Size-1] = _Key_();
 
-			--Keys.Size;
+				--Keys.Size;
 
-			return Values[index];
+				return Values[index];
+			}
+
+			if (seek > 0)
+				++index;
 		}
 
 		Values.Append(_Value_());
 		index = Keys.Size-1;
 
-		Idx.Insert(index);
+		Idx.Insert(index,seek);
 		return Values[index];			
+	}
+
+	virtual Result Set(typename Template<_Key_>::ConstReference key, typename Template<_Value_>::ConstReference value, int seek)
+	{
+		ArrayMapped & mapped = Idxer.Alias();
+		mapped.Key() = &((_Key_&)key);
+
+		int index = Idx.Select(-1,seek);
+
+		if (index != -1)
+		{
+
+			if (seek == 0)
+				return Result(false,index);
+
+			if (seek > 0)
+				++index;
+		}
+
+		index = Values.Size;
+		Values.Append(value);
+		Keys.Append(key);
+
+		Idx.Insert(index,seek);
+		return Result(true,index);
 	}
 
 	_Value_ & operator [] (const _Key_ & key)
 	{
 
-		return Get(key);
+		int seek=0;
+		return Get(key,seek);
 	}
 
 	_Value_ & operator [] (_Key_ && key)
 	{
-		return Get(key);
+		int seek=0;
+		return Get(key,seek);
 	}
 
 	int Index(typename Template<_Key_>::ConstReference key)
@@ -4173,34 +4212,26 @@ public:
 		return index;
 	}
 
-	Result Insert(typename Template<_Key_>::ConstReference key, typename Template<_Value_>::ConstReference value)
+	virtual Result Insert(typename Template<_Key_>::ConstReference key, typename Template<_Value_>::ConstReference value)
 	{		
-		ArrayMapped & mapped = Idxer.Alias();
-		mapped.Key() = &((_Key_&)key);
-
-		int index = Idx.Select(-1,0);
-		if (index != -1)
-			return Result(false,index);
-
-		index = Values.Size;
-		Values.Append(value);
-		Keys.Append(key);
-
-		Idx.Insert(index,0);
-		return Result(true,index);
+		int seek=0;
+		return Set(key,value,seek);
 	}
 
-	Result Insert(typename Template<_Key_>::ConstReference key)
+	virtual Result Insert(typename Template<_Key_>::ConstReference key)
 	{		
-		return Insert(key,_Value_());
+		int seek=0;
+		return Set(key,_Value_(),seek);
 	}	
 
 	Result Remove(typename Template<_Key_>::ConstReference key)
 	{
+		int seek=0;
+
 		ArrayMapped & mapped = Idxer.Alias();
 		mapped.Key() = &((_Key_&)key);
 
-		int index = Idx.Remove(-1,0);
+		int index = Idx.Remove(-1,seek);
 		if (index == -1)
 			return Result(false,index);
 
@@ -4319,6 +4350,8 @@ class Multimap : public Map<_Key_,_Value_>
 {
 public:
 
+	using Result = Result<bool,int>;
+
 	Multimap(int comparitor=Comparable::COMPARE_GENERAL):Map<_Key_,_Value_>(comparitor) {}
 
 	_Value_ & operator [] (const _Key_ & key)
@@ -4332,6 +4365,18 @@ public:
 		int seek=1;
 		return Map<_Key_,_Value_>::Get(key,seek);
 	}
+
+	Result Insert(typename Template<_Key_>::ConstReference key, typename Template<_Value_>::ConstReference value)
+	{		
+		int seek=1;
+		return Map<_Key_,_Value_>::Set(key,value,seek);
+	}
+
+	Result Insert(typename Template<_Key_>::ConstReference key)
+	{		
+		int seek=1;
+		return Map<_Key_,_Value_>::Set(key,_Value_(),seek);
+	}	
 
 };
 

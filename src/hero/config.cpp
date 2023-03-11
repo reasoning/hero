@@ -76,18 +76,21 @@ bool Options::Parse()
 				Array<Substring> values;
 
 				parser.SkipWhitespace();
-				while (!parser.Eof() && !parser.Is("-"))
+				while (!parser.Eof())
 				{
 					parser.Mark();
-					while(!parser.Eof() && !parser.IsWhitespace())
+					while(!parser.Eof() && !parser.IsWhitespace() && !parser.Is("-"))
 						parser.Next();
 					parser.Trap();
 
 					Substring value = parser.Token;
-					if (!value.IsEmpty())
-						values.Append(value);
+
+					values.Append(value);					
 
 					parser.SkipWhitespace();
+
+					if (parser.Is("-"))
+						break;
 				}
 
 				if (!Match(opt,values))

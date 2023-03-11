@@ -1021,7 +1021,7 @@ bool Characters::Decimal(long long & value, char *data,int size)
 
 long long Characters::Integer(int radix, char * data, int size)
 {
-	long long value;
+	long long value=0;
 	Integer(value,radix,data,size);
 	return value;
 }
@@ -1045,7 +1045,7 @@ bool Characters::Integer(long long & value, int radix, char * data, int size)
 
 long long Characters::Integer(char * data, int size)
 {
-	long long value;
+	long long value=0;
 	Integer(value,data,size);
 	return value;
 }
@@ -1110,7 +1110,7 @@ bool Characters::Integer(long long & value, char *data,int size)
 
 double Characters::Real(char * data, int size)
 {
-	double value;
+	double value=0.0;
 	Real(value,data,size);
 	return value;
 }
@@ -1259,17 +1259,17 @@ bool Characters::Real(double & value, char * data,int size)
 
 bool Characters::Boolean(char * data, int size)
 {
-	bool value;
+	bool value=false;
 	Boolean(value, data, size);
 	return value;
 }
 
 bool Characters::Boolean(bool & value, char * data, int size)
 {
-	if (CompareCaseless(data,size,"true",4) || CompareCaseless(data,size,"1",1))
+	if (EqualsCaseless(data,size,"true",4) || EqualsCaseless(data,size,"1",1))
 		return value=true;
 
-	if (CompareCaseless(data,size,"false",5) || CompareCaseless(data,size,"0",1))
+	if (EqualsCaseless(data,size,"false",5) || EqualsCaseless(data,size,"0",1))
 		return value=false;
 
 	if (data && *data != 0)

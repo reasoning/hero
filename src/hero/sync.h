@@ -826,7 +826,7 @@ public:
 			int index = Tls.Index;	
 
 			unsigned long id = ThreadId();
-			ThreadLocalCleanup::Singleton().Update(id,type,index,&Cleanup);				
+
 		}
 	}
 
@@ -849,7 +849,7 @@ public:
 				int type = TYPE_KIND;
 				int index = Tls.Index;
 				unsigned long id = ThreadId();
-				ThreadLocalCleanup::Singleton().Update(id,type,index,&Cleanup);									
+
 			}
 			return *tls;
 		}

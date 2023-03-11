@@ -227,7 +227,7 @@ std::ostream &operator <<(std::ostream &os, const Unsigned &x)
 		return os;
 	}
 
-	String s(Integer(x, base));
+	String s(Integer(x, base).Str());
 	os << s.Print();
 	return os;
 }

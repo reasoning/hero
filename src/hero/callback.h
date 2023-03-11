@@ -237,6 +237,33 @@ public:
         return (((Unknown*)that)->*((UnknownPrototype)func.Unknown))((_Args_&&)(args)...); 
     }
 
+    template<typename _R_,typename... _A_>    
+    Callback(const Callback<_R_, _A_...> & callback):Call((Call&)callback)
+
+    {        
+        Thunk = callback.Thunk;
+        if (Type == TYPE_FUNCTOR)
+        {
+            ((Call::Counted*)That)->Increment();
+        }
+
+    }
+
+    Callback(const Callback & callback):Call((Call&)callback)
+    {
+        Thunk = callback.Thunk;
+        if (Type == TYPE_FUNCTOR)
+        {
+            ((Call::Counted*)That)->Increment();
+        }
+    }
+
+    Callback(int null):Call()
+    {
+
+        Thunk = 0;
+    }
+
 	Callback() 
 	{
         Thunk = 0;
@@ -250,18 +277,6 @@ public:
         }
     }
 
-    template<typename _R_,typename... _A_>    
-    Callback(const Callback<_R_, _A_...> & callback):Call((Call&)callback)
-
-    {        
-        Thunk = callback.Thunk;
-        if (Type == TYPE_FUNCTOR)
-        {
-            ((Call::Counted*)That)->Increment();
-        }
-
-    }
-
     Callback & operator = (const Callback & callback)
     {
         Call::operator = ((Call&)callback);
@@ -273,12 +288,6 @@ public:
         }
 
         return *this;
-    }
-
-    Callback(int null):Call()
-    {
-
-        Thunk = 0;
     }
 
     template<typename _Functor_>

@@ -72,9 +72,15 @@ public:
 		int Type;
 		int Index;
 		void * Ptr;
+		Callback<void> Func;
 
 		Binder(int type, int index, void* ptr=0):
 			Type(type),Index(index),Ptr(ptr)
+		{
+		}
+
+		Binder(int type, int index, const Callback<void> & func):
+			Type(type),Index(index),Ptr(0),Func(func)
 		{
 		}
 
@@ -97,7 +103,7 @@ public:
 				case BIND_DOUBLE: *((double*)Ptr) = (double)arg.Real(Index); break;
 				case BIND_STRING: *((String*)Ptr) = arg.Str(Index); break;
 
-				case BIND_FUNC: arg.Func(); break;
+				case BIND_FUNC: Func(); break;
 				}
 			}
 
@@ -105,8 +111,7 @@ public:
 		}
 	};
 
-	Binder Binding;
-	Callback<void> Func;
+	Array<Binder> Bindings;
 
 	struct Base
 	{
@@ -131,20 +136,27 @@ public:
 	}
 
 	Arg(const Arg & arg):
-		Key(arg.Key),Opts(arg.Opts),Values(arg.Values),Binding(arg.Binding),Func(arg.Func)
+		Key(arg.Key),Opts(arg.Opts),Values(arg.Values),Bindings(arg.Bindings)
 	{
 	}
 
 	bool Apply()
 	{
-		return Binding.Apply(*this);
+		Iterand<Binder> binding = Bindings.Forward();
+		while (binding)
+		{
+			binding().Apply(*this);
+			++binding;
+		}
+
+		return true;
 	}
 
 	bool Option(Substring opt)
 	{
 
-		opt.Trim();
-		opt.LTrim("-");		
+		opt.Trim().LTrim("-");		
+
 		Opts.Append(opt);
 		return true;
 	}
@@ -152,8 +164,7 @@ public:
 	bool Match(Substring opt)
 	{
 
-		opt.Trim();
-		opt.LTrim("-");		
+		opt.Trim().LTrim("-");		
 
 		Iterand<String> option = Opts.Forward();
 		while (option)
@@ -167,11 +178,11 @@ public:
 		return false;	
 	}
 
-	Arg & Bind(bool & value, int index=0) {Binding = Binder(BIND_BOOL,index,(void*)&value); return *this;}
-	Arg & Bind(int & value, int index=0) {Binding = Binder(BIND_INT,index,(void*)&value); return *this;}
-	Arg & Bind(long long & value, int index=0) {Binding = Binder(BIND_LONGLONG,index,(void*)&value); return *this;}
-	Arg & Bind(double & value, int index=0) {Binding = Binder(BIND_DOUBLE,index,(void*)&value); return *this;}
-	Arg & Bind(String & value, int index=0) {Binding = Binder(BIND_STRING,index,(void*)&value); return *this;}
+	Arg & Bind(bool & value, int index=0) {Bindings.Append(Binder(BIND_BOOL,index,(void*)&value)); return *this;}
+	Arg & Bind(int & value, int index=0) {Bindings.Append(Binder(BIND_INT,index,(void*)&value)); return *this;}
+	Arg & Bind(long long & value, int index=0) {Bindings.Append(Binder(BIND_LONGLONG,index,(void*)&value)); return *this;}
+	Arg & Bind(double & value, int index=0) {Bindings.Append(Binder(BIND_DOUBLE,index,(void*)&value)); return *this;}
+	Arg & Bind(String & value, int index=0) {Bindings.Append(Binder(BIND_STRING,index,(void*)&value)); return *this;}
 
 	template< template<typename,typename> class _Map_, typename _Key_, typename _Value_>
 	Arg & Bind(_Map_<_Key_,_Value_> & map, int index=0)
@@ -191,8 +202,7 @@ public:
 			}				
 		};
 
-		Func = Callback<void>(Inserter(this,index,map));
-		Binding = Binder(BIND_FUNC,index);
+		Bindings.Append(Binder(BIND_FUNC,index,Callback<void>(Inserter(this,index,map))));
 		return *this;
 	}
 
@@ -213,8 +223,7 @@ public:
 			}
 		};
 
-		Func = Callback<void>(Inserter(this,index,func));
-		Binding = Binder(BIND_FUNC,index);		
+		Bindings.Append(Binder(BIND_FUNC,index,Callback<void>(Inserter(this,index,func))));		
 		return *this;
 	}
 
@@ -233,13 +242,12 @@ public:
 			void operator () ()
 			{
 
-				Array.Reserve(Get.Index+1);
-				Array.Insert(Get(),Get.Index);
+				Array.Resize(Get.Index+1);
+				Array[Get.Index] = Get();
 			}
 		};
 
-		Func = Callback<void>(Inserter(this,index,array));
-		Binding = Binder(BIND_FUNC,index);	
+		Bindings.Append(Binder(BIND_FUNC,index,Callback<void>(Inserter(this,index,array))));	
 		return *this;
 	}	
 
@@ -273,7 +281,7 @@ template<>
 struct Arg::Getter<bool> : Arg::Base
 {
 	Getter(Arg * self, int index):Base(self,index) {}
-	bool operator ()() {return (int)Self->Boolean(Index);}
+	bool operator ()() {return (bool)Self->Boolean(Index);}
 };	
 
 template<>

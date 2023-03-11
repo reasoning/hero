@@ -27,6 +27,7 @@ SOFTWARE.
 #include "hero/structure.h"
 
 #ifdef HERO_USING_STD
+#include <string>
 #include <array>
 #include <vector>
 #endif
