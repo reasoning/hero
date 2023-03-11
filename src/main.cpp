@@ -135,7 +135,7 @@ int main(int argc, char * argv[])
     int found = array.Find([](int x) {return x > 2;});
     PrintLn("%d",found);
 
-    if (true)
+    if (false)
     {    	 
         Timer timer;
 
@@ -149,7 +149,50 @@ int main(int argc, char * argv[])
         exit(0);
     }
 
-    if (true)
+    if (false)
+    {
+        int v1a=0;
+        int v1b=0;
+        long long v2=0;
+        double v3=0.0;        
+
+        Options options;
+
+        // Bind arg1 to opt a1, A1 val v1a and v1b
+        
+        options.Option("arg1","a1","A1").Bind(v1a,0).Bind(v1b,1);
+
+        options.Option("arg2","a2").Bind(v2);
+        options.Option("arg3","a3").Bind(v3);
+
+        Array<bool> v4;
+        options.Option("arg4","a4").Bind(v4,0).Bind(v4,1);
+        
+
+        //Map<String,int> v5;
+        Multimap<String,int> v5;
+        options.Option("arg5","a5").Bind(v5,0).Bind(v5,1).Bind(v5,2);
+
+        String v6;
+        options.Option("arg6","a6").Bind(v6);
+
+        options.Parse("--a1 1 -a2 -A1 2 -a3 0.2 --a4 -a4 true -a5 1 -a5 3 -a5 2 -a6");
+        //options.Parse("--a4 -a4 true");
+
+        PrintArgLn(v1a);
+        PrintArgLn(v1b);
+        PrintArgLn(v2);
+        PrintArgLn(v3);
+        for (bool v : v4) PrintArg(v, " ");
+        PrintLn("");
+        for (int v : v5) PrintArg(v, " ");
+        PrintLn("");
+        PrintArgLn(v6);
+
+        exit(0);
+    }
+
+    if (false)
     {
         Any any;
         any = 1;
@@ -178,24 +221,6 @@ int main(int argc, char * argv[])
         any = 10;
         int a = any.Cast<int>();
         PrintLn("%d",a);
-    }
-
-    if (true)
-    {
-
-        Args args("cmdline test/numbers.txt");
-        if (args.Length() < 2 || !File::Exists(args[1]))
-            return 0;
-
-        FileStream stream(args[1]);
-        StreamParser parser(stream);
-        while (!parser.Eof())
-        {
-            if (parser.ParseInteger())
-                PrintLn("%s",parser.Token.Print());
-            else
-                parser.SkipLine();
-        }    
     }
 
     if (false)
@@ -291,6 +316,24 @@ int main(int argc, char * argv[])
     if (false)
     {
 
+        Args args("cmdline test/numbers.txt");
+        if (args.Length() < 2 || !File::Exists(args[1]))
+            return 0;
+
+        FileStream stream(args[1]);
+        StreamParser parser(stream);
+        while (!parser.Eof())
+        {
+            if (parser.ParseInteger())
+                PrintLn("%s",parser.Token.Print());
+            else
+                parser.SkipLine();
+        }    
+    }    
+
+    if (false)
+    {
+
         Args args("--file test/numbers.txt");
 
         if (args.Segments().Count > 0 && File::Exists(args[0][1]))
@@ -346,7 +389,6 @@ int main(int argc, char * argv[])
             lines.Split("\n");
             for (Segment& line : lines.Segments())
             {
-
                 long long num = Verify(line.Integer());
                 if (Verified())
                     line.Replace(String::Formatted("%d",num*2));
@@ -434,6 +476,7 @@ int main(int argc, char * argv[])
         exit(0);
     }
 
+    if (false)
     {
 
         Folder folder("bak/");
